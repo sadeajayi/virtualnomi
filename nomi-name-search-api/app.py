@@ -11,11 +11,19 @@ from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import numpy as np
-from datasets import load_dataset
 from sentence_transformers import SentenceTransformer
 from pinecone import Pinecone
 from huggingface_hub import hf_hub_download
-import pandas as pd
+import json
+
+# Try to import datasets, but make it optional
+try:
+    from datasets import load_dataset
+    DATASETS_AVAILABLE = True
+except ImportError:
+    DATASETS_AVAILABLE = False
+    # Fallback: use requests to load data directly
+    import requests
 
 # Optional OpenAI for hybrid embeddings
 try:
@@ -33,10 +41,9 @@ OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
 app = FastAPI(title="Nomi Name Search API", version="1.0.0")
 
 # CORS middleware - allow all origins for development
-# In production, specify your frontend domain
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Change this to your frontend domain in production
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -48,8 +55,6 @@ pc = None
 index = None
 model = None
 openai_client = None
-_audio_df = None
-_audio_lookup = None
 _stories_data = None
 _stories_lookup = None
 _dataset_lookup = None
@@ -78,14 +83,46 @@ class SearchResponse(BaseModel):
     language_filter: Optional[str] = None
     stories_only: bool = False
 
+def load_dataset_fallback():
+    """Load dataset using HuggingFace Hub API directly (lighter weight)"""
+    global ds
+    if ds is None:
+        if DATASETS_AVAILABLE:
+            print("Loading dataset using datasets library...")
+            ds = load_dataset("nomi-stories/nomi-names", split="train", token=HF_TOKEN)
+        else:
+            print("Loading dataset using HuggingFace Hub API...")
+            # Use HuggingFace Hub API to download parquet file
+            try:
+                parquet_path = hf_hub_download(
+                    repo_id="nomi-stories/nomi-names",
+                    repo_type="dataset",
+                    filename="data/train-00000-of-00001.parquet",
+                    token=HF_TOKEN
+                )
+                # Read parquet using pyarrow (lighter than pandas)
+                try:
+                    import pyarrow.parquet as pq
+                    table = pq.read_table(parquet_path)
+                    # Convert to list of dicts
+                    ds = [dict(zip(table.column_names, row)) for row in table.to_pylist()]
+                except ImportError:
+                    # Fallback to pandas if pyarrow not available
+                    import pandas as pd
+                    df = pd.read_parquet(parquet_path)
+                    ds = df.to_dict('records')
+            except Exception as e:
+                print(f"Error loading dataset: {e}")
+                ds = []
+    return ds
+
 # Initialize components
 def initialize_components():
     """Lazy initialization of all components"""
     global ds, pc, index, model, openai_client
     
     if ds is None:
-        print("Loading HuggingFace dataset...")
-        ds = load_dataset("nomi-stories/nomi-names", split="train", token=HF_TOKEN)
+        load_dataset_fallback()
     
     if pc is None and PINECONE_API_KEY:
         print("Connecting to Pinecone...")
@@ -104,7 +141,13 @@ def get_dataset_lookup():
     global _dataset_lookup, ds
     if _dataset_lookup is None:
         _dataset_lookup = {}
-        for row in ds:
+        dataset = load_dataset_fallback()
+        # Handle both list and dataset object
+        if isinstance(dataset, list):
+            rows = dataset
+        else:
+            rows = dataset
+        for row in rows:
             name_strip = str(row.get("NameStrip", "")).strip()
             language = str(row.get("Language", "")).strip()
             if name_strip and language:
@@ -120,7 +163,6 @@ def get_name_metadata_from_dataset(name_strip: str, language: str) -> Dict[str, 
     if not match:
         return {}
     
-    # Extract audio URL if available
     audio_url = ""
     audio_val = match.get("Audio Pronunciation")
     if audio_val:
@@ -146,7 +188,25 @@ def load_stories_data():
     global _stories_data, _stories_lookup
     if _stories_data is None:
         try:
-            stories_ds = load_dataset("nomi-stories/nomi-stories", split="train", token=HF_TOKEN)
+            if DATASETS_AVAILABLE:
+                stories_ds = load_dataset("nomi-stories/nomi-stories", split="train", token=HF_TOKEN)
+            else:
+                # Use HuggingFace Hub API
+                stories_path = hf_hub_download(
+                    repo_id="nomi-stories/nomi-stories",
+                    repo_type="dataset",
+                    filename="data/train-00000-of-00001.parquet",
+                    token=HF_TOKEN
+                )
+                try:
+                    import pyarrow.parquet as pq
+                    table = pq.read_table(stories_path)
+                    stories_ds = [dict(zip(table.column_names, row)) for row in table.to_pylist()]
+                except ImportError:
+                    import pandas as pd
+                    df = pd.read_parquet(stories_path)
+                    stories_ds = df.to_dict('records')
+            
             _stories_data = {}
             _stories_lookup = {}
             for row in stories_ds:
@@ -182,10 +242,8 @@ def query_with_sentence_transformer(query: str, lang_filter: str) -> List[Dict[s
     if not model or not index:
         raise HTTPException(status_code=500, detail="Search service not initialized")
     
-    # Generate query embedding
     query_embedding = model.encode([query])[0].tolist()
     
-    # Query Pinecone
     filter_dict = {}
     if lang_filter != "All":
         filter_dict = {"language": lang_filter}
@@ -197,7 +255,6 @@ def query_with_sentence_transformer(query: str, lang_filter: str) -> List[Dict[s
         filter=filter_dict if filter_dict else None
     )
     
-    # Process results
     hits = []
     dataset_lookup = get_dataset_lookup()
     
@@ -206,12 +263,10 @@ def query_with_sentence_transformer(query: str, lang_filter: str) -> List[Dict[s
         name_strip = metadata.get("name_strip", "")
         language = metadata.get("language", "")
         
-        # Get full data from dataset
         row = dataset_lookup.get((name_strip, language))
         if not row:
             continue
         
-        # Get additional metadata
         name_metadata = get_name_metadata_from_dataset(name_strip, language)
         story = get_story_from_dataset(name_strip, language)
         
@@ -236,14 +291,12 @@ def query_with_openai(query: str, lang_filter: str) -> List[Dict[str, Any]]:
     if not openai_client or not index:
         return query_with_sentence_transformer(query, lang_filter)
     
-    # Generate OpenAI embedding
     response = openai_client.embeddings.create(
         model="text-embedding-3-small",
         input=query
     )
     query_embedding = response.data[0].embedding
     
-    # Query Pinecone
     filter_dict = {}
     if lang_filter != "All":
         filter_dict = {"language": lang_filter}
@@ -255,7 +308,6 @@ def query_with_openai(query: str, lang_filter: str) -> List[Dict[str, Any]]:
         filter=filter_dict if filter_dict else None
     )
     
-    # Process results (same as sentence transformer)
     hits = []
     dataset_lookup = get_dataset_lookup()
     
@@ -308,8 +360,15 @@ def query_name_db(query: str, lang_filter: str) -> List[Dict[str, Any]]:
     """Main query function - hybrid search"""
     global ds, openai_client
     
+    dataset = load_dataset_fallback()
+    # Handle both list and dataset object
+    if isinstance(dataset, list):
+        rows = dataset
+    else:
+        rows = dataset
+    
     # 1) Direct name lookup (exact match)
-    match = next((row for row in ds if row.get("NameStrip", "").strip().lower() == query.strip().lower()), None)
+    match = next((row for row in rows if row.get("NameStrip", "").strip().lower() == query.strip().lower()), None)
     if match:
         name_strip = str(match.get("NameStrip", "")).strip()
         lang = str(match.get("Language", "")).strip()
@@ -351,20 +410,13 @@ async def root():
 @app.get("/search", response_model=SearchResponse)
 async def search(
     q: str = Query(..., description="Search query"),
-    language: Optional[str] = Query("All", description="Language filter (e.g., 'Yoruba', 'Igbo', 'Hausa')"),
+    language: Optional[str] = Query("All", description="Language filter"),
     stories_only: bool = Query(False, description="Only return names with published stories")
 ):
-    """
-    Search for names by meaning, theme, or exact name
-    
-    - **q**: Search query (e.g., "love", "strength", "joy", or exact name)
-    - **language**: Filter by language (default: "All")
-    - **stories_only**: Only return names with published stories (default: False)
-    """
+    """Search for names by meaning, theme, or exact name"""
     initialize_components()
     
     if stories_only:
-        # Return names with stories
         load_stories_data()
         dataset_lookup = get_dataset_lookup()
         hits = []
@@ -414,8 +466,15 @@ async def search(
 async def get_languages():
     """Get list of available languages"""
     initialize_components()
+    dataset = load_dataset_fallback()
     languages = set()
-    for row in ds:
+    
+    if isinstance(dataset, list):
+        rows = dataset
+    else:
+        rows = dataset
+    
+    for row in rows:
         lang = row.get("Language", "").strip()
         if lang:
             languages.add(lang)
