@@ -17,8 +17,5 @@ RUN pip install --no-cache-dir --upgrade pip && \
 # Copy app
 COPY app.py .
 
-# Expose port
-EXPOSE $PORT
-
-# Start command
-CMD uvicorn app:app --host 0.0.0.0 --port $PORT
+# Start command - use shell form to expand $PORT
+CMD ["sh", "-c", "uvicorn app:app --host 0.0.0.0 --port ${PORT:-8000}"]
