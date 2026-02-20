@@ -4,14 +4,24 @@ FastAPI backend for Nomi Name Search
 Exposes semantic search functionality as REST API for frontend use
 """
 
+import io
+import math
 import os
+import re as _re
 import html as html_mod
-from datetime import datetime
+import urllib.request as _urllib
+from pathlib import Path
 from typing import Optional, List, Dict, Any
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, Response
 from pydantic import BaseModel
+
+try:
+    from PIL import Image, ImageDraw, ImageFont
+    PIL_AVAILABLE = True
+except ImportError:
+    PIL_AVAILABLE = False
 import numpy as np
 from sentence_transformers import SentenceTransformer
 from pinecone import Pinecone
@@ -60,6 +70,41 @@ openai_client = None
 _stories_data = None
 _stories_lookup = None
 _dataset_lookup = None
+_paraphrase_lookup = None
+
+_REPO_ROOT = Path(__file__).resolve().parent.parent
+_PARAPHRASE_FILE = _REPO_ROOT / "data" / "paraphrasing" / "yoruba_paraphrased_meanings.json"
+
+
+def get_paraphrase_lookup() -> Dict[str, str]:
+    """Load yoruba_paraphrased_meanings.json and return name_strip (lower) -> first variation."""
+    global _paraphrase_lookup
+    if _paraphrase_lookup is not None:
+        return _paraphrase_lookup
+    _paraphrase_lookup = {}
+    if not _PARAPHRASE_FILE.exists():
+        return _paraphrase_lookup
+    try:
+        with open(_PARAPHRASE_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        for item in data.get("results", []):
+            name = (item.get("name") or "").strip().lower()
+            variations = item.get("variations") or []
+            if name and variations:
+                _paraphrase_lookup[name] = (variations[0] or "").strip()
+    except Exception:
+        pass
+    return _paraphrase_lookup
+
+
+def display_meaning_for_result(language: str, name_strip: str, canonical_meaning: str) -> str:
+    """For Yoruba names, use first paraphrase when available; else canonical."""
+    if language != "Yoruba":
+        return canonical_meaning
+    lookup = get_paraphrase_lookup()
+    key = (name_strip or "").strip().lower()
+    return lookup.get(key, canonical_meaning)
+
 
 # Response models
 class NameResult(BaseModel):
@@ -367,12 +412,16 @@ def query_with_openai(query: str, lang_filter: str) -> List[Dict[str, Any]]:
     return hits
 
 def build_result_dict(name_data: Dict, metadata: Dict, story: Dict, score: float) -> Dict[str, Any]:
-    """Build a result dictionary"""
+    """Build a result dictionary. For Yoruba, display meaning uses first paraphrase when available."""
+    lang = name_data.get("language", "")
+    name_strip = name_data.get("name_strip", "")
+    canonical = name_data.get("meaning", "")
+    meaning = display_meaning_for_result(lang, name_strip, canonical)
     return {
         "name": name_data.get("name", ""),
         "name_strip": name_data.get("name_strip", ""),
-        "meaning": name_data.get("meaning", ""),
-        "language": name_data.get("language", ""),
+        "meaning": meaning,
+        "language": lang,
         "phonetic_spelling": metadata.get("phonetic_spelling", ""),
         "pronunciation_url": metadata.get("pronunciation_url", ""),
         "pronunciation_by": metadata.get("pronunciation_by", ""),
@@ -538,6 +587,163 @@ def _pick_accent(name_strip: str) -> str:
     idx = sum(ord(c) for c in (name_strip or "").lower()) % len(_PALETTE_HEX)
     return _PALETTE_HEX[idx]
 
+
+# ── OG image generation (1200×630 PNG for social sharing previews) ────────────
+
+_pil_font_cache: Dict[str, Any] = {}
+
+
+def _download_font_ttf(family: str, weight: int) -> Optional[str]:
+    """Return path to a bundled TTF font file for the given family/weight."""
+    # Bundled fonts live in fonts/ next to app.py
+    bundled = Path(__file__).parent / "fonts" / f"{family.replace(' ', '')}_{weight}.ttf"
+    if bundled.exists():
+        return str(bundled)
+    return None
+
+
+def _pil_font(family: str, weight: int, size: int) -> Any:
+    key = f"{family}_{weight}_{size}"
+    if key not in _pil_font_cache:
+        path = _download_font_ttf(family, weight)
+        try:
+            _pil_font_cache[key] = ImageFont.truetype(path, size) if path else ImageFont.load_default()
+        except Exception:
+            _pil_font_cache[key] = ImageFont.load_default()
+    return _pil_font_cache[key]
+
+
+def _blend(fg: tuple, bg: tuple, a: float) -> tuple:
+    """Alpha-blend fg onto bg (a=0→bg, a=1→fg). Returns RGB tuple."""
+    return tuple(int(fg[i] * a + bg[i] * (1 - a)) for i in range(3))
+
+
+def _draw_brush_stroke(draw: Any, x0: float, y: float, x1: float,
+                       text_rgb: tuple, bg_rgb: tuple, opacity: float) -> None:
+    """Variable-width organic brush stroke underswash using cubic bezier."""
+    color = _blend(text_rgb, bg_rgb, opacity)
+    cx1, cx2 = x0 + (x1 - x0) * 0.3, x0 + (x1 - x0) * 0.7
+    cy1, cy2 = y - 5, y + 5
+    for i in range(200):
+        t = i / 200
+        px = (1-t)**3*x0 + 3*(1-t)**2*t*cx1 + 3*(1-t)*t**2*cx2 + t**3*x1
+        py = (1-t)**3*y + 3*(1-t)**2*t*cy1 + 3*(1-t)*t**2*cy2 + t**3*y
+        w = 13 * math.sin(math.pi * t) + 3
+        r = w / 2
+        draw.ellipse([px - r, py - r, px + r, py + r], fill=color)
+
+
+def _wrap_text(draw: Any, text: str, font: Any, max_px: int) -> list:
+    words = text.split()
+    lines, line = [], ""
+    for word in words:
+        test = (line + " " + word).strip()
+        if draw.textlength(test, font=font) <= max_px:
+            line = test
+        else:
+            if line:
+                lines.append(line)
+            line = word
+    if line:
+        lines.append(line)
+    return lines
+
+
+def _generate_og_image(results: list, name_strip: str) -> bytes:
+    """
+    Render a 1200×630 PNG for og:image meta tag.
+    Uses Vivid Field layout (solid accent bg) — boldest for social previews.
+    """
+    W, H, PAD = 1200, 630, 80
+
+    ns      = results[0].get("name_strip", name_strip) if results else name_strip
+    accent  = _pick_accent(ns)
+    r_bg, g_bg, b_bg = int(accent[1:3], 16), int(accent[3:5], 16), int(accent[5:7], 16)
+    bg      = (r_bg, g_bg, b_bg)
+    # Sunwash Yellow needs dark text; all others use white
+    dark    = accent in ("#F2C94C",)
+    text    = (26, 26, 46) if dark else (255, 255, 255)
+
+    img  = Image.new("RGB", (W, H), bg)
+    draw = ImageDraw.Draw(img)
+
+    f_name     = _pil_font("Livvic", 800, 118)
+    f_phonetic = _pil_font("Sen",    400,  30)
+    f_meaning  = _pil_font("Livvic", 400,  32)
+    f_label    = _pil_font("Sen",    700,  14)
+    f_brand    = _pil_font("Sen",    400,  20)
+
+    # NOMI — top left
+    draw.text((PAD, 52), "NOMI", font=f_label, fill=_blend(text, bg, 0.45))
+
+    primary      = results[0] if results else {}
+    display_name = (primary.get("name") or name_strip)
+    phonetic     = (primary.get("phonetic_spelling") or "").strip()
+    language     = (primary.get("language") or "").strip()
+    meaning      = (primary.get("meaning") or "").strip()
+
+    # Name hero
+    name_y = 130
+    draw.text((PAD, name_y), display_name, font=f_name, fill=text)
+    bbox   = draw.textbbox((PAD, name_y), display_name, font=f_name)
+    name_w = bbox[2] - bbox[0]
+    name_h = bbox[3] - bbox[1]
+
+    # Brush stroke underswash
+    stroke_y = name_y + name_h + 14
+    _draw_brush_stroke(draw, PAD, stroke_y,
+                       PAD + min(name_w, W - PAD * 2 - 80),
+                       text, bg, 0.28 if not dark else 0.15)
+
+    cy = stroke_y + 30
+
+    # Phonetic chip
+    if phonetic:
+        pad_x, chip_h = 20, 52
+        tw       = int(draw.textlength(phonetic, font=f_phonetic))
+        chip_w   = tw + pad_x * 2
+        chip_bg  = _blend(text, bg, 0.16)
+        draw.rounded_rectangle([PAD, cy, PAD + chip_w, cy + chip_h],
+                                radius=chip_h // 2, fill=chip_bg)
+        draw.text((PAD + pad_x, cy + 11), phonetic, font=f_phonetic, fill=text)
+
+        # Language tag (outline pill, right of chip)
+        if language:
+            lx  = PAD + chip_w + 12
+            lw  = int(draw.textlength(language.upper(), font=f_label)) + 28
+            draw.rounded_rectangle([lx, cy, lx + lw, cy + chip_h],
+                                   radius=chip_h // 2,
+                                   outline=_blend(text, bg, 0.3), width=2)
+            draw.text((lx + 14, cy + 19), language.upper(),
+                      font=f_label, fill=_blend(text, bg, 0.7))
+        cy += chip_h + 28
+
+    elif language:
+        lw = int(draw.textlength(language.upper(), font=f_label)) + 28
+        draw.rounded_rectangle([PAD, cy, PAD + lw, cy + 44],
+                               radius=22, outline=_blend(text, bg, 0.3), width=2)
+        draw.text((PAD + 14, cy + 14), language.upper(),
+                  font=f_label, fill=_blend(text, bg, 0.7))
+        cy += 56
+
+    # Meaning (up to 3 lines)
+    if meaning:
+        lines = _wrap_text(draw, f'"{meaning}"', f_meaning, W - PAD * 2 - 80)
+        for line in lines[:3]:
+            draw.text((PAD, cy), line, font=f_meaning,
+                      fill=_blend(text, bg, 0.88))
+            cy += 46
+
+    # nomistories.com — bottom right
+    bw = int(draw.textlength("nomistories.com", font=f_brand))
+    draw.text((W - PAD - bw, H - 52), "nomistories.com",
+              font=f_brand, fill=_blend(text, bg, 0.4))
+
+    buf = io.BytesIO()
+    img.save(buf, "PNG", optimize=True)
+    return buf.getvalue()
+
+
 # Static CSS — Variant A (Cream Stationery). Page #FBF7F0, card #FFF, accent for hero/brush/tag/button.
 # Shadows: warm, card sits on top of page (aesthetics doc). Motion: 350ms ease-in-out, 8px→0.
 _CARD_CSS = """
@@ -630,7 +836,7 @@ p{{font-family:'Sen',sans-serif;font-size:16px;color:var(--ink);opacity:.7;line-
 </body></html>"""
 
 
-def _generate_name_card_html(results: list, name_strip: str) -> str:
+def _generate_name_card_html(results: list, name_strip: str, base_url: str = "") -> str:
     if not results:
         return _not_found_html(name_strip)
 
@@ -741,11 +947,15 @@ def _generate_name_card_html(results: list, name_strip: str) -> str:
 <meta name="description" content="{og_desc}">
 <meta property="og:title" content="{display_name}">
 <meta property="og:description" content="{og_desc}">
+<meta property="og:image" content="{base_url}/card-image/{ns}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
 <meta property="og:site_name" content="Nomi">
 <meta property="og:type" content="website">
-<meta name="twitter:card" content="summary">
+<meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="{display_name} — Nomi">
 <meta name="twitter:description" content="{og_desc}">
+<meta name="twitter:image" content="{base_url}/card-image/{ns}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;700;800&family=Sen:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>{_CARD_CSS}</style>
@@ -820,11 +1030,13 @@ def _lookup_name_results(name_strip: str, language: Optional[str]) -> list:
             continue
         metadata = get_name_metadata_from_dataset(ns, lang)
         story = get_story_from_dataset(ns, lang)
+        canonical_meaning = row.get("Meaning", "")
+        meaning = display_meaning_for_result(lang, ns, canonical_meaning)
         results.append({
             "name": row.get("Name", ns),
             "name_strip": ns,
             "language": lang,
-            "meaning": row.get("Meaning", ""),
+            "meaning": meaning,
             "phonetic_spelling": metadata.get("phonetic_spelling") or None,
             "audio_url": metadata.get("audio_url") or None,
             "pronunciation_by": metadata.get("pronunciation_by") or None,
@@ -882,6 +1094,7 @@ async def get_name(
 
 @app.get("/card/{name_strip}", response_class=HTMLResponse)
 async def name_card(
+    request: Request,
     name_strip: str,
     language: Optional[str] = Query(None, description="Filter by language")
 ):
@@ -891,7 +1104,28 @@ async def name_card(
     how to say your name correctly.
     """
     results = _lookup_name_results(name_strip, language)
-    return HTMLResponse(content=_generate_name_card_html(results, name_strip))
+    base_url = str(request.base_url).rstrip("/")
+    return HTMLResponse(content=_generate_name_card_html(results, name_strip, base_url=base_url))
+
+
+@app.get("/card-image/{name_strip}")
+async def name_card_image(
+    name_strip: str,
+    language: Optional[str] = Query(None, description="Filter by language")
+):
+    """
+    1200×630 PNG for og:image social sharing previews.
+    Vivid Field layout: solid accent background, bold name, phonetic, meaning.
+    """
+    if not PIL_AVAILABLE:
+        raise HTTPException(status_code=501, detail="Pillow not installed")
+    results = _lookup_name_results(name_strip, language)
+    img_bytes = _generate_og_image(results, name_strip)
+    return Response(
+        content=img_bytes,
+        media_type="image/png",
+        headers={"Cache-Control": "public, max-age=86400"},
+    )
 
 
 if __name__ == "__main__":
