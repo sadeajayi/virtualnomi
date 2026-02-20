@@ -5,10 +5,12 @@ Exposes semantic search functionality as REST API for frontend use
 """
 
 import os
+import html as html_mod
 from datetime import datetime
 from typing import Optional, List, Dict, Any
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse, Response
 from pydantic import BaseModel
 import numpy as np
 from sentence_transformers import SentenceTransformer
@@ -83,6 +85,23 @@ class SearchResponse(BaseModel):
     language_filter: Optional[str] = None
     stories_only: bool = False
 
+class NameCardData(BaseModel):
+    name: str
+    name_strip: str
+    language: str
+    meaning: str
+    phonetic_spelling: Optional[str] = None
+    audio_url: Optional[str] = None
+    pronunciation_by: Optional[str] = None
+    cultural_context: Optional[str] = None
+    themes: Optional[List[str]] = None
+    story: Optional[Dict[str, Any]] = None
+
+class NameLookupResponse(BaseModel):
+    name_strip: str
+    results: List[NameCardData]
+    total: int
+
 def load_dataset_fallback():
     """Load dataset using HuggingFace Hub API directly (lighter weight)"""
     global ds
@@ -142,18 +161,28 @@ def get_dataset_lookup():
     if _dataset_lookup is None:
         _dataset_lookup = {}
         dataset = load_dataset_fallback()
-        # Handle both list and dataset object
         if isinstance(dataset, list):
             rows = dataset
+            for row in rows:
+                name_strip = str(row.get("NameStrip", "")).strip()
+                language = str(row.get("Language", "")).strip()
+                if name_strip and language:
+                    key = (name_strip, language)
+                    if key not in _dataset_lookup or row.get("Audio Pronunciation"):
+                        _dataset_lookup[key] = row
         else:
-            rows = dataset
-        for row in rows:
-            name_strip = str(row.get("NameStrip", "")).strip()
-            language = str(row.get("Language", "")).strip()
-            if name_strip and language:
-                key = (name_strip, language)
-                if key not in _dataset_lookup or row.get("Audio Pronunciation"):
-                    _dataset_lookup[key] = row
+            # Access underlying PyArrow table directly to bypass audio decoder
+            # (avoids torchcodec/FFmpeg dependency when iterating datasets.Dataset)
+            table_dict = dataset.data.to_pydict()
+            n = len(next(iter(table_dict.values()), []))
+            for i in range(n):
+                row = {col: table_dict[col][i] for col in table_dict}
+                name_strip = str(row.get("NameStrip", "")).strip()
+                language = str(row.get("Language", "")).strip()
+                if name_strip and language:
+                    key = (name_strip, language)
+                    if key not in _dataset_lookup or row.get("Audio Pronunciation"):
+                        _dataset_lookup[key] = row
     return _dataset_lookup
 
 def get_name_metadata_from_dataset(name_strip: str, language: str) -> Dict[str, Any]:
@@ -168,9 +197,9 @@ def get_name_metadata_from_dataset(name_strip: str, language: str) -> Dict[str, 
     if audio_val:
         try:
             if isinstance(audio_val, dict):
-                audio_path = audio_val.get("path")
-                if audio_path:
-                    audio_url = f"https://huggingface.co/datasets/nomi-stories/nomi-names/resolve/main/{audio_path}"
+                # Audio bytes are embedded in the parquet — serve via local endpoint
+                if audio_val.get("bytes"):
+                    audio_url = f"/audio/{name_strip}?language={language}"
         except Exception:
             pass
     
@@ -479,6 +508,391 @@ async def get_languages():
         if lang:
             languages.add(lang)
     return {"languages": sorted(list(languages))}
+
+# ── Name card HTML helpers ────────────────────────────────────────────────────
+# Aesthetic spec: docs/Nomi_Aesthetics_System_Prompt.md (v2)
+# Variant A — Cream Stationery: page #FBF7F0, card #FFFFFF, accent from palette.
+# Card must read as object ON TOP OF page; never same colour as background.
+# One brushstroke (underswash), warm shadows, Livvic/Sen, no emojis.
+
+# Dominant accent colours (hex only); card uses Cream Stationery so text is Ink/Stone.
+_PALETTE_HEX = [
+    "#5B3FD9",   # Ink Violet
+    "#E8557A",   # Bloom Pink
+    "#F2C94C",   # Sunwash Yellow
+    "#3A9BDC",   # Sky Cerulean
+    "#5BA07A",   # Sage Leaf
+    "#E8845C",   # Dusty Coral
+    "#9B59B6",   # Soft Plum
+    "#F4B8A0",   # Blush Peach (pastel)
+    "#C5B8F0",   # Lavender Mist (pastel)
+    "#B8D8C4",   # Sage Wash (pastel)
+]
+
+PAGE_BG_CREAM = "#FBF7F0"
+CARD_BG_WHITE = "#FFFFFF"
+INK = "#1A1A2E"
+STONE = "#4A4A6A"
+
+def _pick_accent(name_strip: str) -> str:
+    idx = sum(ord(c) for c in (name_strip or "").lower()) % len(_PALETTE_HEX)
+    return _PALETTE_HEX[idx]
+
+# Static CSS — Variant A (Cream Stationery). Page #FBF7F0, card #FFF, accent for hero/brush/tag/button.
+# Shadows: warm, card sits on top of page (aesthetics doc). Motion: 350ms ease-in-out, 8px→0.
+_CARD_CSS = """
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--page-bg);font-family:'Livvic',system-ui,sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 16px}
+.card{background:var(--card-bg);border:1px solid var(--card-border);border-radius:20px;padding:48px 36px 40px;max-width:420px;width:100%;position:relative;overflow:hidden}
+.card{box-shadow:0 2px 8px rgba(26,26,46,.08),0 8px 24px rgba(26,26,46,.10),0 1px 2px rgba(26,26,46,.04)}
+.logo{font-family:'Sen',sans-serif;font-size:11px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--ink);opacity:.45;margin-bottom:40px;display:block}
+.name-hero{font-family:'Livvic',sans-serif;font-size:clamp(56px,15vw,84px);font-weight:800;color:var(--accent);line-height:.92;letter-spacing:-.02em;position:relative;z-index:1;text-transform:lowercase}
+.name-hero:first-letter{text-transform:uppercase}
+.brush-wrap{display:block;width:100%;margin-top:6px;margin-bottom:22px;overflow:visible;line-height:0}
+.phonetic-chip{display:inline-flex;align-items:center;background:var(--stone);border-radius:999px;padding:8px 18px;font-family:'Sen',sans-serif;font-size:15px;font-weight:400;color:var(--card-bg);letter-spacing:.04em;margin-bottom:10px;min-height:14px}
+.lang-tag{display:inline-flex;align-items:center;background:var(--tag-bg);border:1px solid var(--accent);border-radius:999px;padding:5px 14px;font-family:'Sen',sans-serif;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:28px;margin-left:8px}
+.divider-wave{display:block;width:100%;margin-bottom:20px}
+.meaning-label{font-family:'Sen',sans-serif;font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--ink);opacity:.45;margin-bottom:8px}
+.meaning-text{font-family:'Livvic',sans-serif;font-size:19px;font-weight:400;color:var(--ink);line-height:1.55;margin-bottom:30px}
+.audio-row{display:flex;align-items:center;gap:16px;margin-bottom:22px}
+.play-btn{width:54px;height:54px;border-radius:50%;background:var(--accent);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 10px rgba(26,26,46,.15);transition:transform .35s ease-in-out,box-shadow .35s ease-in-out}
+.play-btn:hover{transform:translateY(-1px);box-shadow:0 4px 18px rgba(26,26,46,.2)}
+.play-btn svg path{fill:var(--card-bg)}
+.play-btn.playing{animation:breathe .85s ease-in-out infinite}
+.audio-meta{flex:1}
+.audio-label{font-family:'Sen',sans-serif;font-size:14px;font-weight:600;color:var(--ink)}
+.audio-sub{font-family:'Sen',sans-serif;font-size:12px;color:var(--ink);opacity:.5;margin-top:2px}
+.no-audio{font-family:'Sen',sans-serif;font-size:14px;color:var(--ink);opacity:.6;margin-bottom:22px}
+.no-audio a{color:var(--accent);font-weight:700;text-decoration:underline;text-underline-offset:2px}
+.share-row{display:flex;gap:10px}
+.btn{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:13px;border-radius:12px;font-family:'Sen',sans-serif;font-size:14px;font-weight:600;cursor:pointer;border:none;transition:transform .35s ease-in-out,box-shadow .35s ease-in-out,background .15s ease}
+.btn-copy{background:transparent;border:1.5px solid var(--accent);color:var(--accent)}
+.btn-copy:hover{background:var(--tag-bg);transform:translateY(-1px)}
+.btn-primary{background:var(--accent);color:var(--card-bg)}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(26,26,46,.18)}
+.other-lang{font-family:'Sen',sans-serif;font-size:13px;color:var(--ink);opacity:.7;margin-bottom:6px;line-height:1.4}
+.other-lang strong{opacity:.9}
+.footer{text-align:center;margin-top:20px}
+.footer a{font-family:'Sen',sans-serif;font-size:12px;color:var(--stone);text-decoration:none;letter-spacing:.04em}
+.footer a:hover{color:var(--ink)}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--ink);color:var(--page-bg);padding:10px 22px;border-radius:12px;font-family:'Sen',sans-serif;font-size:14px;font-weight:600;transition:transform .35s ease-in-out;z-index:100}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.animate-in{animation:fadeUp .35s ease-in-out forwards;opacity:0}
+.s1{animation-delay:0ms}.s2{animation-delay:80ms}.s3{animation-delay:160ms}.s4{animation-delay:240ms}.s5{animation-delay:320ms}.s6{animation-delay:400ms}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.02)}}
+@media(max-width:400px){.card{padding:36px 22px 32px}}
+"""
+
+
+def _css_vars_cream_stationery(accent: str) -> str:
+    """Variant A: page cream, card white, 10% accent border, tag 18% accent fill."""
+    r, g, b = (int(accent[i : i + 2], 16) for i in (1, 3, 5))
+    border = f"rgba({r},{g},{b},0.1)"
+    tag_bg = f"rgba({r},{g},{b},0.18)"
+    return (
+        f"--page-bg:{PAGE_BG_CREAM};"
+        f"--card-bg:{CARD_BG_WHITE};"
+        f"--accent:{accent};"
+        f"--ink:{INK};"
+        f"--stone:{STONE};"
+        f"--card-border:{border};"
+        f"--tag-bg:{tag_bg};"
+    )
+
+
+def _not_found_html(name_strip: str) -> str:
+    esc = html_mod.escape(name_strip)
+    accent = _pick_accent(name_strip)
+    vars_css = _css_vars_cream_stationery(accent)
+    return f"""<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{esc} — Nomi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;700;800&family=Sen:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+{_CARD_CSS}
+.add-btn{{display:inline-flex;align-items:center;justify-content:center;padding:14px 28px;background:var(--accent);color:var(--card-bg);border-radius:12px;font-family:'Sen',sans-serif;font-size:15px;font-weight:600;text-decoration:none;transition:transform .35s ease-in-out}}
+.add-btn:hover{{transform:translateY(-1px)}}
+p{{font-family:'Sen',sans-serif;font-size:16px;color:var(--ink);opacity:.7;line-height:1.6;margin-bottom:28px}}
+</style></head>
+<body style="{vars_css}">
+<div class="card" style="text-align:center">
+  <span class="logo animate-in s1">Nomi</span>
+  <div class="name-hero animate-in s2" style="margin-bottom:20px">{esc}</div>
+  <p class="animate-in s3">We don't have this name yet.<br>Help us add it.</p>
+  <a class="add-btn animate-in s4" href="https://huggingface.co/spaces/nomi-stories/nomi-pronunciation-inbox">Add this name →</a>
+</div>
+<div class="footer" style="margin-top:20px">
+  <a href="https://nomistories.com">nomistories.com</a>
+</div>
+</body></html>"""
+
+
+def _generate_name_card_html(results: list, name_strip: str) -> str:
+    if not results:
+        return _not_found_html(name_strip)
+
+    primary = results[0]
+    others = results[1:]
+
+    ns = primary.get("name_strip", name_strip)
+    accent = _pick_accent(ns)
+    vars_css = _css_vars_cream_stationery(accent)
+
+    display_name = html_mod.escape(primary.get("name", name_strip))
+    phonetic     = html_mod.escape(primary.get("phonetic_spelling", "") or "")
+    language     = html_mod.escape(primary.get("language", ""))
+    meaning      = html_mod.escape(primary.get("meaning", ""))
+    audio_url    = primary.get("audio_url", "") or ""
+    pron_by      = html_mod.escape(primary.get("pronunciation_by", "") or "")
+
+    og_desc = html_mod.escape(
+        (f"{phonetic} · {meaning[:100]}" if phonetic else meaning[:120])
+    )
+
+    # Divider: subtle wave in accent at low opacity (section divider stroke)
+    r, g, b = (int(accent[i : i + 2], 16) for i in (1, 3, 5))
+    divider_stroke = f"rgba({r},{g},{b},0.2)"
+
+    # Brushstroke — underswash: double-path (thick + thin offset) per aesthetics doc
+    brush_svg = (
+        '<svg class="brush-wrap" viewBox="0 0 620 28" height="28" preserveAspectRatio="xMidYMid meet" aria-hidden="true">'
+        f'<path d="M 20 14 C 100 6 220 20 340 12 C 460 4 540 18 600 14" '
+        f'stroke="{accent}" stroke-width="12" stroke-linecap="round" fill="none" opacity="0.9"/>'
+        f'<path d="M 22 18 C 102 10 222 24 342 16 C 462 8 542 22 598 18" '
+        f'stroke="{accent}" stroke-width="4" stroke-linecap="round" fill="none" opacity="0.4"/>'
+        "</svg>"
+    )
+
+    divider_svg = (
+        f'<svg class="divider-wave" viewBox="0 0 400 18" height="18" '
+        f'preserveAspectRatio="none" aria-hidden="true">'
+        f'<path d="M 0 9 Q 100 2 200 9 Q 300 16 400 9" '
+        f'stroke="{divider_stroke}" stroke-width="2" fill="none" stroke-linecap="round"/>'
+        f'</svg>'
+    )
+
+    phonetic_html = f'<div class="phonetic-chip animate-in s2">{phonetic}</div>' if phonetic else ""
+    lang_html     = f'<div class="lang-tag animate-in s3">{language}</div>' if language else ""
+
+    # Audio section
+    if audio_url:
+        safe_audio = html_mod.escape(audio_url)
+        by_note = f'<div class="audio-sub">Contributed by {pron_by}</div>' if pron_by else ""
+        audio_html = (
+            f'<div class="audio-row animate-in s4">'
+            f'<button class="play-btn" id="play-btn" onclick="playAudio()" aria-label="Play pronunciation">'
+            f'<svg width="22" height="22" viewBox="0 0 22 22" fill="none">'
+            f'<path id="play-icon" d="M8 5.5L18 11L8 16.5V5.5Z" fill="currentColor"/>'
+            f'</svg></button>'
+            f'<div class="audio-meta">'
+            f'<div class="audio-label" id="audio-label">Hear it pronounced</div>'
+            f'{by_note}</div></div>'
+        )
+        audio_js = (
+            f'const _aud=new Audio("{safe_audio}");let _pl=false;\n'
+            f'function playAudio(){{\n'
+            f'  const btn=document.getElementById("play-btn");\n'
+            f'  const lbl=document.getElementById("audio-label");\n'
+            f'  if(_pl){{_aud.pause();_aud.currentTime=0;_pl=false;btn.classList.remove("playing");lbl.textContent="Hear it pronounced";}}\n'
+            f'  else{{_aud.play();_pl=true;btn.classList.add("playing");lbl.textContent="Playing...";\n'
+            f'    _aud.onended=()=>{{_pl=false;btn.classList.remove("playing");lbl.textContent="Hear it pronounced";}};}};\n'
+            f'}}'
+        )
+    else:
+        audio_html = (
+            '<div class="no-audio animate-in s4">No audio yet — '
+            '<a href="https://huggingface.co/spaces/nomi-stories/nomi-pronunciation-inbox">'
+            'contribute one</a></div>'
+        )
+        audio_js = "function playAudio(){}"
+
+    # Other language variants (max 2, compact)
+    others_html = ""
+    if others:
+        items = ""
+        for o in others[:2]:
+            o_lang    = html_mod.escape(o.get("language", ""))
+            o_meaning = html_mod.escape(o.get("meaning", ""))
+            o_ph      = html_mod.escape(o.get("phonetic_spelling", "") or "")
+            ph_bit    = f" · {o_ph}" if o_ph else ""
+            snippet   = o_meaning[:80] + ("…" if len(o_meaning) > 80 else "")
+            items += (
+                f'<div class="other-lang">'
+                f'<strong>{o_lang}{ph_bit}</strong><br>{snippet}'
+                f'</div>'
+            )
+        others_html = items
+
+    display_name_js = display_name.replace("'", "\\'")
+    phonetic_js     = phonetic.replace("'", "\\'")
+    share_text_js   = (
+        f"Here\\'s how to say my name: {display_name_js} ({phonetic_js})"
+        if phonetic_js else
+        f"Here\\'s how to say my name: {display_name_js}"
+    )
+
+    return f"""<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{display_name} — Nomi</title>
+<meta name="description" content="{og_desc}">
+<meta property="og:title" content="{display_name}">
+<meta property="og:description" content="{og_desc}">
+<meta property="og:site_name" content="Nomi">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="{display_name} — Nomi">
+<meta name="twitter:description" content="{og_desc}">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;700;800&family=Sen:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>{_CARD_CSS}</style>
+</head>
+<body style="{vars_css}">
+<div class="card">
+  <span class="logo animate-in s1">Nomi</span>
+  <div class="name-hero animate-in s1">{display_name}</div>
+  {brush_svg}
+  {phonetic_html}
+  {lang_html}
+  {divider_svg}
+  <div class="meaning-label">Meaning</div>
+  <div class="meaning-text animate-in s4">"{meaning}"</div>
+  {others_html}
+  {audio_html}
+  <div class="share-row animate-in s5">
+    <button class="btn btn-copy" onclick="copyLink()">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+        <path d="M4.5 2H9.5C10.33 2 11 2.67 11 3.5V8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        <rect x="2.5" y="5" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
+      </svg>
+      Copy link
+    </button>
+    <button class="btn btn-primary" onclick="shareCard()">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+        <path d="M7 1.5v7M7 1.5L4.5 4M7 1.5L9.5 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        <path d="M2.5 8v4h9V8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      Share
+    </button>
+  </div>
+</div>
+<div class="footer">
+  <a href="https://nomistories.com">nomistories.com</a>
+</div>
+<div class="toast" id="toast">Copied!</div>
+<script>
+{audio_js}
+function copyLink(){{
+  const u=window.location.href;
+  navigator.clipboard.writeText(u)
+    .then(()=>showToast('Link copied!'))
+    .catch(()=>{{const e=document.createElement('input');e.value=u;document.body.appendChild(e);e.select();document.execCommand('copy');document.body.removeChild(e);showToast('Link copied!');}});
+}}
+function shareCard(){{
+  if(navigator.share){{
+    navigator.share({{title:'{display_name_js} — Nomi',text:'{share_text_js}',url:window.location.href}}).catch(()=>{{}});
+  }}else{{copyLink();}}
+}}
+function showToast(m){{
+  const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2200);
+}}
+</script>
+</body></html>"""
+
+
+# ── Name lookup & card endpoints ──────────────────────────────────────────────
+
+def _lookup_name_results(name_strip: str, language: Optional[str]) -> list:
+    """Shared logic: find all dataset rows matching name_strip (case-insensitive)."""
+    load_dataset_fallback()
+    load_stories_data()
+    dataset_lookup = get_dataset_lookup()
+    needle = name_strip.lower().strip()
+    results = []
+    for (ns, lang), row in dataset_lookup.items():
+        if ns.lower() != needle:
+            continue
+        if language and lang.lower() != language.lower():
+            continue
+        metadata = get_name_metadata_from_dataset(ns, lang)
+        story = get_story_from_dataset(ns, lang)
+        results.append({
+            "name": row.get("Name", ns),
+            "name_strip": ns,
+            "language": lang,
+            "meaning": row.get("Meaning", ""),
+            "phonetic_spelling": metadata.get("phonetic_spelling") or None,
+            "audio_url": metadata.get("audio_url") or None,
+            "pronunciation_by": metadata.get("pronunciation_by") or None,
+            "cultural_context": row.get("cultural_context") or None,
+            "themes": row.get("themes") or None,
+            "story": story if story else None,
+        })
+    return results
+
+
+@app.get("/audio/{name_strip}")
+async def get_audio(
+    name_strip: str,
+    language: Optional[str] = Query(None, description="Language to fetch audio for")
+):
+    """Serve embedded audio bytes for a name directly from the dataset parquet."""
+    dataset_lookup = get_dataset_lookup()
+    needle = name_strip.strip()
+    # Find the matching row (prefer the requested language, else first with audio)
+    row = None
+    for (ns, lang), r in dataset_lookup.items():
+        if ns.lower() != needle.lower():
+            continue
+        if language and lang.lower() != language.lower():
+            continue
+        audio_val = r.get("Audio Pronunciation")
+        if isinstance(audio_val, dict) and audio_val.get("bytes"):
+            row = r
+            break
+    if row is None:
+        raise HTTPException(status_code=404, detail="No audio for this name")
+    audio_bytes = row["Audio Pronunciation"]["bytes"]
+    return Response(content=audio_bytes, media_type="audio/wav")
+
+
+@app.get("/name/{name_strip}", response_model=NameLookupResponse)
+async def get_name(
+    name_strip: str,
+    language: Optional[str] = Query(None, description="Filter by language")
+):
+    """
+    Direct name lookup — no ML inference, dataset-only, fast.
+    Returns meaning, phonetic spelling, audio URL, and cultural context.
+    Supports all languages in the dataset; ?language= to filter.
+    """
+    results = _lookup_name_results(name_strip, language)
+    if not results:
+        raise HTTPException(status_code=404, detail=f"Name '{name_strip}' not found in dataset")
+    return NameLookupResponse(
+        name_strip=name_strip,
+        results=[NameCardData(**r) for r in results],
+        total=len(results),
+    )
+
+
+@app.get("/card/{name_strip}", response_class=HTMLResponse)
+async def name_card(
+    name_strip: str,
+    language: Optional[str] = Query(None, description="Filter by language")
+):
+    """
+    Shareable HTML name card. Designed to be linked from email signatures,
+    LinkedIn bios, Slack profiles, or anywhere you want people to learn
+    how to say your name correctly.
+    """
+    results = _lookup_name_results(name_strip, language)
+    return HTMLResponse(content=_generate_name_card_html(results, name_strip))
+
 
 if __name__ == "__main__":
     import uvicorn
