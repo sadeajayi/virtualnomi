@@ -1179,27 +1179,33 @@ function copyLink(){{
     .then(()=>showToast('Link copied!'))
     .catch(()=>{{const e=document.createElement('input');e.value=u;document.body.appendChild(e);e.select();document.execCommand('copy');document.body.removeChild(e);showToast('Link copied!');}});
 }}
-async function saveImage(){{
+let _imgBlob=null;
+(async function(){{
+  try{{const r=await fetch('{base_url}/card-image/{ns}');if(r.ok)_imgBlob=await r.blob();}}catch(e){{}}
+}})();
+function saveImage(){{
   try{{
-    const resp=await fetch('{base_url}/card-image/{ns}');
-    const blob=await resp.blob();
-    const file=new File([blob],'{ns}-nomi.png',{{type:'image/png'}});
-    if(navigator.canShare&&navigator.canShare({{files:[file]}})){{
-      await navigator.share({{files:[file],title:'{display_name_js} — Nomi'}});
-    }}else{{
-      const url=URL.createObjectURL(blob);
+    if(_imgBlob){{
+      const file=new File([_imgBlob],'{ns}-nomi.png',{{type:'image/png'}});
+      if(navigator.canShare&&navigator.canShare({{files:[file]}})){{
+        navigator.share({{files:[file],title:'{display_name_js} — Nomi'}}).catch(()=>{{}});
+        return;
+      }}
+      const url=URL.createObjectURL(_imgBlob);
       const a=document.createElement('a');
       a.href=url;a.download='{ns}-nomi.png';
       document.body.appendChild(a);a.click();
       document.body.removeChild(a);URL.revokeObjectURL(url);
       showToast('Image saved!');
-    }}
+    }}else{{window.open('{base_url}/card-image/{ns}','_blank');}}
   }}catch(e){{window.open('{base_url}/card-image/{ns}','_blank');}}
 }}
 function shareCard(){{
-  if(navigator.share){{
-    navigator.share({{title:'{display_name_js} — Nomi',text:'{share_text_js}',url:window.location.href}}).then(()=>showToast('Your story is out there.')).catch((e)=>{{if(e&&e.name!=='AbortError')copyLink();}});
-  }}else{{copyLink();}}
+  try{{
+    if(navigator.share){{
+      navigator.share({{title:'{display_name_js} — Nomi',text:'{share_text_js}',url:window.location.href}}).then(()=>showToast('Your story is out there.')).catch((e)=>{{if(e&&e.name!=='AbortError')copyLink();}});
+    }}else{{copyLink();}}
+  }}catch(e){{copyLink();}}
 }}
 if('serviceWorker' in navigator){{navigator.serviceWorker.register('/sw.js');}}
 (function(){{
