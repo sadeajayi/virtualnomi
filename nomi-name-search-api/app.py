@@ -167,8 +167,8 @@ def load_dataset_fallback():
                 try:
                     import pyarrow.parquet as pq
                     table = pq.read_table(parquet_path)
-                    # Convert to list of dicts
-                    ds = [dict(zip(table.column_names, row)) for row in table.to_pylist()]
+                    # to_pylist() already returns list of dicts
+                    ds = table.to_pylist()
                 except ImportError:
                     # Fallback to pandas if pyarrow not available
                     import pandas as pd
@@ -203,13 +203,19 @@ def initialize_components():
 def _build_lookup_from_rows(rows):
     """Build (name_strip, language) -> row dict from an iterable of row dicts."""
     lookup = {}
-    for row in rows:
+    for i, row in enumerate(rows):
+        if i == 0:
+            print(f"[dataset_lookup] first row keys: {list(row.keys())[:10]}")
         name_strip = str(row.get("NameStrip", "")).strip()
         language = str(row.get("Language", "")).strip()
         if name_strip and language:
             key = (name_strip, language)
             if key not in lookup or row.get("Audio Pronunciation"):
                 lookup[key] = row
+    print(f"[dataset_lookup] built {len(lookup)} entries")
+    if lookup:
+        sample = next(iter(lookup))
+        print(f"[dataset_lookup] sample key: {sample}")
     return lookup
 
 
