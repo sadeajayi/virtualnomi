@@ -836,9 +836,13 @@ body{background:var(--page-bg);font-family:'Livvic',system-ui,sans-serif;min-hei
 .footer{text-align:center;margin-top:20px}
 .footer a{font-family:'Sen',sans-serif;font-size:12px;color:var(--stone);text-decoration:none;letter-spacing:.04em}
 .footer a:hover{color:var(--ink)}
-.cta-footer{text-align:center;margin-top:24px}
-.cta-footer a{font-family:'Sen',sans-serif;font-size:14px;font-weight:600;color:var(--accent);text-decoration:none;border-bottom:1.5px solid var(--accent);padding-bottom:1px}
-.cta-footer a:hover{opacity:.75}
+.cta-footer{text-align:center;margin-top:28px}
+.cta-label{font-family:'Sen',sans-serif;font-size:12px;font-weight:600;color:var(--stone);letter-spacing:.06em;text-transform:uppercase;margin-bottom:10px}
+.name-input-wrap{position:relative;display:flex;align-items:center}
+.name-input{width:100%;padding:13px 44px 13px 16px;border:1.5px solid var(--accent);border-radius:12px;font-family:'Sen',sans-serif;font-size:15px;font-weight:600;color:var(--ink);background:transparent;outline:none;box-sizing:border-box;transition:box-shadow .2s}
+.name-input::placeholder{color:var(--stone);font-weight:400}
+.name-input:focus{box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 18%,transparent)}
+.name-input-arrow{position:absolute;right:14px;font-size:18px;color:var(--accent);pointer-events:none;line-height:1}
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--ink);color:var(--page-bg);padding:10px 22px;border-radius:12px;font-family:'Sen',sans-serif;font-size:14px;font-weight:600;transition:transform .35s ease-in-out;z-index:100}
 .toast.show{transform:translateX(-50%) translateY(0)}
 .animate-in{animation:fadeUp .35s ease-in-out forwards;opacity:0}
@@ -1055,7 +1059,11 @@ def _generate_name_card_html(results: list, name_strip: str, base_url: str = "")
   </div>
 </div>
 <div class="cta-footer animate-in s6">
-  <a href="https://nomistories.com">What does your name mean? →</a>
+  <div class="cta-label">What does your name mean?</div>
+  <div class="name-input-wrap">
+    <input class="name-input" type="text" placeholder="Enter your name" autocomplete="off" autocorrect="off" spellcheck="false" onkeydown="if(event.key==='Enter')lookupName(this.value)">
+    <span class="name-input-arrow">→</span>
+  </div>
 </div>
 <div class="footer">
   <a href="https://nomistories.com">nomistories.com</a>
@@ -1090,6 +1098,10 @@ function shareCard(){{
   if(navigator.share){{
     navigator.share({{title:'{display_name_js} — Nomi',text:'{share_text_js}',url:window.location.href}}).catch((e)=>{{if(e&&e.name!=='AbortError')copyLink();}});
   }}else{{copyLink();}}
+}}
+function lookupName(v){{
+  const n=v.trim().toLowerCase().replace(/[^a-z\-]/g,'');
+  if(n)window.location.href='{base_url}/card/'+encodeURIComponent(n);
 }}
 function showToast(m){{
   const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');
