@@ -836,6 +836,9 @@ body{background:var(--page-bg);font-family:'Livvic',system-ui,sans-serif;min-hei
 .footer{text-align:center;margin-top:20px}
 .footer a{font-family:'Sen',sans-serif;font-size:12px;color:var(--stone);text-decoration:none;letter-spacing:.04em}
 .footer a:hover{color:var(--ink)}
+.cta-footer{text-align:center;margin-top:24px}
+.cta-footer a{font-family:'Sen',sans-serif;font-size:14px;font-weight:600;color:var(--accent);text-decoration:none;border-bottom:1.5px solid var(--accent);padding-bottom:1px}
+.cta-footer a:hover{opacity:.75}
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--ink);color:var(--page-bg);padding:10px 22px;border-radius:12px;font-family:'Sen',sans-serif;font-size:14px;font-weight:600;transition:transform .35s ease-in-out;z-index:100}
 .toast.show{transform:translateX(-50%) translateY(0)}
 .animate-in{animation:fadeUp .35s ease-in-out forwards;opacity:0}
@@ -989,11 +992,16 @@ def _generate_name_card_html(results: list, name_strip: str, base_url: str = "")
 
     display_name_js = display_name.replace("'", "\\'")
     phonetic_js     = phonetic.replace("'", "\\'")
-    share_text_js   = (
-        f"Here\\'s how to say my name: {display_name_js} ({phonetic_js})"
-        if phonetic_js else
-        f"Here\\'s how to say my name: {display_name_js}"
-    )
+    meaning_raw     = primary.get("meaning", "")
+    meaning_js      = meaning_raw[:100].replace("'", "\\'").replace('"', '\\"').replace('\n', ' ')
+    if meaning_js and phonetic_js:
+        share_text_js = f"{display_name_js} means \\'{meaning_js}\\'. Here\\'s how to say it: {phonetic_js}"
+    elif meaning_js:
+        share_text_js = f"{display_name_js} means \\'{meaning_js}\\'."
+    elif phonetic_js:
+        share_text_js = f"Here\\'s how to say my name: {display_name_js} ({phonetic_js})"
+    else:
+        share_text_js = f"My name is {display_name_js}"
 
     return f"""<!DOCTYPE html>
 <html lang="en"><head>
@@ -1030,12 +1038,12 @@ def _generate_name_card_html(results: list, name_strip: str, base_url: str = "")
   {others_html}
   {audio_html}
   <div class="share-row animate-in s5">
-    <button class="btn btn-copy" onclick="copyLink()">
+    <button class="btn btn-copy" onclick="saveImage()">
       <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-        <path d="M4.5 2H9.5C10.33 2 11 2.67 11 3.5V8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-        <rect x="2.5" y="5" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
+        <path d="M7 2v7M7 9L4.5 6.5M7 9L9.5 6.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M2.5 11.5h9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
       </svg>
-      Copy link
+      Save image
     </button>
     <button class="btn btn-primary" onclick="shareCard()">
       <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
@@ -1045,6 +1053,9 @@ def _generate_name_card_html(results: list, name_strip: str, base_url: str = "")
       Share
     </button>
   </div>
+</div>
+<div class="cta-footer animate-in s6">
+  <a href="https://nomistories.com">What does your name mean? →</a>
 </div>
 <div class="footer">
   <a href="https://nomistories.com">nomistories.com</a>
@@ -1057,6 +1068,23 @@ function copyLink(){{
   navigator.clipboard.writeText(u)
     .then(()=>showToast('Link copied!'))
     .catch(()=>{{const e=document.createElement('input');e.value=u;document.body.appendChild(e);e.select();document.execCommand('copy');document.body.removeChild(e);showToast('Link copied!');}});
+}}
+async function saveImage(){{
+  try{{
+    const resp=await fetch('{base_url}/card-image/{ns}');
+    const blob=await resp.blob();
+    const file=new File([blob],'{ns}-nomi.png',{{type:'image/png'}});
+    if(navigator.canShare&&navigator.canShare({{files:[file]}})){{
+      await navigator.share({{files:[file],title:'{display_name_js} — Nomi'}});
+    }}else{{
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a');
+      a.href=url;a.download='{ns}-nomi.png';
+      document.body.appendChild(a);a.click();
+      document.body.removeChild(a);URL.revokeObjectURL(url);
+      showToast('Image saved!');
+    }}
+  }}catch(e){{window.open('{base_url}/card-image/{ns}','_blank');}}
 }}
 function shareCard(){{
   if(navigator.share){{
