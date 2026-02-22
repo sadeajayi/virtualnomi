@@ -1214,7 +1214,14 @@ if('serviceWorker' in navigator){{navigator.serviceWorker.register('/sw.js');}}
   if(!isIOS||standalone||sessionStorage.getItem('pwa-dismissed'))return;
   const b=document.createElement('div');
   b.className='pwa-banner';
-  b.innerHTML='<div class="pwa-banner-text"><strong>Add to your home screen</strong><br>Tap Share \u2192 Add to Home Screen</div><button class="pwa-dismiss" onclick="this.parentElement.remove();sessionStorage.setItem(\\x27pwa-dismissed\\x27,1)">\u2715</button>';
+  const txt=document.createElement('div');
+  txt.className='pwa-banner-text';
+  txt.innerHTML='<strong>Add to your home screen</strong><br>Tap Share \u2192 Add to Home Screen';
+  const btn=document.createElement('button');
+  btn.className='pwa-dismiss';
+  btn.textContent='\u2715';
+  btn.onclick=function(){{b.remove();sessionStorage.setItem('pwa-dismissed',1);}};
+  b.appendChild(txt);b.appendChild(btn);
   document.body.appendChild(b);
 }})();
 function updateNote(v){{
