@@ -813,8 +813,8 @@ body{background:var(--page-bg);font-family:'Livvic',system-ui,sans-serif;min-hei
 .phonetic-chip{display:inline-flex;align-items:center;background:var(--stone);border-radius:999px;padding:8px 18px;font-family:'Sen',sans-serif;font-size:15px;font-weight:400;color:var(--card-bg);letter-spacing:.04em;margin-bottom:10px;min-height:14px}
 .lang-tag{display:inline-flex;align-items:center;background:var(--tag-bg);border:1px solid var(--accent);border-radius:999px;padding:5px 14px;font-family:'Sen',sans-serif;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:28px;margin-left:8px}
 .divider-wave{display:block;width:100%;margin-bottom:20px}
-.meaning-label{font-family:'Sen',sans-serif;font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--ink);opacity:.45;margin-bottom:8px}
-.meaning-text{font-family:'Livvic',sans-serif;font-size:19px;font-weight:400;color:var(--ink);line-height:1.55;margin-bottom:30px}
+.meaning-label{font-family:'Sen',sans-serif;font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);opacity:.8;margin-bottom:10px;margin-top:4px}
+.meaning-text{font-family:'Livvic',sans-serif;font-size:24px;font-weight:700;color:var(--ink);line-height:1.45;margin-bottom:30px}
 .audio-row{display:flex;align-items:center;gap:16px;margin-bottom:22px}
 .play-btn{width:54px;height:54px;border-radius:50%;background:var(--accent);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 10px rgba(26,26,46,.15);transition:transform .35s ease-in-out,box-shadow .35s ease-in-out}
 .play-btn:hover{transform:translateY(-1px);box-shadow:0 4px 18px rgba(26,26,46,.2)}
@@ -1038,7 +1038,7 @@ def _generate_name_card_html(results: list, name_strip: str, base_url: str = "")
   {lang_html}
   {divider_svg}
   <div class="meaning-label">Meaning</div>
-  <div class="meaning-text animate-in s4">"{meaning}"</div>
+  <div class="meaning-text animate-in s4">{meaning}</div>
   {others_html}
   {audio_html}
   <div class="share-row animate-in s5">
