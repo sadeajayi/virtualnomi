@@ -200,35 +200,84 @@ def initialize_components():
     if openai_client is None and OPENAI_AVAILABLE and OPENAI_API_KEY:
         openai_client = OpenAI(api_key=OPENAI_API_KEY)
 
+def _build_lookup_from_rows(rows):
+    """Build (name_strip, language) -> row dict from an iterable of row dicts."""
+    lookup = {}
+    for row in rows:
+        name_strip = str(row.get("NameStrip", "")).strip()
+        language = str(row.get("Language", "")).strip()
+        if name_strip and language:
+            key = (name_strip, language)
+            if key not in lookup or row.get("Audio Pronunciation"):
+                lookup[key] = row
+    return lookup
+
+
 def get_dataset_lookup():
-    """Create O(1) lookup dictionary for dataset"""
-    global _dataset_lookup, ds
-    if _dataset_lookup is None:
-        _dataset_lookup = {}
-        dataset = load_dataset_fallback()
-        if isinstance(dataset, list):
-            rows = dataset
-            for row in rows:
-                name_strip = str(row.get("NameStrip", "")).strip()
-                language = str(row.get("Language", "")).strip()
-                if name_strip and language:
-                    key = (name_strip, language)
-                    if key not in _dataset_lookup or row.get("Audio Pronunciation"):
-                        _dataset_lookup[key] = row
-        else:
-            # Access underlying PyArrow table directly to bypass audio decoder
-            # (avoids torchcodec/FFmpeg dependency when iterating datasets.Dataset)
+    """Create O(1) lookup dictionary for dataset.
+
+    Uses a sentinel of None = not yet loaded, {} = loaded but empty.
+    Only caches non-empty result so a transient failure is retried next request.
+    """
+    global _dataset_lookup
+    if _dataset_lookup is not None:
+        return _dataset_lookup
+
+    dataset = load_dataset_fallback()
+    lookup = {}
+
+    if isinstance(dataset, list):
+        # Already a list of dicts (pyarrow/pandas fallback path)
+        print(f"[dataset_lookup] list path: {len(dataset)} rows")
+        lookup = _build_lookup_from_rows(dataset)
+    else:
+        # datasets.Dataset — try multiple access strategies to avoid torchcodec
+        # Strategy 1: dataset.data.to_pydict() (PyArrow table, avoids audio decoder)
+        try:
             table_dict = dataset.data.to_pydict()
             n = len(next(iter(table_dict.values()), []))
-            for i in range(n):
-                row = {col: table_dict[col][i] for col in table_dict}
-                name_strip = str(row.get("NameStrip", "")).strip()
-                language = str(row.get("Language", "")).strip()
-                if name_strip and language:
-                    key = (name_strip, language)
-                    if key not in _dataset_lookup or row.get("Audio Pronunciation"):
-                        _dataset_lookup[key] = row
-    return _dataset_lookup
+            rows = [{col: table_dict[col][i] for col in table_dict} for i in range(n)]
+            lookup = _build_lookup_from_rows(rows)
+            print(f"[dataset_lookup] strategy 1 (data.to_pydict): {len(lookup)} entries")
+        except Exception as e1:
+            print(f"[dataset_lookup] strategy 1 failed: {e1}")
+
+        # Strategy 2: dataset._data.to_pydict() (private attr, more stable across versions)
+        if not lookup:
+            try:
+                table_dict = dataset._data.to_pydict()
+                n = len(next(iter(table_dict.values()), []))
+                rows = [{col: table_dict[col][i] for col in table_dict} for i in range(n)]
+                lookup = _build_lookup_from_rows(rows)
+                print(f"[dataset_lookup] strategy 2 (_data.to_pydict): {len(lookup)} entries")
+            except Exception as e2:
+                print(f"[dataset_lookup] strategy 2 failed: {e2}")
+
+        # Strategy 3: pandas (bypasses audio decoder entirely)
+        if not lookup:
+            try:
+                df = dataset.to_pandas()
+                lookup = _build_lookup_from_rows(df.to_dict("records"))
+                print(f"[dataset_lookup] strategy 3 (to_pandas): {len(lookup)} entries")
+            except Exception as e3:
+                print(f"[dataset_lookup] strategy 3 failed: {e3}")
+
+        # Strategy 4: strip audio columns then iterate (last resort, loses audio data)
+        if not lookup:
+            try:
+                audio_cols = [c for c in dataset.column_names if "audio" in c.lower() or "pronunciation" in c.lower()]
+                stripped = dataset.remove_columns(audio_cols) if audio_cols else dataset
+                lookup = _build_lookup_from_rows(stripped)
+                print(f"[dataset_lookup] strategy 4 (remove_columns+iterate): {len(lookup)} entries")
+            except Exception as e4:
+                print(f"[dataset_lookup] strategy 4 failed: {e4}")
+
+    if lookup:
+        _dataset_lookup = lookup
+    else:
+        print("[dataset_lookup] WARNING: all strategies failed or returned empty — will retry next request")
+
+    return lookup
 
 def get_name_metadata_from_dataset(name_strip: str, language: str) -> Dict[str, Any]:
     """Get metadata for a name from the dataset"""
