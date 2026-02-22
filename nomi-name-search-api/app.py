@@ -874,6 +874,11 @@ body{background:var(--page-bg);font-family:'Livvic',system-ui,sans-serif;min-hei
 .btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(26,26,46,.18)}
 .other-lang{font-family:'Sen',sans-serif;font-size:13px;color:var(--ink);opacity:.7;margin-bottom:6px;line-height:1.4}
 .other-lang strong{opacity:.9}
+.personal-note{font-family:'Livvic',sans-serif;font-size:16px;font-weight:400;font-style:italic;color:var(--ink);line-height:1.55;margin-bottom:20px;padding-left:14px;border-left:2px solid var(--accent);opacity:.85}
+.note-input-wrap{margin-bottom:24px}
+.note-input{width:100%;padding:11px 14px;border:1.5px dashed var(--accent);border-radius:10px;font-family:'Livvic',sans-serif;font-size:14px;font-style:italic;color:var(--ink);background:transparent;outline:none;resize:none;line-height:1.5;min-height:52px;box-sizing:border-box;transition:border-style .15s,opacity .15s;opacity:.55}
+.note-input:focus{border-style:solid;opacity:1}
+.note-input::placeholder{color:var(--stone)}
 .cultural-ctx{font-family:'Sen',sans-serif;font-size:13px;color:var(--ink);opacity:.6;line-height:1.55;margin-bottom:20px;font-style:italic}
 .story-link-row{margin-bottom:24px}
 .story-link{font-family:'Sen',sans-serif;font-size:13px;font-weight:600;color:var(--accent);text-decoration:none;display:inline-flex;align-items:center;gap:5px}
@@ -949,7 +954,7 @@ p{{font-family:'Sen',sans-serif;font-size:16px;color:var(--ink);opacity:.7;line-
 </body></html>"""
 
 
-def _generate_name_card_html(results: list, name_strip: str, base_url: str = "") -> str:
+def _generate_name_card_html(results: list, name_strip: str, base_url: str = "", note: Optional[str] = None) -> str:
     if not results:
         return _not_found_html(name_strip)
 
@@ -1070,6 +1075,17 @@ def _generate_name_card_html(results: list, name_strip: str, base_url: str = "")
     phonetic_js     = phonetic.replace("'", "\\'")
     meaning_raw     = primary.get("meaning", "")
     meaning_js      = meaning_raw[:100].replace("'", "\\'").replace('"', '\\"').replace('\n', ' ')
+    note_safe       = html_mod.escape((note or "").strip())
+    note_js         = note_safe.replace("'", "\\'")
+    note_display    = f'<div class="personal-note animate-in s4">{note_safe}</div>' if note_safe else ""
+    note_input_placeholder = f"Why did your parents choose this name?"
+    note_input_html = (
+        f'<div class="note-input-wrap animate-in s4">'
+        f'<textarea class="note-input" rows="2" placeholder="{note_input_placeholder}" '
+        f'oninput="updateNote(this.value)" onblur="updateNote(this.value)">'
+        f'{note_safe}</textarea>'
+        f'</div>'
+    )
     if meaning_js and phonetic_js:
         share_text_js = f"{display_name_js} means \\'{meaning_js}\\'. Here\\'s how to say it: {phonetic_js}"
     elif meaning_js:
@@ -1120,6 +1136,8 @@ def _generate_name_card_html(results: list, name_strip: str, base_url: str = "")
   {divider_svg}
   <div class="meaning-label">Meaning</div>
   <div class="meaning-text animate-in s4">{meaning}</div>
+  {note_display}
+  {note_input_html}
   {cultural_html}
   {story_html}
   {others_html}
@@ -1193,6 +1211,12 @@ if('serviceWorker' in navigator){{navigator.serviceWorker.register('/sw.js');}}
   b.innerHTML='<div class="pwa-banner-text"><strong>Add to your home screen</strong><br>Tap Share → Add to Home Screen</div><button class="pwa-dismiss" onclick="this.parentElement.remove();sessionStorage.setItem(\'pwa-dismissed\',1)">✕</button>';
   document.body.appendChild(b);
 }})();
+function updateNote(v){{
+  const url=new URL(window.location.href);
+  if(v.trim()){{url.searchParams.set('note',v.trim());}}
+  else{{url.searchParams.delete('note');}}
+  history.replaceState({{}},'',url.toString());
+}}
 function lookupName(v){{
   const n=v.trim().toLowerCase().replace(/[^a-z\-]/g,'');
   if(n)window.location.href='{base_url}/card/'+encodeURIComponent(n);
@@ -1287,7 +1311,8 @@ async def get_name(
 async def name_card(
     request: Request,
     name_strip: str,
-    language: Optional[str] = Query(None, description="Filter by language")
+    language: Optional[str] = Query(None, description="Filter by language"),
+    note: Optional[str] = Query(None, description="Personal note shown on the card"),
 ):
     """
     Shareable HTML name card. Designed to be linked from email signatures,
@@ -1296,7 +1321,7 @@ async def name_card(
     """
     results = _lookup_name_results(name_strip, language)
     base_url = str(request.base_url).rstrip("/")
-    return HTMLResponse(content=_generate_name_card_html(results, name_strip, base_url=base_url))
+    return HTMLResponse(content=_generate_name_card_html(results, name_strip, base_url=base_url, note=note))
 
 
 @app.get("/card-image/{name_strip}")
