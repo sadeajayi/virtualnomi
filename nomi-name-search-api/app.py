@@ -23,7 +23,6 @@ try:
 except ImportError:
     PIL_AVAILABLE = False
 import numpy as np
-from sentence_transformers import SentenceTransformer
 from pinecone import Pinecone
 from huggingface_hub import hf_hub_download
 import json
@@ -195,6 +194,7 @@ def initialize_components():
     
     if model is None:
         print("Loading embedding model...")
+        from sentence_transformers import SentenceTransformer  # lazy: torch is ~400MB
         model = SentenceTransformer("fajayi/nomi-name-encoder")
     
     if openai_client is None and OPENAI_AVAILABLE and OPENAI_API_KEY:
