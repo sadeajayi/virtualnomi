@@ -330,7 +330,7 @@ def load_stories_data():
                 try:
                     import pyarrow.parquet as pq
                     table = pq.read_table(stories_path)
-                    stories_ds = [dict(zip(table.column_names, row)) for row in table.to_pylist()]
+                    stories_ds = table.to_pylist()
                 except ImportError:
                     import pandas as pd
                     df = pd.read_parquet(stories_path)
@@ -799,6 +799,45 @@ def _generate_og_image(results: list, name_strip: str) -> bytes:
     return buf.getvalue()
 
 
+def _generate_icon(results: list, name_strip: str, size: int = 512) -> bytes:
+    """512×512 square PWA icon — accent bg, name centred, tiny Nomi brand bottom-right."""
+    if not PIL_AVAILABLE:
+        return b""
+    ns     = results[0].get("name_strip", name_strip) if results else name_strip
+    accent = _pick_accent(ns)
+    bg     = tuple(int(accent[i:i+2], 16) for i in (1, 3, 5))
+    dark   = accent in ("#F2C94C",)
+    text   = (26, 26, 46) if dark else (255, 255, 255)
+
+    display = results[0].get("name", ns).title() if results else ns.title()
+
+    img  = Image.new("RGB", (size, size), bg)
+    draw = ImageDraw.Draw(img)
+
+    # Name — auto-size to fit
+    for fsize in range(size // 3, 18, -4):
+        f = _pil_font("Livvic", 800, fsize)
+        if f is None:
+            break
+        bbox = draw.textbbox((0, 0), display, font=f)
+        w = bbox[2] - bbox[0]
+        if w <= size - size // 6:
+            break
+    cx = size // 2
+    cy = int(size * 0.44)
+    draw.text((cx, cy), display, font=f, fill=text, anchor="mm")
+
+    # "Nomi" brand — bottom right
+    fb = _pil_font("Sen", 700, max(size // 26, 12))
+    if fb:
+        draw.text((size - size // 14, size - size // 14), "Nomi",
+                  font=fb, fill=_blend(text, bg, 0.45), anchor="rb")
+
+    buf = io.BytesIO()
+    img.save(buf, "PNG", optimize=True)
+    return buf.getvalue()
+
+
 # Static CSS — Variant A (Cream Stationery). Page #FBF7F0, card #FFF, accent for hero/brush/tag/button.
 # Shadows: warm, card sits on top of page (aesthetics doc). Motion: 350ms ease-in-out, 8px→0.
 _CARD_CSS = """
@@ -835,9 +874,19 @@ body{background:var(--page-bg);font-family:'Livvic',system-ui,sans-serif;min-hei
 .btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(26,26,46,.18)}
 .other-lang{font-family:'Sen',sans-serif;font-size:13px;color:var(--ink);opacity:.7;margin-bottom:6px;line-height:1.4}
 .other-lang strong{opacity:.9}
+.cultural-ctx{font-family:'Sen',sans-serif;font-size:13px;color:var(--ink);opacity:.6;line-height:1.55;margin-bottom:20px;font-style:italic}
+.story-link-row{margin-bottom:24px}
+.story-link{font-family:'Sen',sans-serif;font-size:13px;font-weight:600;color:var(--accent);text-decoration:none;display:inline-flex;align-items:center;gap:5px}
+.story-link:hover{opacity:.75}
+.share-label{font-family:'Sen',sans-serif;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink);opacity:.35;margin-bottom:10px}
 .footer{text-align:center;margin-top:20px}
 .footer a{font-family:'Sen',sans-serif;font-size:12px;color:var(--stone);text-decoration:none;letter-spacing:.04em}
 .footer a:hover{color:var(--ink)}
+.pwa-banner{position:fixed;bottom:0;left:0;right:0;background:var(--ink);color:var(--page-bg);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;z-index:200;font-family:'Sen',sans-serif;font-size:13px;animation:slideUp .4s ease-out}
+.pwa-banner strong{font-weight:700}
+.pwa-banner-text{flex:1;line-height:1.4}
+.pwa-dismiss{background:none;border:none;color:var(--page-bg);opacity:.6;font-size:20px;cursor:pointer;padding:0 4px;flex-shrink:0}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
 .cta-footer{text-align:center;margin-top:28px}
 .cta-label{font-family:'Sen',sans-serif;font-size:12px;font-weight:600;color:var(--stone);letter-spacing:.06em;text-transform:uppercase;margin-bottom:10px}
 .name-input-wrap{position:relative;display:flex;align-items:center}
@@ -891,8 +940,8 @@ p{{font-family:'Sen',sans-serif;font-size:16px;color:var(--ink);opacity:.7;line-
 <div class="card" style="text-align:center">
   <span class="logo animate-in s1">Nomi</span>
   <div class="name-hero animate-in s2" style="margin-bottom:20px">{esc}</div>
-  <p class="animate-in s3">We don't have this name yet.<br>Help us add it.</p>
-  <a class="add-btn animate-in s4" href="https://huggingface.co/spaces/nomi-stories/nomi-pronunciation-inbox">Add this name →</a>
+  <p class="animate-in s3">Your name deserves to be here.<br>Be the first to add it.</p>
+  <a class="add-btn animate-in s4" href="https://huggingface.co/spaces/nomi-stories/nomi-pronunciation-inbox">Add your name →</a>
 </div>
 <div class="footer" style="margin-top:20px">
   <a href="https://nomistories.com">nomistories.com</a>
@@ -917,6 +966,10 @@ def _generate_name_card_html(results: list, name_strip: str, base_url: str = "")
     meaning      = html_mod.escape(primary.get("meaning", ""))
     audio_url    = primary.get("audio_url", "") or ""
     pron_by      = html_mod.escape(primary.get("pronunciation_by", "") or "")
+    cultural_ctx = html_mod.escape((primary.get("cultural_context") or "").strip())
+    story        = primary.get("story") or {}
+    story_src    = html_mod.escape((story.get("source") or "").strip()) if story else ""
+    story_preview = html_mod.escape((story.get("preview_text") or "").strip()[:120]) if story else ""
 
     og_desc = html_mod.escape(
         (f"{phonetic} · {meaning[:100]}" if phonetic else meaning[:120])
@@ -947,6 +1000,23 @@ def _generate_name_card_html(results: list, name_strip: str, base_url: str = "")
     phonetic_html = f'<div class="phonetic-chip animate-in s2">{phonetic}</div>' if phonetic else ""
     lang_html     = f'<div class="lang-tag animate-in s3">{language}</div>' if language else ""
 
+    # Cultural context block
+    cultural_html = (
+        f'<div class="cultural-ctx animate-in s4">{cultural_ctx}</div>'
+        if cultural_ctx else ""
+    )
+
+    # Story link block (video stories only)
+    story_html = (
+        f'<div class="story-link-row animate-in s4">'
+        f'<a class="story-link" href="{story_src}" target="_blank" rel="noopener">'
+        f'<svg width="13" height="13" viewBox="0 0 13 13" fill="none">'
+        f'<path d="M5 2.5L10.5 6.5L5 10.5V2.5Z" fill="currentColor"/>'
+        f'</svg>'
+        f'Watch the story</a></div>'
+        if story_src else ""
+    )
+
     # Audio section
     if audio_url:
         safe_audio = html_mod.escape(audio_url)
@@ -958,7 +1028,7 @@ def _generate_name_card_html(results: list, name_strip: str, base_url: str = "")
             f'<path id="play-icon" d="M8 5.5L18 11L8 16.5V5.5Z" fill="currentColor"/>'
             f'</svg></button>'
             f'<div class="audio-meta">'
-            f'<div class="audio-label" id="audio-label">Hear it pronounced</div>'
+            f'<div class="audio-label" id="audio-label">Hear it spoken</div>'
             f'{by_note}</div></div>'
         )
         audio_js = (
@@ -966,16 +1036,16 @@ def _generate_name_card_html(results: list, name_strip: str, base_url: str = "")
             f'function playAudio(){{\n'
             f'  const btn=document.getElementById("play-btn");\n'
             f'  const lbl=document.getElementById("audio-label");\n'
-            f'  if(_pl){{_aud.pause();_aud.currentTime=0;_pl=false;btn.classList.remove("playing");lbl.textContent="Hear it pronounced";}}\n'
+            f'  if(_pl){{_aud.pause();_aud.currentTime=0;_pl=false;btn.classList.remove("playing");lbl.textContent="Hear it spoken";}}\n'
             f'  else{{_aud.play();_pl=true;btn.classList.add("playing");lbl.textContent="Playing...";\n'
-            f'    _aud.onended=()=>{{_pl=false;btn.classList.remove("playing");lbl.textContent="Hear it pronounced";}};}};\n'
+            f'    _aud.onended=()=>{{_pl=false;btn.classList.remove("playing");lbl.textContent="Hear it spoken";}};}};\n'
             f'}}'
         )
     else:
         audio_html = (
-            '<div class="no-audio animate-in s4">No audio yet — '
+            '<div class="no-audio animate-in s4">No pronunciation yet — '
             '<a href="https://huggingface.co/spaces/nomi-stories/nomi-pronunciation-inbox">'
-            'contribute one</a></div>'
+            'add yours</a></div>'
         )
         audio_js = "function playAudio(){}"
 
@@ -1013,6 +1083,12 @@ def _generate_name_card_html(results: list, name_strip: str, base_url: str = "")
 <html lang="en"><head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{display_name} — Nomi</title>
+<link rel="manifest" href="{base_url}/manifest/{ns}">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="{display_name}">
+<link rel="apple-touch-icon" href="{base_url}/icon/{ns}">
+<meta name="theme-color" content="{accent}">
 <meta name="description" content="{og_desc}">
 <meta property="og:title" content="{display_name}">
 <meta property="og:description" content="{og_desc}">
@@ -1044,22 +1120,25 @@ def _generate_name_card_html(results: list, name_strip: str, base_url: str = "")
   {divider_svg}
   <div class="meaning-label">Meaning</div>
   <div class="meaning-text animate-in s4">{meaning}</div>
+  {cultural_html}
+  {story_html}
   {others_html}
   {audio_html}
+  <div class="share-label animate-in s5">Your name. Your story.</div>
   <div class="share-row animate-in s5">
     <button class="btn btn-copy" onclick="saveImage()">
       <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
         <path d="M7 2v7M7 9L4.5 6.5M7 9L9.5 6.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
         <path d="M2.5 11.5h9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
       </svg>
-      Save image
+      Save your card
     </button>
     <button class="btn btn-primary" onclick="shareCard()">
       <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
         <path d="M7 1.5v7M7 1.5L4.5 4M7 1.5L9.5 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
         <path d="M2.5 8v4h9V8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
       </svg>
-      Share
+      Share your story
     </button>
   </div>
 </div>
@@ -1101,9 +1180,19 @@ async function saveImage(){{
 }}
 function shareCard(){{
   if(navigator.share){{
-    navigator.share({{title:'{display_name_js} — Nomi',text:'{share_text_js}',url:window.location.href}}).catch((e)=>{{if(e&&e.name!=='AbortError')copyLink();}});
+    navigator.share({{title:'{display_name_js} — Nomi',text:'{share_text_js}',url:window.location.href}}).then(()=>showToast('Your story is out there.')).catch((e)=>{{if(e&&e.name!=='AbortError')copyLink();}});
   }}else{{copyLink();}}
 }}
+if('serviceWorker' in navigator){{navigator.serviceWorker.register('/sw.js');}}
+(function(){{
+  const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)&&!window.MSStream;
+  const standalone=window.navigator.standalone||window.matchMedia('(display-mode: standalone)').matches;
+  if(!isIOS||standalone||sessionStorage.getItem('pwa-dismissed'))return;
+  const b=document.createElement('div');
+  b.className='pwa-banner';
+  b.innerHTML='<div class="pwa-banner-text"><strong>Add to your home screen</strong><br>Tap Share → Add to Home Screen</div><button class="pwa-dismiss" onclick="this.parentElement.remove();sessionStorage.setItem(\'pwa-dismissed\',1)">✕</button>';
+  document.body.appendChild(b);
+}})();
 function lookupName(v){{
   const n=v.trim().toLowerCase().replace(/[^a-z\-]/g,'');
   if(n)window.location.href='{base_url}/card/'+encodeURIComponent(n);
@@ -1227,6 +1316,83 @@ async def name_card_image(
         content=img_bytes,
         media_type="image/png",
         headers={"Cache-Control": "public, max-age=86400"},
+    )
+
+
+@app.get("/icon/{name_strip}")
+async def name_icon(name_strip: str):
+    """512×512 square PWA home screen icon for a name."""
+    if not PIL_AVAILABLE:
+        raise HTTPException(status_code=501, detail="Pillow not installed")
+    results = _lookup_name_results(name_strip, None)
+    img_bytes = _generate_icon(results, name_strip)
+    return Response(
+        content=img_bytes,
+        media_type="image/png",
+        headers={"Cache-Control": "public, max-age=86400"},
+    )
+
+
+@app.get("/manifest/{name_strip}")
+async def name_manifest(request: Request, name_strip: str):
+    """Dynamic Web App Manifest so the installed PWA shows the name, not just 'Nomi'."""
+    results = _lookup_name_results(name_strip, None)
+    primary  = results[0] if results else {}
+    display_name = primary.get("name", name_strip.title())
+    meaning  = (primary.get("meaning") or "")[:60]
+    accent   = _pick_accent(primary.get("name_strip", name_strip))
+    base_url = str(request.base_url).rstrip("/")
+    manifest = {
+        "name": f"{display_name} — Nomi",
+        "short_name": display_name,
+        "description": meaning or "Every name has a story",
+        "start_url": f"{base_url}/card/{name_strip}",
+        "scope": f"{base_url}/",
+        "display": "standalone",
+        "background_color": "#FBF7F0",
+        "theme_color": accent,
+        "icons": [
+            {"src": f"{base_url}/icon/{name_strip}", "sizes": "192x192", "type": "image/png"},
+            {"src": f"{base_url}/icon/{name_strip}", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"},
+        ],
+    }
+    return Response(
+        content=json.dumps(manifest),
+        media_type="application/manifest+json",
+        headers={"Cache-Control": "public, max-age=3600"},
+    )
+
+
+@app.get("/sw.js")
+async def service_worker():
+    """Service worker — cache-first for offline card access."""
+    sw = """
+const CACHE = 'nomi-v1';
+self.addEventListener('install', e => {
+  self.skipWaiting();
+});
+self.addEventListener('activate', e => {
+  e.waitUntil(clients.claim());
+});
+self.addEventListener('fetch', e => {
+  if (e.request.method !== 'GET') return;
+  e.respondWith(
+    caches.open(CACHE).then(cache =>
+      cache.match(e.request).then(cached => {
+        const fresh = fetch(e.request).then(res => {
+          if (res.ok) cache.put(e.request, res.clone());
+          return res;
+        }).catch(() => cached);
+        return cached || fresh;
+      })
+    )
+  );
+});
+"""
+    return Response(
+        content=sw,
+        media_type="application/javascript",
+        headers={"Cache-Control": "no-cache", "Service-Worker-Allowed": "/"},
     )
 
 
