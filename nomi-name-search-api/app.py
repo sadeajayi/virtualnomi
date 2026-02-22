@@ -1014,8 +1014,10 @@ def _generate_name_card_html(results: list, name_strip: str, base_url: str = "")
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;700;800&family=Sen:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>{_CARD_CSS}</style>
+<link rel="preload" as="image" href="{base_url}/card-image/{ns}">
 </head>
 <body style="{vars_css}">
+<img src="{base_url}/card-image/{ns}" alt="" style="position:absolute;width:0;height:0;opacity:0;pointer-events:none" aria-hidden="true">
 <div class="card">
   <span class="logo animate-in s1">Nomi</span>
   <div class="name-hero animate-in s1">{display_name}</div>
@@ -1058,7 +1060,7 @@ function copyLink(){{
 }}
 function shareCard(){{
   if(navigator.share){{
-    navigator.share({{title:'{display_name_js} — Nomi',text:'{share_text_js}',url:window.location.href}}).catch(()=>{{}});
+    navigator.share({{title:'{display_name_js} — Nomi',text:'{share_text_js}',url:window.location.href}}).catch((e)=>{{if(e&&e.name!=='AbortError')copyLink();}});
   }}else{{copyLink();}}
 }}
 function showToast(m){{
