@@ -806,7 +806,9 @@ _CARD_CSS = """
 body{background:var(--page-bg);font-family:'Livvic',system-ui,sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 16px}
 .card{background:var(--card-bg);border:1px solid var(--card-border);border-radius:20px;padding:48px 36px 40px;max-width:420px;width:100%;position:relative;overflow:hidden}
 .card{box-shadow:0 2px 8px rgba(26,26,46,.08),0 8px 24px rgba(26,26,46,.10),0 1px 2px rgba(26,26,46,.04)}
-.logo{font-family:'Sen',sans-serif;font-size:11px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--ink);opacity:.45;margin-bottom:40px;display:block}
+.logo-wrap{display:block;margin-bottom:36px}
+.logo{font-family:'Sen',sans-serif;font-size:11px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--ink);opacity:.45;display:block;margin-bottom:4px}
+.tagline{font-family:'Sen',sans-serif;font-size:12px;font-weight:400;color:var(--ink);opacity:.35;letter-spacing:.02em;display:block}
 .name-hero{font-family:'Livvic',sans-serif;font-size:clamp(56px,15vw,84px);font-weight:800;color:var(--accent);line-height:.92;letter-spacing:-.02em;position:relative;z-index:1;text-transform:lowercase}
 .name-hero:first-letter{text-transform:uppercase}
 .brush-wrap{display:block;width:100%;margin-top:6px;margin-bottom:22px;overflow:visible;line-height:0}
@@ -815,8 +817,8 @@ body{background:var(--page-bg);font-family:'Livvic',system-ui,sans-serif;min-hei
 .divider-wave{display:block;width:100%;margin-bottom:20px}
 .meaning-label{font-family:'Sen',sans-serif;font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);opacity:.8;margin-bottom:10px;margin-top:4px}
 .meaning-text{font-family:'Livvic',sans-serif;font-size:24px;font-weight:700;color:var(--ink);line-height:1.45;margin-bottom:30px}
-.audio-row{display:flex;align-items:center;gap:16px;margin-bottom:22px}
-.play-btn{width:54px;height:54px;border-radius:50%;background:var(--accent);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 10px rgba(26,26,46,.15);transition:transform .35s ease-in-out,box-shadow .35s ease-in-out}
+.audio-row{display:flex;align-items:center;gap:16px;margin-bottom:26px;padding:16px;background:var(--tag-bg);border-radius:14px}
+.play-btn{width:52px;height:52px;border-radius:50%;background:var(--accent);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 10px rgba(26,26,46,.15);transition:transform .35s ease-in-out,box-shadow .35s ease-in-out}
 .play-btn:hover{transform:translateY(-1px);box-shadow:0 4px 18px rgba(26,26,46,.2)}
 .play-btn svg path{fill:var(--card-bg)}
 .play-btn.playing{animation:breathe .85s ease-in-out infinite}
@@ -1031,7 +1033,10 @@ def _generate_name_card_html(results: list, name_strip: str, base_url: str = "")
 <body style="{vars_css}">
 <img src="{base_url}/card-image/{ns}" alt="" style="position:absolute;width:0;height:0;opacity:0;pointer-events:none" aria-hidden="true">
 <div class="card">
-  <span class="logo animate-in s1">Nomi</span>
+  <span class="logo-wrap animate-in s1">
+    <span class="logo">Nomi</span>
+    <span class="tagline">Every name has a story</span>
+  </span>
   <div class="name-hero animate-in s1">{display_name}</div>
   {brush_svg}
   {phonetic_html}
