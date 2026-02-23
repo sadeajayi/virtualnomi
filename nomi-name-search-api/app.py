@@ -998,7 +998,7 @@ def _generate_name_card_html(results: list, name_strip: str, base_url: str = "",
     story_preview = html_mod.escape((story.get("preview_text") or "").strip()[:120]) if story else ""
 
     _og_name_raw = primary.get("name", name_strip)
-    _og_meaning_raw = primary.get("meaning", "")[:100]
+    _og_meaning_raw = primary.get("meaning", "").strip()[:100]
     _og_text = f'My name is {_og_name_raw}. It means "{_og_meaning_raw}".'
     og_desc = html_mod.escape(_og_text)
 
@@ -1071,7 +1071,7 @@ def _generate_name_card_html(results: list, name_strip: str, base_url: str = "",
     else:
         audio_html = (
             '<div class="no-audio animate-in s4">No audio yet — '
-            '<a href="https://huggingface.co/spaces/nomi-stories/nomi-pronunciation-inbox">'
+            '<a href="https://huggingface.co/spaces/nomi-stories/nomi-pronunciation-uploader">'
             'be the first to add it</a></div>'
         )
         audio_js = "function playAudio(){}"
