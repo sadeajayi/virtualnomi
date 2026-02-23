@@ -868,7 +868,7 @@ body{background:var(--page-bg);font-family:'Livvic',system-ui,sans-serif;min-hei
 .logo-wrap{display:block;margin-bottom:36px}
 .logo{font-family:'Sen',sans-serif;font-size:11px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--ink);opacity:.45;display:block;margin-bottom:4px}
 .tagline{font-family:'Sen',sans-serif;font-size:12px;font-weight:400;color:var(--ink);opacity:.35;letter-spacing:.02em;display:block}
-.name-hero{font-family:'Livvic',sans-serif;font-size:clamp(56px,15vw,84px);font-weight:800;color:var(--accent);line-height:.92;letter-spacing:-.02em;position:relative;z-index:1;text-transform:lowercase}
+.name-hero{font-family:'Livvic',sans-serif;font-size:clamp(56px,15vw,84px);font-weight:800;color:var(--accent);line-height:.92;letter-spacing:-.02em;position:relative;z-index:1;text-transform:lowercase;overflow-wrap:break-word}
 .name-hero:first-letter{text-transform:uppercase}
 .brush-wrap{display:block;width:100%;margin-top:6px;margin-bottom:22px;overflow:visible;line-height:0}
 .phonetic-chip{display:inline-flex;align-items:center;background:var(--stone);border-radius:999px;padding:8px 18px;font-family:'Sen',sans-serif;font-size:15px;font-weight:400;color:var(--card-bg);letter-spacing:.04em;margin-bottom:10px;min-height:14px}
@@ -1024,6 +1024,15 @@ def _generate_name_card_html(results: list, name_strip: str, base_url: str = "",
         f'</svg>'
     )
 
+    # Scale hero font-size based on longest word: Livvic 800 avg char ≈ 52% of font-size
+    # Card usable width ≈ 350px; names > 8 chars need scaling down from 84px max
+    _longest_word = max((len(w) for w in display_name.split()), default=1)
+    if _longest_word > 8:
+        _hero_px = max(28, min(84, int(350 / (_longest_word * 0.52))))
+        name_hero_style = f' style="font-size:{_hero_px}px"'
+    else:
+        name_hero_style = ""
+
     phonetic_html = f'<div class="phonetic-chip animate-in s2">{phonetic}</div>' if phonetic else ""
     lang_html     = f'<div class="lang-tag animate-in s3">{language}</div>' if language else ""
 
@@ -1152,7 +1161,7 @@ def _generate_name_card_html(results: list, name_strip: str, base_url: str = "",
     <span class="tagline">Every name has a story</span>
   </span>
   <div class="name-prelude animate-in s1">My name is</div>
-  <div class="name-hero animate-in s1">{display_name}</div>
+  <div class="name-hero animate-in s1"{name_hero_style}>{display_name}</div>
   {brush_svg}
   {phonetic_html}
   {lang_html}
