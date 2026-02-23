@@ -72,7 +72,9 @@ _dataset_lookup = None
 _paraphrase_lookup = None
 
 _REPO_ROOT = Path(__file__).resolve().parent.parent
+# Paraphrase file: prefer repo root (local/full deploy), then same dir as app (Render when only nomi-name-search-api is deployed)
 _PARAPHRASE_FILE = _REPO_ROOT / "data" / "paraphrasing" / "yoruba_paraphrased_meanings.json"
+_PARAPHRASE_FILE_FALLBACK = Path(__file__).resolve().parent / "data" / "yoruba_paraphrased_meanings.json"
 
 
 def get_paraphrase_lookup() -> Dict[str, str]:
@@ -81,10 +83,11 @@ def get_paraphrase_lookup() -> Dict[str, str]:
     if _paraphrase_lookup is not None:
         return _paraphrase_lookup
     _paraphrase_lookup = {}
-    if not _PARAPHRASE_FILE.exists():
+    path = _PARAPHRASE_FILE if _PARAPHRASE_FILE.exists() else _PARAPHRASE_FILE_FALLBACK
+    if not path.exists():
         return _paraphrase_lookup
     try:
-        with open(_PARAPHRASE_FILE, "r", encoding="utf-8") as f:
+        with open(path, "r", encoding="utf-8") as f:
             data = json.load(f)
         for item in data.get("results", []):
             name = (item.get("name") or "").strip().lower()
@@ -895,10 +898,9 @@ body{background:var(--page-bg);font-family:'Livvic',system-ui,sans-serif;min-hei
 .cta-footer{text-align:center;margin-top:28px}
 .cta-label{font-family:'Sen',sans-serif;font-size:12px;font-weight:600;color:var(--stone);letter-spacing:.06em;text-transform:uppercase;margin-bottom:10px}
 .name-input-wrap{position:relative;display:flex;align-items:center}
-.name-input{width:100%;padding:13px 44px 13px 16px;border:1.5px solid var(--accent);border-radius:12px;font-family:'Sen',sans-serif;font-size:15px;font-weight:600;color:var(--ink);background:transparent;outline:none;box-sizing:border-box;transition:box-shadow .2s}
+.name-input{width:100%;padding:13px 16px;border:1.5px solid var(--accent);border-radius:12px;font-family:'Sen',sans-serif;font-size:15px;font-weight:600;color:var(--ink);background:transparent;outline:none;box-sizing:border-box;transition:box-shadow .2s}
 .name-input::placeholder{color:var(--stone);font-weight:400}
 .name-input:focus{box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 18%,transparent)}
-.name-input-arrow{position:absolute;right:14px;font-size:18px;color:var(--accent);pointer-events:none;line-height:1}
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--ink);color:var(--page-bg);padding:10px 22px;border-radius:12px;font-family:'Sen',sans-serif;font-size:14px;font-weight:600;transition:transform .35s ease-in-out;z-index:100}
 .toast.show{transform:translateX(-50%) translateY(0)}
 .animate-in{animation:fadeUp .35s ease-in-out forwards;opacity:0}
@@ -906,6 +908,8 @@ body{background:var(--page-bg);font-family:'Livvic',system-ui,sans-serif;min-hei
 @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 @keyframes breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.02)}}
 @media(max-width:400px){.card{padding:36px 22px 32px}}
+.name-prelude{font-family:'Sen',sans-serif;font-size:12px;text-transform:uppercase;letter-spacing:.12em;color:var(--stone);opacity:.7;margin-bottom:2px}
+.note-label{font-family:'Sen',sans-serif;font-size:11px;color:var(--stone);opacity:.65;margin-bottom:6px;letter-spacing:.02em}
 """
 
 
@@ -945,7 +949,7 @@ p{{font-family:'Sen',sans-serif;font-size:16px;color:var(--ink);opacity:.7;line-
 <div class="card" style="text-align:center">
   <span class="logo animate-in s1">Nomi</span>
   <div class="name-hero animate-in s2" style="margin-bottom:20px">{esc}</div>
-  <p class="animate-in s3">Your name deserves to be here.<br>Be the first to add it.</p>
+  <p class="animate-in s3">Your name has a story.<br>Be the first to tell it.</p>
   <a class="add-btn animate-in s4" href="https://huggingface.co/spaces/nomi-stories/nomi-pronunciation-inbox">Add your name →</a>
 </div>
 <div class="footer" style="margin-top:20px">
@@ -976,9 +980,10 @@ def _generate_name_card_html(results: list, name_strip: str, base_url: str = "",
     story_src    = html_mod.escape((story.get("source") or "").strip()) if story else ""
     story_preview = html_mod.escape((story.get("preview_text") or "").strip()[:120]) if story else ""
 
-    og_desc = html_mod.escape(
-        (f"{phonetic} · {meaning[:100]}" if phonetic else meaning[:120])
-    )
+    _og_name_raw = primary.get("name", name_strip)
+    _og_meaning_raw = primary.get("meaning", "")[:100]
+    _og_text = f'My name is {_og_name_raw}. It means "{_og_meaning_raw}".'
+    og_desc = html_mod.escape(_og_text)
 
     # Divider: subtle wave in accent at low opacity (section divider stroke)
     r, g, b = (int(accent[i : i + 2], 16) for i in (1, 3, 5))
@@ -1025,7 +1030,7 @@ def _generate_name_card_html(results: list, name_strip: str, base_url: str = "",
     # Audio section
     if audio_url:
         safe_audio = html_mod.escape(audio_url)
-        by_note = f'<div class="audio-sub">Contributed by {pron_by}</div>' if pron_by else ""
+        by_note = f'<div class="audio-sub">Pronunciation by {pron_by}</div>' if pron_by else ""
         audio_html = (
             f'<div class="audio-row animate-in s4">'
             f'<button class="play-btn" id="play-btn" onclick="playAudio()" aria-label="Play pronunciation">'
@@ -1033,7 +1038,7 @@ def _generate_name_card_html(results: list, name_strip: str, base_url: str = "",
             f'<path id="play-icon" d="M8 5.5L18 11L8 16.5V5.5Z" fill="currentColor"/>'
             f'</svg></button>'
             f'<div class="audio-meta">'
-            f'<div class="audio-label" id="audio-label">Hear it spoken</div>'
+            f'<div class="audio-label" id="audio-label">Hear how I say it</div>'
             f'{by_note}</div></div>'
         )
         audio_js = (
@@ -1041,16 +1046,16 @@ def _generate_name_card_html(results: list, name_strip: str, base_url: str = "",
             f'function playAudio(){{\n'
             f'  const btn=document.getElementById("play-btn");\n'
             f'  const lbl=document.getElementById("audio-label");\n'
-            f'  if(_pl){{_aud.pause();_aud.currentTime=0;_pl=false;btn.classList.remove("playing");lbl.textContent="Hear it spoken";}}\n'
+            f'  if(_pl){{_aud.pause();_aud.currentTime=0;_pl=false;btn.classList.remove("playing");lbl.textContent="Hear how I say it";}}\n'
             f'  else{{_aud.play();_pl=true;btn.classList.add("playing");lbl.textContent="Playing...";\n'
-            f'    _aud.onended=()=>{{_pl=false;btn.classList.remove("playing");lbl.textContent="Hear it spoken";}};}};\n'
+            f'    _aud.onended=()=>{{_pl=false;btn.classList.remove("playing");lbl.textContent="Hear how I say it";}};}};\n'
             f'}}'
         )
     else:
         audio_html = (
-            '<div class="no-audio animate-in s4">No pronunciation yet — '
+            '<div class="no-audio animate-in s4">No audio yet — '
             '<a href="https://huggingface.co/spaces/nomi-stories/nomi-pronunciation-inbox">'
-            'add yours</a></div>'
+            'be the first to add it</a></div>'
         )
         audio_js = "function playAudio(){}"
 
@@ -1078,27 +1083,27 @@ def _generate_name_card_html(results: list, name_strip: str, base_url: str = "",
     note_safe       = html_mod.escape((note or "").strip())
     note_js         = note_safe.replace("'", "\\'")
     note_display    = f'<div class="personal-note animate-in s4">{note_safe}</div>' if note_safe else ""
-    note_input_placeholder = f"Why did your parents choose this name?"
     note_input_html = (
         f'<div class="note-input-wrap animate-in s4">'
-        f'<textarea class="note-input" rows="2" placeholder="{note_input_placeholder}" '
+        f'<div class="note-label">Your note travels with this card →</div>'
+        f'<textarea class="note-input" rows="2" placeholder="Tell them why your parents chose this name" '
         f'oninput="updateNote(this.value)" onblur="updateNote(this.value)">'
-        f'{note_safe}</textarea>'
+        f'</textarea>'
         f'</div>'
-    )
+    ) if not note_safe else ""
     if meaning_js and phonetic_js:
-        share_text_js = f"{display_name_js} means \\'{meaning_js}\\'. Here\\'s how to say it: {phonetic_js}"
+        share_text_js = f'My name is {display_name_js}. It means "{meaning_js}". ({phonetic_js})'
     elif meaning_js:
-        share_text_js = f"{display_name_js} means \\'{meaning_js}\\'."
+        share_text_js = f'My name is {display_name_js}. It means "{meaning_js}".'
     elif phonetic_js:
-        share_text_js = f"Here\\'s how to say my name: {display_name_js} ({phonetic_js})"
+        share_text_js = f'My name is {display_name_js} ({phonetic_js})'
     else:
-        share_text_js = f"My name is {display_name_js}"
+        share_text_js = f'My name is {display_name_js}'
 
     return f"""<!DOCTYPE html>
 <html lang="en"><head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>{display_name} — Nomi</title>
+<title>{display_name} — My name, my story</title>
 <link rel="manifest" href="{base_url}/manifest/{ns}">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -1106,7 +1111,7 @@ def _generate_name_card_html(results: list, name_strip: str, base_url: str = "",
 <link rel="apple-touch-icon" href="{base_url}/icon/{ns}">
 <meta name="theme-color" content="{accent}">
 <meta name="description" content="{og_desc}">
-<meta property="og:title" content="{display_name}">
+<meta property="og:title" content="{display_name} — My name, my story">
 <meta property="og:description" content="{og_desc}">
 <meta property="og:image" content="{base_url}/card-image/{ns}">
 <meta property="og:image:width" content="1200">
@@ -1114,7 +1119,7 @@ def _generate_name_card_html(results: list, name_strip: str, base_url: str = "",
 <meta property="og:site_name" content="Nomi">
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="{display_name} — Nomi">
+<meta name="twitter:title" content="{display_name} — My name, my story">
 <meta name="twitter:description" content="{og_desc}">
 <meta name="twitter:image" content="{base_url}/card-image/{ns}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1129,42 +1134,41 @@ def _generate_name_card_html(results: list, name_strip: str, base_url: str = "",
     <span class="logo">Nomi</span>
     <span class="tagline">Every name has a story</span>
   </span>
+  <div class="name-prelude animate-in s1">My name is</div>
   <div class="name-hero animate-in s1">{display_name}</div>
   {brush_svg}
   {phonetic_html}
   {lang_html}
   {divider_svg}
-  <div class="meaning-label">Meaning</div>
-  <div class="meaning-text animate-in s4">{meaning}</div>
   {note_display}
   {note_input_html}
+  <div class="meaning-label">It means</div>
+  <div class="meaning-text animate-in s4">{meaning}</div>
   {cultural_html}
   {story_html}
   {others_html}
   {audio_html}
-  <div class="share-label animate-in s5">Your name. Your story.</div>
   <div class="share-row animate-in s5">
     <button class="btn btn-copy" onclick="saveImage()">
       <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
         <path d="M7 2v7M7 9L4.5 6.5M7 9L9.5 6.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
         <path d="M2.5 11.5h9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
       </svg>
-      Save your card
+      Send your card
     </button>
     <button class="btn btn-primary" onclick="shareCard()">
       <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
         <path d="M7 1.5v7M7 1.5L4.5 4M7 1.5L9.5 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
         <path d="M2.5 8v4h9V8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
       </svg>
-      Share your story
+      Share as image
     </button>
   </div>
 </div>
 <div class="cta-footer animate-in s6">
-  <div class="cta-label">What does your name mean?</div>
+  <div class="cta-label">Your name has a story too</div>
   <div class="name-input-wrap">
-    <input class="name-input" type="text" placeholder="Enter your name" autocomplete="off" autocorrect="off" spellcheck="false" onkeydown="if(event.key==='Enter')lookupName(this.value)">
-    <span class="name-input-arrow">→</span>
+    <input class="name-input" type="text" placeholder="Find your name →" autocomplete="off" autocorrect="off" spellcheck="false" onkeydown="if(event.key==='Enter')lookupName(this.value)">
   </div>
 </div>
 <div class="footer">
