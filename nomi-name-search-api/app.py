@@ -543,6 +543,23 @@ async def root():
         "version": "1.0.0"
     }
 
+
+@app.get("/paraphrase-status")
+async def paraphrase_status():
+    """Check if Yoruba paraphrase data is loaded (for debugging Render/deploy)."""
+    lookup = get_paraphrase_lookup()
+    path_used = "none"
+    if _PARAPHRASE_FILE.exists():
+        path_used = str(_PARAPHRASE_FILE)
+    elif _PARAPHRASE_FILE_FALLBACK.exists():
+        path_used = str(_PARAPHRASE_FILE_FALLBACK)
+    return {
+        "loaded": len(lookup) > 0,
+        "count": len(lookup),
+        "path_used": path_used,
+        "afolabi_has_paraphrase": "afolabi" in lookup,
+    }
+
 @app.get("/search", response_model=SearchResponse)
 async def search(
     q: str = Query(..., description="Search query"),
@@ -1086,7 +1103,7 @@ def _generate_name_card_html(results: list, name_strip: str, base_url: str = "",
     note_input_html = (
         f'<div class="note-input-wrap animate-in s4">'
         f'<div class="note-label">Your note travels with this card →</div>'
-        f'<textarea class="note-input" rows="2" placeholder="Tell them why your parents chose this name" '
+        f'<textarea class="note-input" rows="2" placeholder="Tell them why your family chose this name" '
         f'oninput="updateNote(this.value)" onblur="updateNote(this.value)">'
         f'</textarea>'
         f'</div>'

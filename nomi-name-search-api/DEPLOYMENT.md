@@ -61,10 +61,10 @@ railway variables set OPENAI_API_KEY=your-key
 
 3. **Configure**:
    - **Name**: `nomi-name-search-api`
-   - **Root Directory**: `nomi-name-search-api`
+   - **Root Directory**: leave **blank** (repo root) so `data/paraphrasing/yoruba_paraphrased_meanings.json` is available for Yoruba paraphrase display
    - **Environment**: `Python 3`
-   - **Build Command**: `pip install -r requirements.txt`
-   - **Start Command**: `uvicorn app:app --host 0.0.0.0 --port $PORT`
+   - **Build Command**: `cd nomi-name-search-api && pip install -r requirements.txt`
+   - **Start Command**: `cd nomi-name-search-api && uvicorn app:app --host 0.0.0.0 --port $PORT`
 
 4. **Set Environment Variables**:
    - Scroll down to "Environment Variables"

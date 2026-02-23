@@ -1,9 +1,11 @@
+# Deploy from repo root (omit rootDir) so data/paraphrasing/yoruba_paraphrased_meanings.json
+# is available; build and run from the API subfolder.
 services:
   - type: web
     name: nomi-name-search-api
     runtime: python
-    buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn app:app --host 0.0.0.0 --port $PORT
+    buildCommand: cd nomi-name-search-api && pip install -r requirements.txt
+    startCommand: cd nomi-name-search-api && uvicorn app:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: HF_TOKEN
         sync: false
