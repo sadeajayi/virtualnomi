@@ -858,6 +858,106 @@ def _generate_icon(results: list, name_strip: str, size: int = 512) -> bytes:
     return buf.getvalue()
 
 
+def _generate_story_image(results: list, name_strip: str) -> bytes:
+    """
+    1080×1920 PNG for Instagram Stories (9:16 portrait).
+    Same Vivid Field aesthetic as OG image — solid accent bg, name hero centered.
+    """
+    if not PIL_AVAILABLE:
+        return b""
+    W, H, PAD = 1080, 1920, 96
+
+    ns     = results[0].get("name_strip", name_strip) if results else name_strip
+    accent = _pick_accent(ns)
+    r_bg, g_bg, b_bg = int(accent[1:3], 16), int(accent[3:5], 16), int(accent[5:7], 16)
+    bg     = (r_bg, g_bg, b_bg)
+    dark   = accent in ("#F2C94C",)
+    text   = (26, 26, 46) if dark else (255, 255, 255)
+
+    img  = Image.new("RGB", (W, H), bg)
+    draw = ImageDraw.Draw(img)
+
+    f_brand    = _pil_font("Sen",    700,  24)
+    f_label    = _pil_font("Sen",    700,  18)
+    f_phonetic = _pil_font("Sen",    400,  38)
+    f_meaning  = _pil_font("Livvic", 400,  44)
+
+    primary      = results[0] if results else {}
+    display_name = (primary.get("name") or name_strip)
+    phonetic     = (primary.get("phonetic_spelling") or "").strip()
+    language     = (primary.get("language") or "").strip()
+    meaning      = (primary.get("meaning") or "").strip()
+
+    # NOMI brand — top left
+    draw.text((PAD, 90), "NOMI", font=f_label, fill=_blend(text, bg, 0.45))
+
+    # Auto-size name hero to fill width
+    f_name = _pil_font("Livvic", 800, 160)
+    for fsize in range(160, 60, -8):
+        f_test = _pil_font("Livvic", 800, fsize)
+        if f_test is None:
+            break
+        bbox = draw.textbbox((0, 0), display_name, font=f_test)
+        if bbox[2] - bbox[0] <= W - PAD * 2:
+            f_name = f_test
+            break
+
+    name_y = int(H * 0.36)
+    draw.text((PAD, name_y), display_name, font=f_name, fill=text)
+    bbox   = draw.textbbox((PAD, name_y), display_name, font=f_name)
+    name_w = bbox[2] - bbox[0]
+    name_h = bbox[3] - bbox[1]
+
+    stroke_y = name_y + name_h + 22
+    _draw_brush_stroke(draw, PAD, stroke_y,
+                       PAD + min(name_w, W - PAD * 2 - 80),
+                       text, bg, 0.28 if not dark else 0.15)
+    cy = stroke_y + 52
+
+    # Phonetic chip
+    if phonetic:
+        pad_x, chip_h = 24, 64
+        tw      = int(draw.textlength(phonetic, font=f_phonetic))
+        chip_w  = tw + pad_x * 2
+        chip_bg = _blend(text, bg, 0.16)
+        draw.rounded_rectangle([PAD, cy, PAD + chip_w, cy + chip_h],
+                                radius=chip_h // 2, fill=chip_bg)
+        draw.text((PAD + pad_x, cy + 13), phonetic, font=f_phonetic, fill=text)
+        if language:
+            lx = PAD + chip_w + 16
+            lw = int(draw.textlength(language.upper(), font=f_label)) + 32
+            draw.rounded_rectangle([lx, cy, lx + lw, cy + chip_h],
+                                   radius=chip_h // 2,
+                                   outline=_blend(text, bg, 0.3), width=2)
+            draw.text((lx + 16, cy + 23), language.upper(),
+                      font=f_label, fill=_blend(text, bg, 0.7))
+        cy += chip_h + 44
+    elif language:
+        lw = int(draw.textlength(language.upper(), font=f_label)) + 32
+        draw.rounded_rectangle([PAD, cy, PAD + lw, cy + 52],
+                               radius=26, outline=_blend(text, bg, 0.3), width=2)
+        draw.text((PAD + 16, cy + 17), language.upper(),
+                  font=f_label, fill=_blend(text, bg, 0.7))
+        cy += 68
+
+    # Meaning (up to 4 lines)
+    if meaning:
+        lines = _wrap_text(draw, f'"{meaning}"', f_meaning, W - PAD * 2 - 80)
+        for line in lines[:4]:
+            draw.text((PAD, cy), line, font=f_meaning,
+                      fill=_blend(text, bg, 0.88))
+            cy += 60
+
+    # nomistories.com — bottom right
+    bw = int(draw.textlength("nomistories.com", font=f_brand))
+    draw.text((W - PAD - bw, H - 90), "nomistories.com",
+              font=f_brand, fill=_blend(text, bg, 0.4))
+
+    buf = io.BytesIO()
+    img.save(buf, "PNG", optimize=True)
+    return buf.getvalue()
+
+
 # Static CSS — Variant A (Cream Stationery). Page #FBF7F0, card #FFF, accent for hero/brush/tag/button.
 # Shadows: warm, card sits on top of page (aesthetics doc). Motion: 350ms ease-in-out, 8px→0.
 _CARD_CSS = """
@@ -899,7 +999,9 @@ body{background:var(--page-bg);font-family:'Livvic',system-ui,sans-serif;min-hei
 .note-input{width:100%;padding:11px 14px;border:1.5px dashed var(--accent);border-radius:10px;font-family:'Livvic',sans-serif;font-size:14px;font-style:italic;color:var(--ink);background:transparent;outline:none;resize:none;line-height:1.5;min-height:52px;box-sizing:border-box;transition:border-style .15s,opacity .15s;opacity:.55}
 .note-input:focus{border-style:solid;opacity:1}
 .note-input::placeholder{color:var(--stone)}
-.cultural-ctx{font-family:'Sen',sans-serif;font-size:13px;color:var(--ink);opacity:.6;line-height:1.55;margin-bottom:20px;font-style:italic}
+.cultural-ctx{background:var(--tag-bg);border-radius:12px;padding:14px 16px;margin-bottom:24px}
+.cultural-origin-label{font-family:'Sen',sans-serif;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);opacity:.8;margin-bottom:6px}
+.cultural-ctx-text{font-family:'Sen',sans-serif;font-size:14px;color:var(--ink);line-height:1.6;opacity:.85}
 .story-link-row{margin-bottom:24px}
 .story-link{font-family:'Sen',sans-serif;font-size:13px;font-weight:600;color:var(--accent);text-decoration:none;display:inline-flex;align-items:center;gap:5px}
 .story-link:hover{opacity:.75}
@@ -927,6 +1029,10 @@ body{background:var(--page-bg);font-family:'Livvic',system-ui,sans-serif;min-hei
 @media(max-width:400px){.card{padding:36px 22px 32px}}
 .name-prelude{font-family:'Sen',sans-serif;font-size:12px;text-transform:uppercase;letter-spacing:.12em;color:var(--stone);opacity:.7;margin-bottom:2px}
 .note-label{font-family:'Sen',sans-serif;font-size:11px;color:var(--stone);opacity:.65;margin-bottom:6px;letter-spacing:.02em}
+.btn-share-link{display:flex;align-items:center;justify-content:center;gap:6px;padding:11px;border-radius:12px;font-family:'Sen',sans-serif;font-size:13px;font-weight:600;color:var(--accent);border:1.5px solid var(--accent);cursor:pointer;text-decoration:none;margin-top:10px;background:transparent;transition:background .2s,color .2s;width:100%}
+.btn-share-link:hover{background:var(--tag-bg)}
+.btn-teacher{display:flex;align-items:center;justify-content:center;gap:8px;padding:11px;border-radius:12px;font-family:'Sen',sans-serif;font-size:13px;font-weight:600;color:var(--stone);border:1.5px solid rgba(74,74,106,.22);cursor:pointer;text-decoration:none;margin-top:10px;background:transparent;transition:border-color .2s,color .2s;width:100%}
+.btn-teacher:hover{border-color:var(--accent);color:var(--accent)}
 """
 
 
@@ -1038,7 +1144,10 @@ def _generate_name_card_html(results: list, name_strip: str, base_url: str = "",
 
     # Cultural context block
     cultural_html = (
-        f'<div class="cultural-ctx animate-in s4">{cultural_ctx}</div>'
+        f'<div class="cultural-ctx animate-in s4">'
+        f'<div class="cultural-origin-label">Cultural origin</div>'
+        f'<div class="cultural-ctx-text">{cultural_ctx}</div>'
+        f'</div>'
         if cultural_ctx else ""
     )
 
@@ -1109,14 +1218,7 @@ def _generate_name_card_html(results: list, name_strip: str, base_url: str = "",
     note_safe       = html_mod.escape((note or "").strip())
     note_js         = note_safe.replace("'", "\\'")
     note_display    = f'<div class="personal-note animate-in s4">{note_safe}</div>' if note_safe else ""
-    note_input_html = (
-        f'<div class="note-input-wrap animate-in s4">'
-        f'<div class="note-label">Your note travels with this card →</div>'
-        f'<textarea class="note-input" rows="2" placeholder="Tell them why your family chose this name" '
-        f'oninput="updateNote(this.value)" onblur="updateNote(this.value)">'
-        f'</textarea>'
-        f'</div>'
-    ) if not note_safe else ""
+    note_input_html = ""  # textarea removed — owner adds note via /share/ flow
     if meaning_js and phonetic_js:
         share_text_js = f'My name is {display_name_js}. It means "{meaning_js}". ({phonetic_js})'
     elif meaning_js:
@@ -1125,6 +1227,25 @@ def _generate_name_card_html(results: list, name_strip: str, base_url: str = "",
         share_text_js = f'My name is {display_name_js} ({phonetic_js})'
     else:
         share_text_js = f'My name is {display_name_js}'
+
+    # Teacher / HR mailto — body built in Python so json.dumps handles all escaping
+    _tn = primary.get("name", name_strip)
+    _ti = f"My name is {_tn}"
+    if primary.get("phonetic_spelling"):
+        _ti += f" ({primary.get('phonetic_spelling', '')})"
+    if primary.get("language"):
+        _ti += f". It\u2019s a {primary.get('language', '')} name"
+    if meaning_raw:
+        _ti += f" that means \"{meaning_raw[:80]}\""
+    _ti += "."
+    _teacher_body = (
+        f"Hi,\n\n{_ti}\n\n"
+        f"I\u2019ve put together a short name card so you can hear how I say it:\n"
+        f"{base_url}/card/{ns}\n\n"
+        f"Thank you for taking the time to learn my name.\n\n\u2014 {_tn}"
+    )
+    teacher_body_json = json.dumps(_teacher_body)
+    teacher_subj_json = json.dumps(f"How to say my name \u2014 {_tn}")
 
     return f"""<!DOCTYPE html>
 <html lang="en"><head>
@@ -1163,17 +1284,15 @@ def _generate_name_card_html(results: list, name_strip: str, base_url: str = "",
   <div class="name-prelude animate-in s1">My name is</div>
   <div class="name-hero animate-in s1"{name_hero_style}>{display_name}</div>
   {brush_svg}
+  {audio_html}
   {phonetic_html}
   {lang_html}
-  {divider_svg}
-  {note_display}
-  {note_input_html}
   <div class="meaning-label">It means</div>
   <div class="meaning-text animate-in s4">{meaning}</div>
   {cultural_html}
+  {note_display}
   {story_html}
   {others_html}
-  {audio_html}
   <div class="share-row animate-in s5">
     <button class="btn btn-copy" onclick="saveImage()">
       <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
@@ -1190,6 +1309,19 @@ def _generate_name_card_html(results: list, name_strip: str, base_url: str = "",
       Share as image
     </button>
   </div>
+  <a class="btn-share-link animate-in s6" href="{base_url}/share/{ns}">
+    <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true">
+      <path d="M2 10.5h9M7.5 2L11 2M11 2v3.5M11 2L6 7.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    Add a personal note before sharing →
+  </a>
+  <a class="btn-teacher animate-in s6" onclick="sendToTeacher();return false;" href="#">
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+      <rect x="1.5" y="3.5" width="11" height="8" rx="1.5" stroke="currentColor" stroke-width="1.3"/>
+      <path d="M1.5 5.5l5.5 3.5 5.5-3.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+    </svg>
+    Send to my teacher or HR →
+  </a>
 </div>
 <div class="cta-footer animate-in s6">
   <div class="cta-label">Your name has a story too</div>
@@ -1261,8 +1393,135 @@ function updateNote(v){{
   history.replaceState({{}},'',url.toString());
 }}
 function lookupName(v){{
-  const n=v.trim().toLowerCase().replace(/[^a-z\-]/g,'');
+  const n=v.trim().toLowerCase().replace(/[^\\p{{L}}-]/gu,'');
   if(n)window.location.href='{base_url}/card/'+encodeURIComponent(n);
+}}
+function sendToTeacher(){{
+  const s={teacher_subj_json};
+  const b={teacher_body_json};
+  window.location.href='mailto:?subject='+encodeURIComponent(s)+'&body='+encodeURIComponent(b);
+}}
+function showToast(m){{
+  const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2200);
+}}
+</script>
+</body></html>"""
+
+
+def _generate_share_page_html(results: list, name_strip: str, base_url: str) -> str:
+    """
+    Owner flow: lightweight page to add a personal note and copy the shareable link.
+    No auth — the note travels in the URL as ?note=. Recipients only ever see
+    the read-only card; this page is for the name owner before they share.
+    """
+    if not results:
+        return _not_found_html(name_strip)
+
+    primary = results[0]
+    ns      = primary.get("name_strip", name_strip)
+    accent  = _pick_accent(ns)
+    vars_css = _css_vars_cream_stationery(accent)
+
+    display_name    = html_mod.escape(primary.get("name", name_strip))
+    phonetic        = html_mod.escape(primary.get("phonetic_spelling", "") or "")
+    language        = html_mod.escape(primary.get("language", ""))
+    meaning_raw     = (primary.get("meaning") or "").strip()
+    meaning_snippet = html_mod.escape(meaning_raw[:70] + ("\u2026" if len(meaning_raw) > 70 else ""))
+    card_url        = html_mod.escape(f"{base_url}/card/{ns}")
+
+    phonetic_html = f'<span class="phonetic-chip">{phonetic}</span>' if phonetic else ""
+    lang_html     = f'<span class="lang-tag">{language}</span>' if language else ""
+
+    brush_svg = (
+        '<svg class="brush-wrap" viewBox="0 0 620 28" height="24" '
+        'preserveAspectRatio="xMidYMid meet" aria-hidden="true">'
+        f'<path d="M 20 14 C 100 6 220 20 340 12 C 460 4 540 18 600 14" '
+        f'stroke="{accent}" stroke-width="12" stroke-linecap="round" fill="none" opacity="0.9"/>'
+        f'<path d="M 22 18 C 102 10 222 24 342 16 C 462 8 542 22 598 18" '
+        f'stroke="{accent}" stroke-width="4" stroke-linecap="round" fill="none" opacity="0.4"/>'
+        '</svg>'
+    )
+
+    _longest_word = max((len(w) for w in display_name.split()), default=1)
+    if _longest_word > 8:
+        _hero_px = max(28, min(84, int(350 / (_longest_word * 0.52))))
+        name_hero_style = f' style="font-size:{_hero_px}px"'
+    else:
+        name_hero_style = ""
+
+    return f"""<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Send {display_name}\u2019s card \u2014 Nomi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;700;800&family=Sen:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+{_CARD_CSS}
+.share-steps{{font-family:'Sen',sans-serif;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--stone);margin-bottom:28px;display:flex;gap:16px;align-items:center;flex-wrap:wrap}}
+.share-steps .active{{color:var(--accent)}}
+.share-steps .dim{{opacity:.35}}
+.section-label{{font-family:'Sen',sans-serif;font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);opacity:.8;margin-bottom:10px}}
+.note-area{{width:100%;padding:12px 14px;border:1.5px solid var(--accent);border-radius:12px;font-family:'Livvic',sans-serif;font-size:15px;font-style:italic;color:var(--ink);background:transparent;outline:none;resize:none;line-height:1.6;min-height:80px;box-sizing:border-box;transition:box-shadow .2s;margin-bottom:24px}}
+.note-area:focus{{box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 18%,transparent)}}
+.note-area::placeholder{{color:var(--stone);opacity:.5;font-weight:400;font-style:italic}}
+.link-row{{display:flex;gap:10px;align-items:stretch;margin-bottom:16px}}
+.link-display{{flex:1;padding:11px 14px;background:var(--tag-bg);border-radius:12px;font-family:'Sen',sans-serif;font-size:12px;color:var(--ink);opacity:.75;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border:1px solid var(--card-border);cursor:default}}
+.copy-btn{{padding:11px 20px;background:var(--accent);color:var(--card-bg);border:none;border-radius:12px;font-family:'Sen',sans-serif;font-size:13px;font-weight:700;cursor:pointer;flex-shrink:0;transition:transform .2s,box-shadow .2s}}
+.copy-btn:hover{{transform:translateY(-1px);box-shadow:0 4px 14px rgba(26,26,46,.18)}}
+.preview-btn{{display:flex;align-items:center;justify-content:center;gap:6px;padding:13px;border-radius:12px;font-family:'Sen',sans-serif;font-size:14px;font-weight:600;color:var(--card-bg);background:var(--accent);text-decoration:none;width:100%;transition:transform .2s}}
+.preview-btn:hover{{transform:translateY(-1px)}}
+.meaning-snippet{{font-family:'Sen',sans-serif;font-size:13px;color:var(--stone);margin-bottom:28px;opacity:.75;font-style:italic;line-height:1.5}}
+</style>
+</head>
+<body style="{vars_css}">
+<div class="card">
+  <span class="logo-wrap animate-in s1">
+    <span class="logo">Nomi</span>
+    <span class="tagline">Send your name card</span>
+  </span>
+  <div class="share-steps animate-in s1">
+    <span class="active">1. Add a note</span>
+    <span class="dim">\u2192</span>
+    <span class="dim">2. Copy link</span>
+    <span class="dim">\u2192</span>
+    <span class="dim">3. Share</span>
+  </div>
+  <div class="name-prelude animate-in s1">My name is</div>
+  <div class="name-hero animate-in s1"{name_hero_style}>{display_name}</div>
+  {brush_svg}
+  <div style="margin-bottom:20px">{phonetic_html}{lang_html}</div>
+  {f'<div class="meaning-snippet animate-in s2">&ldquo;{meaning_snippet}&rdquo;</div>' if meaning_snippet else ''}
+  <div class="section-label animate-in s3">Add a personal note (optional)</div>
+  <textarea class="note-area animate-in s3" id="note-input" rows="3"
+    placeholder="Tell them why your family chose this name\u2026"
+    oninput="updateLink(this.value)"
+  ></textarea>
+  <div class="section-label animate-in s4">Your shareable link</div>
+  <div class="link-row animate-in s4">
+    <div class="link-display" id="link-display">{card_url}</div>
+    <button class="copy-btn" onclick="copyLink()">Copy</button>
+  </div>
+  <a class="preview-btn animate-in s5" id="preview-btn" href="{card_url}" target="_blank">
+    Preview your card \u2192
+  </a>
+</div>
+<div class="footer" style="margin-top:20px">
+  <a href="https://nomistories.com">nomistories.com</a>
+</div>
+<div class="toast" id="toast">Copied!</div>
+<script>
+const _base='{card_url}';
+function updateLink(v){{
+  const u=v.trim()?_base+'?note='+encodeURIComponent(v.trim()):_base;
+  document.getElementById('link-display').textContent=u;
+  document.getElementById('preview-btn').href=u;
+}}
+function copyLink(){{
+  const u=document.getElementById('link-display').textContent;
+  navigator.clipboard.writeText(u)
+    .then(()=>showToast('Link copied!'))
+    .catch(()=>{{const e=document.createElement('input');e.value=u;document.body.appendChild(e);e.select();document.execCommand('copy');document.body.removeChild(e);showToast('Link copied!');}});
 }}
 function showToast(m){{
   const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');
@@ -1350,6 +1609,21 @@ async def get_name(
     )
 
 
+@app.get("/share/{name_strip}", response_class=HTMLResponse)
+async def name_share_page(
+    request: Request,
+    name_strip: str,
+    language: Optional[str] = Query(None, description="Filter by language"),
+):
+    """
+    Owner flow: add a personal note and copy the shareable card link.
+    The note travels in the URL as ?note=. No auth required.
+    """
+    results = _lookup_name_results(name_strip, language)
+    base_url = str(request.base_url).rstrip("/")
+    return HTMLResponse(content=_generate_share_page_html(results, name_strip, base_url))
+
+
 @app.get("/card/{name_strip}", response_class=HTMLResponse)
 async def name_card(
     request: Request,
@@ -1380,6 +1654,26 @@ async def name_card_image(
         raise HTTPException(status_code=501, detail="Pillow not installed")
     results = _lookup_name_results(name_strip, language)
     img_bytes = _generate_og_image(results, name_strip)
+    return Response(
+        content=img_bytes,
+        media_type="image/png",
+        headers={"Cache-Control": "public, max-age=86400"},
+    )
+
+
+@app.get("/card-image-story/{name_strip}")
+async def name_card_story_image(
+    name_strip: str,
+    language: Optional[str] = Query(None, description="Filter by language")
+):
+    """
+    1080×1920 PNG for Instagram Stories (9:16 portrait).
+    Same Vivid Field design as OG image — use this for IG Stories sharing.
+    """
+    if not PIL_AVAILABLE:
+        raise HTTPException(status_code=501, detail="Pillow not installed")
+    results = _lookup_name_results(name_strip, language)
+    img_bytes = _generate_story_image(results, name_strip)
     return Response(
         content=img_bytes,
         media_type="image/png",
