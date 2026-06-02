@@ -1,5 +1,13 @@
 # Deployment Guide
 
+## Dataset updates (Hugging Face)
+
+The API loads `nomi-stories/nomi-names` from Hugging Face at **process startup** and keeps it in memory. After pushing a meaning or metadata change to the HF dataset, **redeploy the API** (or restart the service) so instances fetch the new parquet file.
+
+Example: `python scripts/dataset_updates/update_morenikeji_meaning.py`
+
+---
+
 ## Option 1: Railway (Recommended - Easiest)
 
 ### Prerequisites
