@@ -167,6 +167,7 @@ def generate_insight_paragraph(
         "meaning": resolved_meaning,
         "insight": insight,
         "rag_used": rag_used,
+        "rag_excerpts": rag_excerpts,
         "rag_language_key": rag_key,
         "attributions": attributions,
         "model": INSIGHTS_MODEL,

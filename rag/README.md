@@ -31,7 +31,7 @@ Deploy the API from **repo root** (or ship `research_papers_index/` with the ser
 
 `nomi-name-search-api` exposes:
 
-- `GET /insights?name=Folasade&language=Yoruba` — Claude paragraph grounded in RAG when an index exists
+- `GET /insights?name=Folasade&language=Yoruba` — Claude paragraph grounded in RAG when an index exists. Response includes `rag_excerpts` (text sent to the model) and `attributions` for auditability.
 - `GET /insights/languages` — which language indexes are present on the server
 
 Requires `ANTHROPIC_API_KEY`. System prompt: `nomi-name-search-api/prompts/nomi_insights_system_prompt.md`.

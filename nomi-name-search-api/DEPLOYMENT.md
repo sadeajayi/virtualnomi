@@ -207,6 +207,8 @@ curl "$API_BASE/insights?name=Folasade&language=Yoruba"
 curl "$API_BASE/insights/languages"
 ```
 
+`/insights` responses include `rag_excerpts` (exact text retrieved from research papers and passed to Claude) alongside `attributions` for auditability.
+
 Deploy from **repo root** so `research_papers_index/` and `rag/` are available. Build indexes with `python rag/index_language_papers.py yoruba` (and other languages as needed).
 
 ---

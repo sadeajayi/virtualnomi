@@ -172,6 +172,7 @@ class InsightsResponse(BaseModel):
     meaning: str
     insight: str
     rag_used: bool
+    rag_excerpts: str = ""
     rag_language_key: Optional[str] = None
     attributions: List[str] = []
     model: Optional[str] = None
