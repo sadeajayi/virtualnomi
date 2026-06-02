@@ -1,14 +1,15 @@
 # Deploy from repo root (omit rootDir) so data/paraphrasing/yoruba_paraphrased_meanings.json
 # is available; build and run from the API subfolder.
+# 512MB Render: use requirements.txt and NOMI_SEMANTIC_SEARCH=0
 services:
   - type: web
     name: nomi-name-search-api
     runtime: python
-    buildCommand: cd nomi-name-search-api && pip install -r requirements.txt
+    buildCommand: cd nomi-name-search-api && pip install -r requirements-semantic.txt
     startCommand: cd nomi-name-search-api && uvicorn app:app --host 0.0.0.0 --port $PORT --workers 1
     envVars:
       - key: NOMI_SEMANTIC_SEARCH
-        value: "0"
+        value: "1"
       - key: HF_TOKEN
         sync: false
       - key: PINECONE_API_KEY
