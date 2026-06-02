@@ -14,3 +14,6 @@ services:
       - key: OPENAI_API_KEY
         sync: false
         optional: true
+      - key: ANTHROPIC_API_KEY
+        sync: false
+        optional: true

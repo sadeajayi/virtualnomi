@@ -1,0 +1,1573 @@
+{
+  "metadata": {
+    "total_papers": 3,
+    "total_chunks": 313
+  },
+  "chunks": [
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_0",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "Studies in African\nLanguages and Cultures, Vol. 56, 2022\nISSN 2545-2134; e-ISSN 2657-4187\nCopyright \u00a9 by Taiwo O. Ehineni, 2022\nCreative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0) License.\nhttps://doi.org/10.32690/56.4\nTaiwo O. Ehineni\nDepartment of African & African American Studies, Harvard University\nORCID 0000-0003-3217-"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_350",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "2790\nConstruction morphology in Yoruba names:\nSchemas and processes\nAbstract\nThis article is an attempt to explore how the framework of construction morphology may\napply to the analysis of Yoruba names. Following this approach, we show that each Yoruba\nname is a unique construction involving semantic, syntactic and phonological properties.\nHence, t"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_700",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "his discussion highlights that names constitute a form-meaning pair. Yoruba\nnames may be grouped into categories as distinct constructions with unique SEM, SYN\nand PHON properties. More specifically, it is observed that PHON properties may include\nword initial vowel elision, syllable elision, vowel and consonant elongation while SYN\nfeatures includ"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_1050",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "e processes of lexicalization of sentential forms. Furthermore, the article\nreveals that Yoruba names may show constructional patterns that are deviant from regular\nprocesses, observed by previous studies to occur in similar linguistic environments.\nThese patterns, therefore, are part of the unique constructional property of Yoruba per-\nsonal names"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_1400",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "in contradistinction to other word formation contexts.\nKeywords: construction morphology, schemas, processes, personal names, Yoruba\n1. Introduction\nAs discussed by Ehineni (2021), Construction Morphology (CM) specifically\nprovides application of the insights of Construction Grammar to morphological\nanalysis. The framework of CM was extensively de"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_1750",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "veloped through a series of\nworks particularly by Booij (2005, 2007, 2009, 2010a, 2010b, 2013). This devel-\n82\nTaiwo O. Ehineni\nopment is informed by previous views by Michaelis and Lambrecht (1996: 216),\nwho claim that \u201c[i]n Construction Grammar, the grammar represents an inventory\nof form-meaning-function complexes, in which words are distinguish"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_2100",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "ed from\ngrammatical constructions only with regard to their internal complexity\u201d; and\nalso by Croft (2001: 17), who observes: \u201c[...]the internal structure of words are\nalso constructions[...] The only difference between morphological constructions\nand syntactic ones is that the former are entirely made up of bound morphemes\nwhile the latter are lar"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_2450",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "gely made up of free morphemes\u201d. In the development of\nthe CM framework, Booij emphasizes a continuum view of the relationship\nbetween the lexicon and grammar, and suggests the use of morphological\nschemas to express generalizations about form-meaning pairings.\nAccording to Booij (2016), language users can assign internal structure to a word\nif the"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_2800",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "re is a systematic correlation between its form and meaning. Using the\nfollowing sets of words such as (a) dancer, fighter, singer, walker and (b) dance,\nfight, sing, walk, Booij explains that the verbal base (dance, fight, sing, walk) is\nfollowed by the suffix -er, and a corresponding systematic meaning pattern \u2018one\nwho Vs\u2019, where V stands for the"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_3150",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "meaning of the verb. Also, the systematic form\ndifference between the words in (a) and those in (b) correlates with a systematic\nmeaning difference \u2013 the words in (a) have the additional form component -er,\nand the additional meaning component \u2018agent of\u2019 (Booij 2016: 424). However,\nas Booij notes, while the nouns (1a) are considered as deverbal ag"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_3500",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "ent nouns\nand may be assigned an internal structure \u2013 [V-er]N \u2013there is no reason to\nassign internal structure to nouns like brother and father that end in the same\nsequence /\u01ddr/, because these nouns do not correspond to verbs like *to broth or\n*to fath. Hence, according to Booij, assignment of word structure is based on\nsystematic paradigmatic rel"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_3850",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "ationships between sets of words. These relationships\nmay be expressed through the use of morphological schemas. For instance, the\nform-meaning correlations observed in the English deverbal (agentive) con-\nstruction can be represented as a constructional schema: <[x] er] \u2194 [Agent\nVi Nj\nof SEM]> (Booij 2015: 425).\ni j\nOn the structure of the schema,"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_4200",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "Booij explains that the double arrow indicates\nthe correlation between form and meaning, and by means of co-indexation, the\nsystematic relationship between form and meaning is specified. The index i in\nthe schema serves to indicate that the meaning of the base word (SEM) recurs\nin that of the corresponding complex word. The index j indicates that"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_4550",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "the meaning\nof the construction as a whole correlates with the form as a whole. The angled\nbrackets demarcate a constructional schema. He further clarifies that the variable x\nin the schema represents the phonological content of the base word, and there-\nConstruction morphology in Yoruba names: Schemas...\n83\nfore indicates an empty slot. Hence, whe"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_4900",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "n a concrete word occupies this variable x\nposition, it results in a complex word.\nBasically, the main tenets of Booij\u2019s CM are a theory of word grammar and the\nnotion of construction. The theory of word grammar/structure in CM is based on\nthe assumption that the word is the minimal linguistic sign, a form-meaning pair.\nThe structure of a word comp"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_5250",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "rises two dimensions \u2013 its phonological form and\nits morpho-syntactic properties. This means that each word links three types of\ninformation \u2013 PHON(ological), SYN(tactic) and SEM(antic) \u2013 and morphology or\nthe grammar of words (Booij 2007a) must deal with the systematic relation\nbetween all three components (Booij 2010b: 429). Hence, constructions"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_5600",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "are\npairings of form and meaning.\nThe notion of construction in CM is motivated by the observation that construc-\ntion in morphological analysis may include properties that do not derive from\ntheir constituents but from the entire construction itself. Booij supports this view\nby noting that the suffix -er in words like dancer, fighter, singer, walk"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_5950",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "er does not\ncarry a meaning of its own in isolation and it is the constructional schema as\na whole; that is, it is -er in combination with a verb that evokes the agent meaning.\nIn other words, the meaning of the suffix is associated and bound to the con-\nstruction. CM therefore claims that the properties that pertain to form, meaning,\nand usage are"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_6300",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "better captured holistically belonging to the construction itself.\nA very significant aspect of CM is the use of schemas and subschemas to for-\nmalize morphological constructions.\n2. Schemas in construction morphology\nA schema is characterized as a cognitive representation comprising a generali-\nzation over perceived similarities among instances o"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_6650",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "f usage, which emerges\nfrom repeated activation of a set of co-occurring properties (Barlow & Kemmer\n2000: xxiii). As Booij explains, complex words can be seen as instantiations of\nabstract morphological schemas. The relation of instantiation is expressed by\nvertical links between the schema and the individual instantiations as shown in\nthe Fig. 1"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_7000",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "from Booij (2016: 431):\n<[x] er] \u2194 [agent of SEM] >\nVi Nj i j\n| | | |\n[[danc] er] [[fight] er] [[sing] er] [[walk] er]\nV N V N V N V N\nFig. 1. Vertical links between the schema and the individual instantiations\n84\nTaiwo O. Ehineni\nAs Booij elucidates, the individual words, that is: dancer, fighter, singer, walker\nare form-meaning relations that ref"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_7350",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "lect the information specified in the schema,\nthus making parts of the information contained in the lexical entries for these\nwords redundant. This is indicated through the vertical link. Also, the verbal\nbases of these nouns are co-indexed to the corresponding lexical entries for\nthese verbs, and this motivates part of the meanings of these agent"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_7700",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "nouns (Booij\n2016: 431). Thus, schemas are used to represent patterns of word formation and\nthis makes it possible to express generalizations about subsets of the complex\nwords involved, especially through the use of subschemas, which are in between\nthe most general schemas and the individual words. That is, subschemas within\nschemas help to captur"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_8050",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "e subcategories in the morphology of complex words. In\nother words, sub schemas actually specify idiosyncratic properties of subtypes\nof words that instantiate the larger schema in question. In a more general sense,\nschemas can be seen as templates that specify generalizations that capture\ngeneral predictable properties of existing complex words.\nN"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_8400",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "otably, construction schemas in CM capture a cluster of properties collectively\nas a form-meaning-usage complex, which constitutes \u201ctripartite parallel archi-\ntecture\u201d that is built upon \u201ca pairing of three types of information [\u2026] labeled as\nPHON, SYN, and SEM\u201d where SEM \u201cmay have both strictly semantic and prag-\nmatic components\u201d (Booij 2010: 429"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_8750",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "). Schemas and the constructions they\ninstantiate coexist in a hierarchically organized lexicon, where two kinds of rela-\ntions obtain an explication which exists between a schema and a construction\nformed by that schema, and \u201cpart of \u201d, which obtains between a construction\nand its constituents.\nSignificantly, the construction morphology approach o"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_9100",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "ffers a conceptual frame-\nwork for analyzing the complex nature of Yoruba names where names are seen\nas form-meaning-usage complexes having specific properties of PHON, SYN\nand SEM. This approach is different from a specific morphological approach\nexploring only how morphemes combine to form lexical units or a phonological\napproach focusing only on"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_9450",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "sound patterns, or a semantic approach aiming at\ninterpreting meaning. Based on my observation, Yoruba names are character-\nized by different structural features. Hence, these names may be grouped into\ndifferent construction categories that are typified by certain unique properties.\nHence, we adopt the framework of construction morphology, which p"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_9800",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "rovides an\navenue to see names as unique categories with specific properties. In this view,\neach name is a construction with unique form and meaning properties. We pro-\nvide a CM analysis of Yoruba names in the next section.\nConstruction morphology in Yoruba names: Schemas...\n85\n3. Construction morphology analysis of Yoruba names\nIn this section, w"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_10150",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "e provide a detailed account of constructions in the formation\nof different categories of personal names including royal names, deity-informed\nnames, death-prevention names, circumstantial names, and reincarnate names.\nIn our discussion of each phenomenon, we illustrate that linguistic properties\npertaining to its form and meaning go hand-in-hand."
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_10500",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "Although some of their\nbehavior follows from general and specific linguistic principles, they also exhibit\nan intriguing set of characteristics that cannot be attributed to anything but the\nschemas in which they appear.\nHence, due to the unique patterns that Yoruba names exhibit, the construction\nmorphology framework provides a relevant approach to"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_10850",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "exploring their linguistic\ncomplexity and peculiarity. In our analysis, we focus on each name category\nand the relevant construction schema. Also, various linguistic processes in-\nvolved in the construction of each name category are discussed. We aim to\nshow, following the CM framework, that each Yoruba personal name is a specific\nconstruction tha"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_11200",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "t indexes three properties of information from the lexicon \u2013 PHON,\nSYN, SEM \u2013 and that these properties are unique to the name construction. In\nother words, Yoruba personal names can be identified and classified based on\ntheir distinctive properties. The following subsections will identify specific cate-\ngories of Yoruba personal names and discuss"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_11550",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "the nature of their constructions.\nIt should be noted that Yoruba names show both sentential structures and com-\npound structures, which are discussed in subsections 3.1 and 3.2, respectively.\n3.1. Sentential name construction\nA sentential name construction is a name construction that has an underlying\nsentence structure. A sentential Yoruba name h"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_11900",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "as a np + VP structure, where\nthere is an entity (NP) that is identified as well as action/activity (VP) that is speci-\nfied. Sentential names may capture a doer of an action, the action that is done\nby an entity as well as the quality that such entity possesses. This type of construc-\ntion occurs in kingship names, deity-informed names and death-p"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_12250",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "revention\nnames. A general schema utilized in sentential names is illustrated below:\n< [NP + [VP]] \u2194 [sentential name] >\nFig. 2. The sentential construction schema in Yoruba names\nHere, the NP captures an entity, while the VP specifies the actions or describes\nthe quality of the entity identified in the NP. It is important to note that while these"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_12600",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "names are seen as sentences underlyingly, they are realized as desentential-\n86\nTaiwo O. Ehineni\nized or lexicalized sentences. Lexicalized sentences are formed by reducing\na sentence to a unique lexical or conceptual element. The sentential construction\nschema identified in (2) is utilized in the following categories of Yoruba names\n\u2013 kingship nam"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_12950",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "es, deity-informed names, and death-prevention names. These\ncategories of names are discussed in the following subsections.\n3.1.1. Kingship names\nKingship names are names that signify royalty in Yoruba. These are names used\nto indicate that someone comes from a family of kings. These names reflect\na sentential-type construction, as shown in (1-7) b"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_13300",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "elow:\n(1) Ad\u00e9ye\u05c5m\u00ed\ncrown-deserve-3sg\n\u2018The crown is entitled to me.\u2019\n(2) Ad\u00e9f\u00fank\u00e9\u05c5\ncrown-give-1sg-pamper\n\u2018The crown gives me to adore.\u2019\n(3) Ad\u00e9b\u00e1y\u00f2\u05c5\ncrown-meet-joy\n\u2018The crown meets joy.\u2019\n(4) Ad\u00e9gbe\u0144ga\ncrown-lift-1sg-up\n\u2018The crown elevates me.\u2019\n(5) Ad\u00e9k\u00fanle\ncrown-fill-house\n\u2018The crown fills the house.\u2019\n(6) Ad\u00e9w\u00e1l\u00e9\ncrown-come-house\n\u2018The crown comes ho"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_13650",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "me.\u2019\n(7) Ad\u00e9s\u05c5o\u05c5l\u00e1\ncrown-make-wealth\n\u2018The crown makes wealth.\u2019\nThese names have a declarative structure which describes what the crown \u2013\nwhich symbolizes the king \u2013 does. In other words, the crown1 (or king) is the\n1 In Yoruba, ad\u00e9 literally means crown, which symbolizes the personhood occupying the\nroyal authority over a community. Usually, this i"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_14000",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "s a king (a male person) or a regent (a female\nsometimes when there\u2019s no eligible candidate).\nConstruction morphology in Yoruba names: Schemas...\n87\nsubject of the action in the names. These names index royalty or kingship and\nthey reflect a sentential name construction schema. This sentential construction\ntype schema that is utilized is presented"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_14350",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "in below.\n< [ad\u00e9 + [VP]] \u2194 [nominalized royal name] >\n[[ad\u00e9] [b\u00e1 o\u05c5l\u00e1] ] \u2018Crown meets wealth.\u2019\nNPi VPj Ni\nFig. 3. Sentential construction schema in kingship names\nFirst, it should be noted that the above schema is the application of the senten-\ntial construction schema identified in Fig. 2 in the area of kingship names. The\nname illustrated in the"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_14700",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "schema, given in Fig. 3, is a nominalized kingship name,\nand has the element ad\u00e9 which designates these forms as royal names and also\nfunctions as the head of the construction. Furthermore, as nominalized senten-\ntial names, these sentence type royal names behave syntactically like a noun.\nFor instance, in sentences like Ad\u00e9ye\u05c5m\u00ed f\u00e9\u05c5 r\u00e0n agb\u00e1ra \u2018Ad"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_15050",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "eyemi loves power\u2019 and\nA\u00e0fin gba Ad\u00e9b\u00e1y\u00f2\u05c5 \u2018The palace receives Adebayo\u2019, the nominalized sentential\nnames Ad\u00e9ye\u05c5m\u00ed and Ad\u00e9b\u00e1y\u00f2\u05c5 function as subject and object.\nTABLE 1. SYN features in kingship names\nderived name form underlying structure\nAd\u00e9ye\u05c5m\u00ed ad\u00e9 + ye\u05c5 + \u00e8m\u00ed\ncrown deserve me\nAd\u00e9b\u00e1y\u00f2\u05c5 ad\u00e9 + b\u00e1 + ay\u00f2\ncrown meet joy\nAd\u00e9gbe\u0144ga ad\u00e9 + gb\u00e9 + n [m\u00ed] +"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_15400",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "ga\ncrown lift me up\nAd\u00e9k\u00fanl\u00e9 ad\u00e9 + k\u00fan + il\u00e9\ncrown fill house\nAd\u00e9w\u00e1l\u00e9 ad\u00e9 + w\u00e1 + il\u00e9\ncrown fill house\nAd\u00e9so\u05c5l\u00e1 ad\u00e9 + s\u05c5e + o\u05c5l\u00e1\ncrown make wealth\nDesententialization is a major SYN feature in sentential kingship names and it\nis a process where constructions that are originally sentences are reduced to\na single lexical unit. This process may lead t"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_15750",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "o morphemic and phonemic changes.\n88\nTaiwo O. Ehineni\nIn other words, there is loss of phonological segments especially vowels shown\nin the realized name form area in Table 1.\nWhat is also important to note is that while names are formed based on patterns\nin the lexicon of the language, they may also reflect unique PHON features.\nA major PHON featu"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_16100",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "re in these royalty names is word initial vowel deletion.\n3.1.1.1. PHON features: word initial vowel elision\nWord initial vowel elision is a form of vowel elision that occurs when a vowel\npreceding a consonant is deleted. Thus, it is common in kingship names for the\ninitial vowel to be deleted as shown in (8-13) below:\n(8) D\u00e9b\u00e1y\u00f2\u05c5 Ad\u00e9b\u00e1y\u00f2\u05c5\n(9) D\u00e9w\u00e1"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_16450",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "l\u00e9 \u2190 Ad\u00e9o\u05c5l\u00e1\n(10) D\u00e9k\u00fanl\u00e9 \u2190 Ad\u00e9o\u05c5l\u00fa\n(11) D\u00e9ye\u05c5m\u00ed \u2190 Ad\u00e9ye\u05c5m\u00ed\n(12) D\u00e9f\u00fank\u00e9\u05c5 \u2190 Ad\u00e9f\u00fank\u00e9\u05c5\n(13) D\u00e9s\u05c5o\u05c5l\u00e1 \u2190 Ad\u00e9s\u05c5o\u05c5l\u00e1\n\u2190\nIn the examples in (8-13), the low initial vowel /a/ is deleted. It is also important\nto note that the word initial vowel elision does not occur across morpheme\nboundaries. That is, in the name D\u00e9s\u05c5o\u05c5l\u00e1 (= ad\u00e9-s\u05c5e-o\u05c5l\u00e1), the initial low"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_16800",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "vowel [a]\ndeletes before the voiced stop [d]. Additionally, the front vowel [e] deletes before\nthe back vowel [o\u05c5]. While the latter case (prevocalic vowel deletion) occurs in an\nenvironment where vowels co-occur across a morpheme boundary, the former\ndoes not occur in this environment \u2013 there is no co-occurence of a vowel in\nthe initial position"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_17150",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "of the word. This shows that vowel deletion may also occur in\na preconsonantal position. Also, this word initial vowel elision may not be condi-\ntioned necessarily by the nature of following consonants since the vowels delete\nbefore other consonants (not only [d]) in initial position \u2013 see the discussion on\ndeity-informed names in subsection 5.5.2."
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_17500",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "Significantly, this kind of elision creates a name-form that is non-vowel initial \u2013\nwhich is not necessarily similar to the regular prevocalic vowel elision that may\nbe a \u201chiatus resolution strategy\u201d. Elision of vowels is often disallowed in initial\nposition of Yoruba constructions as may be seen in the examples given by Orie\nand Pulleyblank (2002"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_17850",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": ": 102), i.a. ow\u00f3.k\u00ed.ow\u00f3 \u2018any kind of money\u2019 > ow\u00f3k\u00f3w\u00f3\n(*w\u00f3k\u00f3w\u00f3) and o\u05c5mo\u05c5.k\u00ed.o\u05c5mo\u05c5 \u2018any kind of child\u2019 > o\u05c5mo\u05c5k\u00f3\u05c5mo\u05c5 (*mo\u05c5k\u00f3\u05c5mo\u05c5). This\nConstruction morphology in Yoruba names: Schemas...\n89\nform of elision is, however, possible in names, as shown in (8-13), where initial\nvowels of names are deleted. In fact, in a much similar context identified by"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_18200",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "Orie\nand Pulleyblank (*mo\u05c5k\u00f3\u05c5mo\u05c5), where deletion has been seen as impossible, de-\nletion may also occur in Yoruba names. This context is illustrated in names such\nas o\u05c5m\u00f3\u05c5b\u00f3\u05c5laji \u2018child comes with wealth\u2019 or o\u05c5m\u00f3\u05c5b\u00f3\u05c5lanle \u2018child meets wealth at\nhome\u2019, which are often productively realized as M\u00f3\u05c5b\u00f3\u05c5laji and M\u00f3\u05c5b\u00f3\u05c5lanle, re-\nspectively. More import"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_18550",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "antly, these names show that vowels may also be deleted\npreconsonantally in a different phonological environment. Consequently, initial\ndeletion as in (9-13) can be seen as property of the construction. What is also\nimportant to note is that this initial vowel deletion in names functions as means\nof showing intimacy or familiarity by users.\n3.1.2."
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_18900",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "deity\u2011centered names\nDeity-centered names are names that are informed by deities among the Yoruba\npeople. These are names used to indicate people\u2019s belief in these deities. These\nnames are presented in the examples below in (13-16):\n(14) \u00d2r\u00ecs\u05c5\u00e0d\u00e9l\u00e9\nidol-come-pst-house\n\u2018The god came home.\u2019\n(15) \u00d2r\u00ecs\u05c5\u00e0b\u00f9nmi\nidol-dash-pst-1sg\n\u2018The god gifted me.\u2019\n(16)"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_19250",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "\u00d2r\u00ecs\u05c5\u00e0b\u00edy\u00ed\nidol-birth-pst-this\n\u2018The god birthed this one.\u2019\n(17) \u00d2r\u00ecs\u05c5\u00e0gb\u00e8m\u00ed\nidol-benefit-pst-1sg\n\u2018The god benefits me.\u2019\nIn terms of their semantic properties (SEM), these deity-informed names are\nvery different from kingship names. They are names that valorize specific deities\namong the Yoruba people. Historically, among the Yorubas deities or ido"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_19600",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "ls are\nworshipped by clans and families. When a child is born, a name is given to reflect\nthe deity worshipped by a particular family. These deities are believed to have\nsupernatural abilities and are worshipped by people who desire these qualities.\nThus, it is possible for a Yoruba child to have both a kingship name and a deity-in-\nformed name.\n90"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_19950",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "Taiwo O. Ehineni\nIn terms of structure (SYN), just like kingship names, deity-informed names\nassume the sentential construction schema and may also be seen as sentential\nnominals.\n< [deity-name + [VP]] \u2194 [deity-informed name]m>\n[[\u00f2r\u00ecs\u05c5\u00e0] [gb\u00e8 m\u00ec] ] \u2018Deity saves me.\u2019\nNPi VPj Ni\nFig. 4. Sentential construction schema in deity-informed names\nAgain, t"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_20300",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "he above schema is the application of the sentential construction schema\nidentified in Fig. 2. According to the schema shown in Fig. 4, deity-name cap-\ntures a general terminology referring to deities among the Yorubas, which is\nfollowed by a VP that information about the deity actions or its beneficiary. The\nrealized form by combining a [deity nam"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_20650",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "e] + [VP] is a [deity-informed name]. In\nother words, a deity-informed name construction structurally has a subject\nwhich designates a specific deity and a VP that specifies the actions of the deity.\nA deity-informed name may also be given to convey what a deity has done for\na family. They may therefore be seen as sentences underlyingly. In other w"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_21000",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "ords,\ndeity-informed names originate in the lexicalization of sentences.\nTABLE 2. SYN features in deity-informed names\nderived name form underlying structure\n\u00d2r\u00ecs\u05c5\u00e0d\u00e9l\u00e9 [\u00f2r\u00ecs\u05c5\u00e0 [V \u2013 NP]]\n\u00f2r\u00ecs\u05c5\u00e0 d\u00e9 il\u00e9\ndeity arrive home\n\u00d2r\u00ecs\u05c5\u00e0b\u00f9nmi [\u00f2r\u00ecs\u05c5\u00e0 [V \u2013 NP]]\n\u00f2r\u00ecs\u05c5\u00e0 b\u00f9n mi\ndeity gift me\n\u00d2r\u00ecs\u05c5\u00e0b\u00edy\u00ed [\u00f2rs\u05c5\u00e0 [V \u2013 NP]]\n\u00f2r\u00ecs\u05c5\u00e0 b\u00ed \u00e8y\u00ed\ndeity born this-one\n\u00d2r\u00ecs\u05c5\u00e0gb\u00e8m\u00ed"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_21350",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "[\u00f2r\u00ecs\u05c5\u00e0 [V \u2013 NP]]\n\u00f2r\u00ecs\u05c5\u00e0 gb\u00e8 m\u00ed\ndeity save me\nIt should be noted that deity-informed names, like kingship names, also reflect\nmorphophonological processes in the language. First, is the fact these \u00f2r\u00ecs\u05c5\u00e0\nnames do not show word initial vowel elision as reflected in kingship names.\nConstruction morphology in Yoruba names: Schemas...\n91\nSecond, they"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_21700",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "demonstrate the PHON feature of syllable elision and compensa-\ntory vowel lengthening. These PHON features are explained below.\n3.1.2.1. PHON features: r- elision triggering vowel lengthening\nSyllable elision2\nSyllable elision is a phonological process where a syllable is \u201cdropped\u201d, which\ncould be an attempt to simplify the pronunciation of names."
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_22050",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "This may be seen\nin the following names:\n(18) \u00d2\u00f2s\u05c5\u00e0gb\u00e8m\u00ed [= \u00f2r\u00ecs\u05c5\u00e0 gb\u00e8 m\u00ed] \u2018The deity saved me.\u2019\n(19) \u00d2\u00f2s\u05c5\u00e0f\u00fanm\u00ed [= \u00f2r\u00ecs\u05c5\u00e0 f\u00fan mi] \u2018The deity gave me.\u2019\n(20) \u00d2\u00f2s\u05c5\u00e0d\u00e9l\u00e9 [= \u00f2r\u00ecs\u05c5\u00e0 d\u00e9 il\u00e9] \u2018The deity came home.\u2019\nIn the examples above, the second syllable r\u00ec is deleted while the first syllable or\ninitial vowel is lengthened in the process. The same sequ"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_22400",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "ence (r\u00ec) is deleted in\nall these names, which typifies these names as a different instance of syllable\nelision. For instance, in reincarnate names, discussed in subsection 3.1.3, syllable\nelision involves a different segment. As also observed, the elision of the second\nsyllable triggers the lengthening of the initial vowel. The issue of vowel leng"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_22750",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "thening\nis further discussed below.\nVowel lengthening\nVowel lengthening is a phonological process where a vowel is lengthened or\nprolonged. This may also be seen in the names previously presented in (17-19)\nand repeated in (20-22) for further explication:\n(21) \u00d2\u00f2s\u05c5\u00e0gb\u00e8m\u00ed\n\u00f2r\u00ecs\u05c5\u00e0 \u2192 \u00f2\u00f2s\u05c5\u00e0\n(22) \u00d2\u00f2s\u05c5\u00e0f\u00fanm\u00ed\n\u00f2r\u00ecs\u05c5\u00e0 \u2192 \u00f2\u00f2s\u05c5\u00e0\n(23) \u00d2\u00f2s\u05c5\u00e0d\u00e9l\u00e9\n\u00f2r\u00ecs\u05c5\u00e0 \u2192 \u00f2\u00f2s\u05c5\u00e0\n2"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_23100",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "As noted by a reviewer, this has also been described in the literature as the process of\nintervocalic [r] deletion triggered when one of the following conditions is met: 1. The two\nvowels flanking [r] are identical or 2. one of the vowels is high (Akinlabi 1993).\n92\nTaiwo O. Ehineni\nIn the above examples, the initial vowel of each name is lengthene"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_23450",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "d. However,\nthe process of vowel lengthening occurs after elision. This manifestation has\na number of implications. First, vowel lengthening in (21-22) may be seen as\na process of compensatory lengthening, where the initial syllable lengthens to\ncover for the \u201cgap\u201d left over by the deletion of the second syllable. In other\nwords, Or\u00ecs\u05c5\u00e0 has three s"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_23800",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "yllables (or moras) \u2013 \u00f2.r\u00ec.s\u05c5\u00e0, and by deleting the second\nsyllable r\u00ec, it becomes reduced to two syllables. But, by lengthening the initial\nsyllable, or\u00ecs\u05c5\u00e0 preserves the initial moraic structure of three moras \u2013 \u00f2.\u00f2.s\u05c5\u00e0.\nThus, vowel lengthening is a phonological strategy of preserving the moraic\nstructure in elision contexts, where a syllable may"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_24150",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "be elongated to fill in a pro-\nsodic gap caused by a deleted syllable.\nSecond, while Davis and Ueda (2006) discussed the idea of vowel lengthening\nresulting from mora augmentation \u2013 where a syllable is increased in length by\none mora, usually for prosodic or morphological reasons; these examples in\n(21-23), however, suggest that vowel lengthening"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_24500",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "may also result from mora\npreservation, a case where a syllable is increased in length by one mora to pre-\nserve the moraic structure of the word. However, these examples (20-22) also\nreflect Davis and Ueda\u2019s view that vowel lengthening may be prosodically in-\nduced, since in the examples, it actually occurs to preserve the prosodic struc-\nture of"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_24850",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "the personal names.\nIt is also important to note, according to Iko \u05c5tun (2010: 180), that Yoruba personal\nnames may also be lengthened finally as in F\u00e9\u05c5 mii, Ad\u00e9\u00e9 but usually for sociolin-\nguistic reasons such as to express caution or surprise. However, the names\nprovided in (20-22) show that lengthening can occur word initially in Yoruba\npersonal"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_25200",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "names. Hence, lengthening in Yoruba names may not be restricted to\nfinal syllables for sociolinguistic functions, it may occur in initial positions of\nnames for phonological reasons. Furthermore, we observe that compensatory\nlengthening discussed in (20-22) seems to occur only in deity-informed names.\nHowever, as pointed out by a reviewer, this may"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_25550",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "also occur in other Yoruba\nnominal forms, e.g. e\u00e8p\u00e8\u05c5 < er\u00f9p\u00e8\u05c5 \u2018sand\u2019, ook\u00ec < oki \u2018praise name\u2019.\n3.1.3. Reincarnate names\nReincarnate names relate to the idea of reincarnation in the Yoruba community.\nThese are names that are used to indicate that the birth of a child is the \u2018coming\nback\u2019 of one of the ancestors. These names are presented in the ex"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_25900",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "amples\n(23-25) below:\nConstruction morphology in Yoruba names: Schemas...\n93\n(24) Y\u00e93t\u00fand\u00e9\nmother-aux-come-perf\n\u2018The mother has come again.\u2019\n(25) Y\u00e9w\u00e1nd\u00e9\nmother-seek-pst-1sg-come-perf\n\u2018The mother has sought me.\u2019\n(26) Y\u00e9j\u00edd\u00e9\nmother-wake-pst-come-perf\n\u2018The mother has woken.\u2019\nIn terms of their semantic properties (SEM), these reincarnate personal name"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_26250",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "s\nare very different from previous names. They are names given to a child born\nimmediately after the death of a grandfather or grandmother in a family. To the\nYorubas, it is the spirit of the deceased grandfather or grandmother that has\nreturned. This idea of reincarnation is significant to the Yorubas, as Awolalu and\nDopamu (2005) also explain tha"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_26600",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "t the Yorubas strongly believe that the souls of\nthe departed good ancestors were reincarnated and reborn as grandchildren in\nthe family for them to continue their existence in the family. The ancestors do this\nas a result of the love they have for their family members or for the world. For\nmore discussion of this aspect of Yoruba names, see Ehinen"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_26950",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "i (2019).\nIn terms of structure (SYN), these reincarnate names are constructed by com-\nbining the word for the reincarnated individual (i.e father, mother, hunter) with\nother words. Like kingship and deity-informed names, reincarnate names may\nbe seen as nominals, and therefore assume the following sentential construc-\ntion schema:\n< [reincarnated"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_27300",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "subject + [VP]] \u2194 [reincarnate name]m>\ny\u00e9] [t\u00fan d\u00e9] ] \u2018Mother has come again.\u2019\nNPi VPj Ni\nFig. 5. Sentence type construction schema in reincarnate names\nNote that the above schema shows an application of the sentential construction\nschema identified in Fig. 2. According to the Fig. 5, \u201creincarnated subject\u201d cap-\ntures a particular person considered"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_27650",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "to be the subject of reincarnation, which is\nfollowed by a VP that provides information about the person. The realized form\n3 Yeye and iy\u00e1 are both used to mean \u2018mother\u2019 in Yoruba. However, in constructions\ninvolving yeye, the initial syllable [ye] in yeye may be deleted.\n94\nTaiwo O. Ehineni\nby combining a [reincarnated subject] + [VP] is a reinca"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_28000",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "rnate name. Just like\npreviously discussed names, reincarnate names are desententialized names.\nThey can be seen as lexicalized words, which are formed by reducing a sen-\ntence to a single noun as shown in the examples below.\nTABLE 3. SYN features in reincarnate names\nderived name form underlying structure\nY\u00e9t\u00fand\u00e9 y\u00e8y\u00e9 [V \u2013 NP]]\ny\u00e8y\u00e9 t\u00fan d\u00e9\nY\u00e9w\u00e1nd\u00e9"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_28350",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "y\u00e8y\u00e9 [V \u2013 NP]]\ny\u00e8y\u00e9 w\u00e1n d\u00e9\nY\u00e9j\u00edd\u00e9 y\u00e8y\u00e9 [V \u2013 NP]]\ny\u00e8y\u00e9 j\u00ed d\u00e9\nIt should be noted that reincarnate names, like previous names discussed, also\nreflect significant morphophonological processes in the language. These names\nshow that syllable elision in Yoruba names is not restricted to the r\u00ed segment \u2013 as\nshown in deity-informed names \u2013 since in reincar"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_28700",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "nate names, another segment\nis deleted. This is further explained in examples (26) and (27) below.\n3.1.3.1. PHON features: syllable elision not triggering vowel lengthening\n(27) Y\u00e9t\u00fand\u00e9 [= y\u00e8y\u00e9 t\u00fan d\u00e9] \u2018Mother has come again.\u2019\nmother again come\n(28) Y\u00e9wa\u0144d\u00e94 [= y\u00e8y\u00e9 w\u00e1 mi d\u00e9] \u2018Mother has sought me.\u2019\nmother see me come\nHere, the first syllable in y\u00e8"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_29050",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "y\u00e9 is deleted to realize only y\u00e9. Note that there is no\nvowel elongation or mora augmentation in these examples. Hence syllable\nelision may not necessarily trigger vowel elongation or mora augmentation. So\nfar we have examined sentential structures in our discussion of how names are\nformed, the next subsection 3.2 will focus on compound structures"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_29400",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "in the\nnames.\n4 Yorubas may sometimes render the names Yet\u00fand\u00e9 and Y\u00e9wand\u00e9 as Iyet\u00fand\u00e9\u00e9 and\nIy\u00e9wand\u00e9\u00e9 when calling the name bearers. The insertion of the initial [i] is often accompanied\nwith the lengthening of the final [e] as a pragmatic marker in the context of name calling.\nThis is done when parents call their children loudly to ensure they hea"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_29750",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "r them.\nConstruction morphology in Yoruba names: Schemas...\n95\n3.2. Compound name construction\nA compound name construction is a name that involves the combination of two\nfree morphemes or words to derive a nominal form. In other words, a compound\nname is formed by adding two words to form a name. This type of name con-\nstruction uses the schema pr"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_30100",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "ovided below:\n<[[a] [b] ] \u2194 [[SEM]i with a relation R to [SEM]j]k>\nXi Yj Ni\nFig. 6. Compound name construction schema\nFollowing Booij (2010b, 2016), the upper-case variables X and Y stand for the\nmajor lexical categories (X = N & V | Y = N, V & A). The lower-case variables\na and b stand for arbitrary strings of phonological segments, while i, j and"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_30450",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "k are\nindexes for the matching properties of the constituents of the compound. Also,\nnote that the schema is left-headed, which indicates that the left nominal con-\nstituent is the head of the N-N compound. This type of name construction is\nwhat occurs in compound kingship names discussed in subsection 3.2.1.\n3.2.1. Compound kingship names\nKingshi"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_30800",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "p names are names that signify royalty in Yoruba. These are names used\nto indicate that someone comes from a family of kings. These names are pre-\nsented in (28-34) below.\n(29) Ad\u00e9oy\u00e8\ncrown-title\n\u2018he crown of nobility\u2019\n(30) Ad\u00e9o\u05c5l\u00e1\ncrown-wealth\n\u2018the crown of prosperity\u2019\n(31) Ad\u00e9\u00e9\u05c5k\u00f3\u05c5\ncrown-lesson\n\u2018the crown of instruction\u2019\n(32) Ad\u00e9\u00ecy\u00e8\ncrown-life\n\u2018t"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_31150",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "he crown of salvation\u2019\n(33) Ad\u00e9\u00ecf\u00e9\u05c5\ncrown-love\n\u2018the crown of love\u2019\n96\nTaiwo O. Ehineni\n(34) Ad\u00e9\u00f2go\ncrown-glory\n\u2018the crown of glory\u2019\n(35) Ad\u00e9\u00ecy\u00e1\ncrown-mother\n\u2018the crown of motherhood\u2019\nBased on the CM approach \u2013 where words reflect a combination of form-meaning-\n-usage properties indicating the three different types of information labeled as\nPHON, SY"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_31500",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "N, and SEM \u2013these names have different structural properties, which\ninclude phonological, syntactic and semantic information. Semantically, these\nnames have kingship or royal meaning. They are names that Yoruba kings give\nto their newborn children. Also, a kingship ancestry may also have a kingship\nsurname which is passed down from generation to ge"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_31850",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "neration. That is, persons\nborn to a lineage of kings, even when immediate parents are not kings, may still\nbe given a kingship name.\nStructurally, these compound royal names are constructed by combining the\nlexeme ad\u00e9 \u2018crown\u2019 with another word. The occurrence of ad\u00e9 in all these forms\ntypify them as royalty-based. These names are compound nominals"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_32200",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": ", and utilize\nthe compound name construction schema in Fig. 7. below:\n<[[a] [b] ] \u2194 [[SEM]j with a relation R to [SEM]i]k>\nXi Yj Nk\n[[N]i [N]j] \u2194 [[SEM]i with property [SEM]j]k\nNk\n[[ad\u00e9] [Y] ] \u2194 [crown of SEMj]\nNi Nj Nk\nFig. 7. Compound name construction schema\nThe schema [[ad\u00e9] [Y] ] \u2194 [crown of SEMj] represents the specific con-\nNi Nj Nk\nstructio"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_32550",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "n that is applied in forming kingship names. In this schema, ad\u00e9 occupies\nthe leftmost position as a lexically fixed element, while the other [right] slot is left\nopen to be occupied by variables matching [Y]. Hence, ad\u00e9 is the head of the\ncompound nominal construction. The application of this schema to generate\ncompound kingship names is presented"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_32900",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "below:\n[[ad\u00e9] [Y] ] \u2194[crown of SEM]\nNi Nj Nk j\n[[ad\u00e9] [oy\u00e8] ] \u2018crown of nobility\u2019\nNi Nj Nk\n[ad\u00e9] \u2018crown\u2019 [oy\u00e8] \u2018nobility\u2019\nN N\nFig. 8. The application of the schema to generate compound kingship names\nConstruction morphology in Yoruba names: Schemas...\n97\nThe schema [[ad\u00e9] [oy\u00e8] ] \u2018crown of nobility\u2019 contains subschemas for ad\u00e9\nN N N\nand oy\u00e8. These"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_33250",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "subschemas reveal the compositional meaning of the schema.\nThe necessity of subschemas relates to the fact that constituents of compounds\nmay have a specific meaning that is bound to the compound construction, and\nyet can be used productively (Booij 2005). Thus, the meaning of ad\u00e9oy\u00e9 derives\nfrom both parts of the construction as \u2018crown of nobilit"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_33600",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "y\u2019. It is a name that not\nonly signifies that a child is of royal birth (for instance born to a king), but may\nalso indicate that both parents have royal ancestry. It should be noted that all the\nnames in (28-34) have the constituent ad\u00e9, which occurs initially in the names.\nThe schema reflects a leftheaded structure which means that the head of co"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_33950",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "m-\npound construction relates to the left nominal constituent ad\u00e9-. The occurrence\nof ad\u00e9 as a kingship morphological marker in compound names is further\npresented in another schema:\n[[ad\u00e9] [Y] ] \u2194[crown of SEMj]\nNi Nj Nk\n[[ad\u00e9] [o\u05c5l\u00e1] ] \u2018crown of wealth\u2019\nNi Nj Nk\n[ad\u00e9] \u2018crown\u2019 [o\u05c5l\u00e1] \u2018wealth\u2019\nN N\nFig. 9. Kingship morphological marker in compound n"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_34300",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "ames\nIn the above example, the meaning of ad\u00e9o\u05c5l\u00e1 derives from both parts of the\nconstruction [ad\u00e9 + o\u05c5l\u00e1] as \u2018crown of wealth\u2019. It is a name that not only signifies\nthat a child is of royal birth (for instance born to a king), but may also indicate\nthat both parents are very rich. It important to not\u00e9 while these kingship names\nreflect compound na"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_34650",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "me construction forms. It is also important to note that\ncompound type construction in names may exhibit unique PHON features as\ndiscussed below.\n3.2.1.1. PHON features: non application of vowel elision\nVowel elision has been observed to occur in Yoruba in intervocalic contexts (see\nAkinlabi & Oyebade 1987, Pulleyblank 1988, Orie & Pulleyblank 2002"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_35000",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "). In these\nprevious studies, a vowel is expected to delete when two vowels co-occur over\na morpheme boundary (or one vowel assimilates to the other to resolve vowel\nhiatus \u2013 Orie and Pulleyblank (2002)). However, in kingship names, this rule is\nviolated, as vowels may co-occur without deletion (or even assimilation). This\nmay be seen in the kingsh"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_35350",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "ip names presented below with their underlying\nmorphemic structures:\n98\nTaiwo O. Ehineni\n(36) Ad\u00e9agbo [N[Nad\u00e9 [Nagbo]]] \u2018crown of union\u2019\n(37) Ade\u00f2t\u00ed [N[Nad\u00e9[N\u00f2t\u00ed]]] \u2018crown of indestructibility\u2019\n(38) Ad\u00e9\u00e8k\u00f3\u05c5 [N[Nad\u00e9[N\u00e8k\u00f3\u05c5]]] \u2018crown of instruction/morality\u2019\n(39) Ad\u00e9ay\u00f2 [N[Nad\u00e9[Nay\u00f2]]] \u2018crown of joy\u2019\n(40) Ade\u00f2\u05c5s\u05c5\u00f3\u05c5 [N[Nad\u00e9[N\u00f2\u05c5s\u05c5\u00f3\u05c5]]] \u2018crown of adornme"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_35700",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "nt\u2019\nThe names in (36-40) do not follow the vowel deletion rule over a morpheme\nboundary since the names preserve the vowels over the morpheme boundary.\nAlso, this manifestation would be contrary to the vowel hiatus resolution strate-\ngies in Yoruba (Orie & Pulleyblank 2002) where, if vowel deletion does not occur,\nvowel assimilation is expected to"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_36050",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "occur to prevent vowel co-occurence over\na morpheme boundary. In these kingship names, there is no vowel assimilation.\nNote that the vowels in (38) ad\u00e9\u00e8k\u00f3\u05c5 [ad\u00e9 \u2018crown\u2019 + \u00e8k\u00f3\u05c5 \u2018instruction\u2019] are different\nsegments (see (36-40) for other examples). One reason that could militate\nagainst vowel deletion is the issue of meaning. For instance, if vowel"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_36400",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "deletion\noccurs in ad\u00e9\u00f2t\u00ed, what would be realized would be ad\u00e9t\u00ed, which would mean a crown\nthat destroys. This would generate a negative connotation in the name.\nConsequently, names have unique linguistic features which may deviate from\nregular processes in the language. This observation, therefore, motivates the\nnecessity to explore names as a \u201ctr"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_36750",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "ipartite parallel architecture\u201d (Booij 2010)\nwhere there is significant interaction between the PHON, SYN, and SEM features.\nIn other words, a name may have unique PHON, SYN and SEM features which\nidentify such names as a distinct construction. In essence, each name category\nhas unique linguistic properties \u2013 which is the crucial idea in CM.\n5. Con"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_37100",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "clusion\nFollowing the CM framework, the article shows that Yoruba personal names\nexhibit various construction patterns, Yoruba names are categorized into king-\nship names, deity-informed names, reincarnate names and death-prevention\nnames. These construction patterns include both similar and different SEM,\nSYN and PHON properties. First, we show th"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_37450",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "at Yoruba personal names may\nreflect either sentential name construction and compound name construction in\nterms of their SYN properties. Second, each name category (kingship, deity-in-\nformed and reincarnate) has have different SEM features such as royalty, beliefs\nin idols and reincarnation. These names also has unique PHON properties.\nWhile word"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_37800",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "initial vowel deletion occurs in kingship names, deity-informed names\nConstruction morphology in Yoruba names: Schemas...\n99\nreflect deletion motivated lengthening while reincarnate names exhibit syllable\ndeletion without lengthening.\nFinally, by employing a constructionist approach in our analysis, it is advanced\nthat the framework of constructio"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_38150",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "n morphology may be applied to the study of\nYoruba personal names. Through this framework, we show that each Yoruba\nname is a unique construction involving semantic, syntactic and phonological\nproperties. Hence, this discussion highlights that names constitute a form-meaning\npair. Yoruba names may be grouped into categories as distinct construction"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_38500",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "s\nwith unique SEM, SYN and PHON properties. Through analysis of names in the\nCM framework, it is suggested that construction morphology framework may\nprovide a relevant approach to exploring the complex aspects of Yoruba word\nformation.\nReferences\nAdewole, S. 1995. Word formation processes in Yoruba. Unpublished Ph.D. Thesis. Los\nAngeles: Universit"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_38850",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "y of California.\nAkinlabi, A. & F. Oyebade. 1987. \u201cLexical and post-lexical rule application: Vowel deletion\nin Yoruba\u201d. Journal of West African Languages 17. 23-42.\nAwolalu, O. & A. Dopamu. 2005. West African traditional religion. Nigeria: Macmillan Nigeria\nPublishers.\nBarlow, M. & S. Kemmer. 2000. Usage-based models of language. Stanford: CSLI Pu"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_39200",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "bli-\ncations.\nBooij, G. 2009a. \u201cCompounding and construction morphology\u201d. The Oxford handbook of\ncompounding, ed. by R. L. \u0160tekauer. Oxford: Oxford University Press. 201-216.\nBooij, G. 2005. \u201cCompounding and derivation: Evidence for construction morphology\u201d.\nMorphology and its demarcations, ed. by D.K.W. Dressler. Amsterdam: John Benja-\nmins. 109-3"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_39550",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "2.\nBooij, G. 2002. \u201cConstructional idioms, morphology, and the Dutch lexicon\u201d. Journal of\nGermanic Linguistics 14(4). 301-329.\nBooij, G. 2007a. \u201cConstruction morphology and the lexicon\u201d. Selected proceedings of the\n5th D\u00e9cembrettes: Morphology in Toulouse. Somerville, MA: Cascadilla Press. 34-44.\nBooij, G. 2010a. \u201cConstruction morphology\u201d. Language"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_39900",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "and Linguistic Compass 3(1). 1-13.\nBooij, G. 2010b. Construction morphology. Oxford: Oxford University Press.\nBooij, G. 2016. \u201cConstruction morphology\u201d. The Cambridge handbook of morphology,\ned. by A. H. Stump. Cambridge: Cambridge University Press. 424-448.\nBooij, G. 2009b. \u201cConstructions and lexical units: An analysis of Dutch numerals\u201d. Lin-\ngu"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_40250",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "istische Berichte Sonderheft 19. 1-14.\n100\nTaiwo O. Ehineni\nBooij, G. 2013. Morphology in CxG. The Oxford handbook of construction grammar,\ned. by T. H. Trousdale. Oxford: Oxford University Press. 255-273.\nBooij, G. 2007b. The grammar of words: An introduction to linguistic morphology. Oxford:\nOxford University Press.\nBooij, G. 2002. The morphology"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_40600",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "of Dutch. Oxford: Oxford University Press.\nCroft, W. 2001. Radical construction grammar: Syntactic theory in typological perspective.\nOxford: Oxford University Press.\nDavis, S. & I. Ueda. 2006. \u201cProsodic vs. morphological mora augmentation\u201d. Lexicon\nForum 2. 121-143.\nEhineni, T. 2021. \u201cConstruction schemas in Yoruba compounding: Focus on personal"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_40950",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "names\u201d. Language in Africa 2(2). 1-12.\nEhineni, T. 2019. \u201cThe ethnopragmatics of Yoruba personal names: Language in the con-\ntext of culture\u201d. Studies in African Languages and Cultures 53. 69-90.\nGiegerich, H. 2015. Lexical structures: Compounding and the modules of grammar. Edin-\nburgh: Edinburgh University Press.\nI\u0300kotu\u0301n, R. 2010. \u201cThe social us"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_41300",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "e of Yor\u00f9b\u00e1 personal names\u201d. Names 58(3). 169-186.\nJackendoff, R. 2002. Foundations of language: Brain, meaning, grammar, evolution. Oxford:\nOxford University Press.\nJackendoff, R. 1997. The architecture of the language faculty. Cambridge, MA: MIT Press.\nMichaelis L.A. & K. Lambrecht. 1996. \u201cToward a construction-based theory of language\nfunction:"
+    },
+    {
+      "id": "Construction_Morphology_in_Yoruba_names_Schemas_an_41650",
+      "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+      "text": "The case of nominal extraposition\u201d. Language 72(2). 215-247.\nOrie, O. & Pulleyblank, D. 2002. \u201cYoruba vowel elision: Minimality effects\u201d. Natural Lan-\nguage & Linguistic Theory 20. 101-156.\nPulleyblank, D. 1988. \u201cVowel deletion in Yoruba\u201d. Journal of African Languages and Lin-\nguistics 10. 117-136."
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_0",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "Yoruba Traditional Names and the\nTransmission of Cultural Knowledge!\nF. NIYI AKINNASO\nIntroduction\nPerhaps because of the paradoxical function of names in classifying a\nperson simultaneously as an individual and as a product and reflection of\nsociety, anthropologists have been preoccupied with the~classificatory\nfunction of naming2 and the relation"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_350",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "ship between naming practices and\nsocial structure.3 Consequently, less attention has been given to the\ncommunicative functions of personal names, especially their use in cul-\ntural transmission.\nFollowing the themes already outlined in my previous work,4 the\npresent paper fills this lacuna by demonstrating how ritually significant\ninformation is c"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_700",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "oded in Yoruba personal names and how a sociolinguistic\nstudy of such names can enrich our understanding of Yoruba ritual\nknowledge and world view. The focus is on three ritually motivated\nsubtypes of Yoruba traditional names: (a) oruk9 amutr)runwd \"names\nbrought from heaven,\" (b) oruk9 abiku \"names of born- to-die children,\"\nand (c) oruk9 fya \"nam"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_1050",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "es of reincarnated children.\"\nEach of the three subtypes of Yoruba names considered here is a\nIForcomments on an earlier version of this paper, Iwould like to thank John Gumperz, Steve\nMurray, and the late William Bascom. I am especially grateful to the late William Bascom for\nallowing metousehispersonal library formyresearch. Forcontinued access t"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_1400",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "oit, Imustthank his\nwife, Berta Bascom.\n2See, for example, Rodney Needham, \"The System of Teknonyms and Death-Names of the\nPenan.\" Southwestern Journal ofAnthropology, 10(1954), 416-431; Claude Levi-Strauss, The\nSavage Mind (Chicago: Chicago University Press, 1966); and Russel H. Bernard, \"Paratsoukli:\nInstitutionalized Nicknaming in Rural Greece,\""
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_1750",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "Ethnologia Europaea, 2 (1968), 65-74.\n3Forexample, seeK.F. Spencer, \"The Social Context ofModern Turkish Names,\" Southwest-\nernJournal ofAnthropology, 17(1961), 205- 218; Ward H. Goodenough, \"Personal Names and\nModes ofAddress inTwo Oceanic Communities,\" inContext andMeaning inCulturalAnthropol-\nogy, ed. M. Spiro (New York: Free Press, 1965); and"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_2100",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "Stanley Brandes, \"The Structural and\nDemographic Implications ofNicknames inNavanogal, Spain,\" American Ethnologist, 2(1975),\n139-148.\n4F.Niyi Akinnaso, \"The Sociolinguistic Basis of Yoruba Personal Names,\" Anthropological\nLinguistics, 22 (1980),275-304; and \"Names and Naming Principles in Cross-Cultural Perspec-\ntive,\" Names, 29 (1981),37-63.\n139"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_2450",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "Names, 31, NO.3 September 1983\n140 F. N. Akinnaso\nrelatively closed set and does not admit freely of additional membership.\nEach is associated with a distinct type of ritual. The ritual considerations\nthat motivate each subtype will be examined along with the sociolinguis-\ntic devices used to distinguish its-members. The effects of literacy,\nChrist"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_2800",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "ianity, and Islam on Yoruba ritual names will be discussed as well\nas the traditional mechanisms used in perpetuating the names in spite of\nliteracy and exogenous religions. The paper draws on historical, anthro-\npological, folkloristic, and linguistic resources; and material from these\ndifferent perspectives have beenjuxtaposed to stylistically re"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_3150",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "flect how the\nYoruba integrate historical, cultural, and linguistic knowledge inboth the\nconstruction and interpretation of personal names.\n5\nCultural and Linguistic Bases\nBesides its more obvious function which is the differentiation of indi-\nviduals, personal naming in Yoruba is another way of talking about what\none experiences, values, thinks, a"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_3500",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "nd knows in the real world. Conse-\nquently, the construction of Yoruba personal names is based on system-\naticcultural principles and thecoding ofinformation intothem isbased on\nthe lexical, syntactic, semantic, and pragmatic rules of the language.\nThree basic sociocultural principles underly the construction ofYoruba\npersonal names.6 These are (a)"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_3850",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "the \"home context\" principle which\ndefines the nature and context of the special circumstances (social, eco-\nnomic, political, -religious, sentimental, etc.) on which a given personal\nname is based; (b) the \"positive sanction\" principle which calls for the\nelimination of socially unacceptable information from personal names;\nand (c) the \"generalit"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_4200",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "y\" principle which permits the abstraction from a\nmultiplicity of events (statable in several sentences) of short generaliza-\ntions which can then beused inpersonal name construction. Such general-\nizations can take the form of sentences or nominals.\n7\nA typology of Yoruba personal names can be made according to the\nnature of the motivating home co"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_4550",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "ntext or the semantic patterns exhibited\nby the names. While such a typology will not be attempted here, two\n8\n5Forfurther illustration ofthis approach, seeAkinnaso, \"Sociolinguistic Basis,\" and \"Naming\nPrinciples. \"\n6Thecultural principles and lingusitic manifestations ofYoruba personal names arerespectively\ndiscussed in Akinnaso, \"Naming Principl"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_4900",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "es,\" and \"Sociolinguistic Basis.\"\n7For an account of the derivation of Yoruba personal names from sentences, see Akinnaso,\n\"Sociolinguistic Basis\"; and S.A. Ekundayo, \"Restrictions on Personal Name Sentences in the\nYoruba Noun Phrase,\" Anthropological Linguistics, 19(1977), 55-77. The derivation ofYoruba\npersonal names from nominal compounds is dis"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_5250",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "cussed in F. Niyi Akinnaso, \"On the Syntax and\nSemantics of Nominal Compounds in Yoruba Personal Names,\" BLS, 7 (1981), 1-12.\n8Foratypology based onsemantic patterns, seeAdeboye Babalpla, \"Patterns inYoruba Personal\nYoruba Names 141\nbroad morphologically contrastive types of Yoruba names should be\ndistinguished, the distinction being based on folk"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_5600",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "classificatory terms.\nThese are orukQ abfsQ \"names given after birth (i.e., during the naming\nceremony)\" and oruk\u00a2 amutQrunwa \"names brought from heaven.\"\nAmutQrunwa names are motivated by unusual or abnormal birth circum-\nstances (see 1-13 below), and are obligatorily given to children born\nunder such circumstances as are considered abnormal.\nOn t"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_5950",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "he other hand, abfsQ names are those motivated by various other\ntypes of home context - religious, social, occupational, sentimental, etc.\nWhile abfsQ names are given only during the naming ceremony, amutpr-\nunwa names can be given as soon as the baby is born by anyone who can\nmatch names with abnormal or ritually significant birth conditions. How-"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_6300",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "ever, regardless of whether it has an amutprunwa name, a baby will still\nbe initiated through the naming ceremony where several abfs(J names will\nbe given to it, as usual. In some cases, an ilbfsf} name may supersede the\namutprunwa. This, in fact, is usually the case where there is more than\none child with the same amutr)runwa name in the family."
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_6650",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "These two\nclasses of names are structurally differentiated: abfs(J names are marked\nfor various grammatical processes, using words drawn from the Yoruba\nlexicon, whereas amutprunwa names are generally unmarked, being\nmostly formed from non-Iexicalized nouns and so constituting an esoteric\nlexical domain. Since they are not often suggestive of the s"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_7000",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "pecial birth\ncircumstances to which they refer, amutr)runwa names have to be spe-\ncially learned.\nAbfku and ~ya names are ritually motivated subsets of abfsQ names.\nThey are normally given during the naming ceremony to children believed\nto -be reincarnations of themselves (abfku) or of highly valued ancestors\n(~ya). Like other abfsQ names, abfku an"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_7350",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "d ~ya names make use of common\nwords of the Yoruba lexicon and can convey a wide range of information,\nreflecting the namers' attitudes or expectations and other circumstantial\ndetails. Furthermore, while special (ritual) knowledge is required for\ndecoding amut\u00a2runwa names, abfku and ~ya names are more semantic-\nally transparent and so can be more"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_7700",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "easily decoded.\nAmutorunwa, ilbfku, and ~yil names evoke a world in which life and\ndeath are complementary phases of the same eternal existence, what\nhappens in one being both a part and a transformation of the other. Within\nthis context, \"the limits between life and death do not really exist. Life is\nNames,\" paper presented atafaculty seminar, Dep"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_8050",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "artment ofAfrican Languages andLiteratures,\nUniversity of Lagos, March 25, 1981.\n142 F. N. Akinnaso\nborn from death and death, inturn, istheprolongation oflife.',9Thus, the\nYoruba cosmos contains a hierarchy of beings, divinities, and spirits, all\nmutually participating in an endless communication network spanning\nboth physical and spiritual worlds"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_8400",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": ". At the top of the hierarchy is the\nSupreme Being variously called Ol6dumare, 9lprun, elfdcuJ, Aliulye,\netc. Next art(theori~a \"divinities, \" aW{Jnbaba fllaa wa \"our ancestors, \"\nandother various categories ofspiritual beings, allfunctioning as \"minis-\nters\" of 0 l6dumare. At the bottom of the hierarchy are human beings,\nseeking protection of the"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_8750",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "Supreme Being through the assistance of divin-\nities and the ancestors.\nIn Yoruba traditional thought, humans are believed to be composed of\nvarious elements, the most important of which are ara \"the corporeal\nelement, \" \u00a2mf \"the spirit,\" ori \"head\" in its physical and spiritual\nsenses, and orf inu \"the soul.\" This complex composition reflects seve"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_9100",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "ral\ncomplementary properties of being and relates directly to Yoruba beliefs\nabout ancestor worship, devotion to divinities, sacrifice, and the related\nbeliefs about amut\u00a2runwa, abtku, and ~ya, promoting a cosmos in which\ncommunication is possible between humans, dead ancestors, divinities,\nand other spirits. Indeed, as noted by Karin Barber in are"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_9450",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "cent article, the\nYoruba cosmos is one in which \"relations between humans and ori~a are\nin some sense a projection of relations between people in society. It is\n\"10\nthis view of extended relationship between humans, ori$a, dead ances-\ntors, and other spirits that underlies the present analysis.\nAmutorunwa Names\nWhen a child is born, say, inside an"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_9800",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "unbroken membrane or with the\nlegs first rather than the head, the Yoruba do not believe that it is\naccidental. They regard such unusual birth circumstances as ritually\nsignificant, believing children born under such abnormal conditions to be\nspeciallycreated. Hence, such children areregarded more orless asori$a,\nbeing worshipped almost like regula"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_10150",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "r divinities. Any of the following\namutQrunwa names is given to such children, depending on the peculiar\nnature of their birth condition:\n1. Oj6 (male)/Aina (female) Child born with the umbilical cord\ntwined around its neck.\n9Dominique Zahan, The Religion, Spirituality and Thought of Traditional Africa (Chicago:\nUniversity of Chicago Press, 1970/19"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_10500",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "79), p. 45.\nIOKarinBarber, \"How Man Makes Godin West Africa: Yoruba Attitudes Towards the Ori~a,\"\nAfrica, 51(1981),724-745.\nYoruba Names 143\n2. Ajayf Child born with the face downward.\n3. ige Child born with the legs presented first\nrather than the head.\n4. ilt)rf Child conceived without previous men-\nstruation.\n5. Igfsanrin Child born with an unus"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_10850",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "ually curled um-\nbilical cord.\n6. Oke Child believed to be allergic to hot water\nand medication.\n7. Amu~an (male)/Ato (female) Child born with the head and face com-\npletely covered with the membrane.\n8a. Dada Child born with unusually curly hair.\nb. Ekinnf Child born with unusually soft and slight-\n1ycurly hair.\n9a. Odu Child born with six fingers"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_11200",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "on each hand.\nb. Olugb6di Child born with six toes on each foot.\nlOa. (Jk\u00a2 Child born inside an unbroken mem-\nbrane.\nb. Ajasa Child born wearing the membrane\naround its body (i.e., with the head and\nfeet uncovered).\nc. Sillilkf} (male)/Tillilbf (female) Child born with the umbilical cord hang-\ning over its shoulder.\nI1a. Erinl\u00a2 0jutu Child born wi"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_11550",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "th the umbilical cord\ntwined around its right hand.\nb. Erinl\u00a2 Abatiln Child born with the umbilical cord\ntwined around its left hand.\nc. Erinl~ Ibu igberf Child born with the umbilical cord\ntwined around its right leg.\nd. Erinl\u00a2 Ofldu Child born with the umbilical cord\ntwined around its left leg.\ne. Erinl~ Ibu O~(J Child born with the umbilical cor"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_11900",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "d\ntwined around its waist.\n12a. Taiwo The first of twins or triplets.\nb. K\u00a2hinde The second of twins or triplets.\nc. Oko The third of triplets.\nd. idowu Child born next to twins or triplets.\ne. Alaba Child born next to jdowu.\n13a. Oni Child who either did not cry at all at birth\nor cried so much that no one could pacify\nit.\nb. (Jla Child born next"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_12250",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "to Onf.\nc. Otunla Third child after Oni. II\nIIThislistcanbeexpanded toinclude the seventh child afterOni, using regular day names:iren[\n(fourth day), Orunnf (fifth), ijanf (sixth), and ljenf (seventh). .\n144 F. N. A_kinnaso\nInthe above list, names that share certain definable characteristics have\nbeen grouped together. These characteristics are (a)"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_12600",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "similarity in birth\ncondition: (8), (9), (11); (b) sequentiality: (12), (13); and (c) historical\naffinity: (10). For example, the names in (11) refer to children born with\nthe umbilical cord in an unusual position while those in (12) refer to the\nsequential birth of twins or triplets and the children born after them.\nNumerous references to the fir"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_12950",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "st bearers of amutprunwa names in\nYorubaland abound in the people's folklore. For example, it is believed\nthat thefirst bearer ofDada (8a) was the elder brother of Sang6 \"God of\nThunder\" who lived in the historical town ofQYQ.Sango was abrave and\ndaring man who would not tolerate any insult to his brother. He was\nalways quick tocome toDada's defenc"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_13300",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "e. Hence theproverb-still used in\ncontemporary Yoruba-\n14. B{ Dada ka Ieja, 6 n{ abura t{ 6 gb6ju\n\"Even if Dada cannot fight, he has a very brave brother (who can).\"\nSimilarly, the attributes of the first bearer of 0 jo (1) are often recalled in\nYoruba oral history. He was a virile and troublesome man. His diet\nconsisted mainly of black-eye peas (b"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_13650",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "eans) and female chickens (mature\nhens). The contemporary significance of this diet is that it constitutes the\nbasic ingredients sacrificed at ritual ceremonies performed for any\nbearer ofthe name 0jo (orAina). Folk tales ofthis kind exist for the other\namut\u00a2runwa names.\nA distinctive type ofritual is associated with each type ofunusual birth\ncondi"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_14000",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "tion. The basic scenario oftheritual isasfollows: Relatives, friends,\nand well wishers ofthe bearer ofanamutr)runwa name aregathered inhis/\nher parents' home. Libations are poured in honor of the first bearer of the\nname and symbolically in honor ofthe present bearer. This isfollowed by\nthe rehearsal of the special oriki \"praise-incantation name\" a"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_14350",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "nd singing\nofthe special hymn associated with the relevant amutl)runwa name. Then\nfood is served which consists mainly of the diet associated with the first\nbearer of the name as well as food customarily associated with ritual.\nFor example, the oriki (15) and special song (16) for Oj6 (1) are as\nfollows:\n12\n12Althoughthere areseveral dialectal vari"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_14700",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "ants oftheorfki andsong, thesubstance isbasically the\nsame.Theversions presented here(aswellassomeofthe amut\u00a2runwa namesin(1)-(13) )arethose\ncollected by Chief Fagbemi Ajanaku and reported in F~laSowande and Fagbemi Ajanaku, OrukQ\nAmut\u00a2runwa (lbadan: Oxford University Press, 1969). The English translation is, however, my\nownresponsibility. Afew met"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_15050",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "aphorical linesintheorfki andsonghavebeentranslated freely while\ntwoidiomatic expressions areleftuntranslated. \"Classical\" expressions ofthistypearedistinctive\nYoruba Names 145\n15. Oriki Oj6 Oj6's praise-incantation name\nOj6 y~-wu-g\u00a2, alagada ogun! Oj6 yewuge, owner of war sword!\nOj6 j\u00a2ng\u00a2-ti-~l\u00a2. Oj6 who is never scared of anything.\nAjagun bf akur"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_15400",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "a! He fights a war with all his might!\nOj6 ko sf nf itt When 0j6 is not home\nOmQadit: dagba; Small chicks can grow;\nOj6 i ba wa nf itt If 0j6 is home\nj ba ti pa iya adit: jt:. Mother-hen will be killed for food.\no\no\nkina kfna kina kfna\nTf n ti oju aladit: ki f sf ina! Who roasts mother-hen while the owner\nlooks on!\nOj6 n lQata, alddit: nkfgbe. When"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_15750",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "0j6 grinds pepper, the owner of\nmother-hen weeps.\nOj6, kenke bf ele! o j6, strong like iron!\n16. Orin Oj6 Oj6's song\nOj6, Oj6, Oj6 0, kenke bf ele! Oj6, Oj6, Oj6 0, strong like iron!\nY\u00a2wug\u00a2, alagada ogun. Yewuge, owner of war sword.\nOj6 0, kenke bf ele! Oj6 0, strong like iron!\nAya Oj6 ki n pe Oj6 Oj6' s wife never calls him by his name\nBf 6 ba pe"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_16100",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "Oj6, 0 n pe orr Oj6! Ifshedoes, shewillritually incite Oj6 into\naction!\nOj6 0, kenke bf ele! oj6 0, strong like iron!\nLike Yoruba divinatory speech, the orfki and the song are a form of\nstylized ritual communication. Their functions include (1) integrating the\nbearer of the orfki within the network of family and ancestral lineage; (2)\npraising him"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_16450",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "by relating his distinctive qualities and, therefore, his\nuniqueness; (3) providing a medium for invoking the spiritual essence of\nthe orfki bearer and, subsequently, (4) ritually elevating him to a state of\nperfection, preparatory to faultless performance. Traditionally, every\nYoruba is supposed to have an orfki which can be rehearsed when any of"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_16800",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "these effects isdesired. The significance of the orfki and songs associated\nwith bearers of amutt)runwa names \"lies in their continued use for the\nstorage, retrieval, and transmission of historical and ritual knowledge.\nBecause they are infinitely recursive, amut(Jrunwa names provide a\nrich medium for the perpetual replication of cultural messages"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_17150",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "in a non-\nliterate community. In their daily use, these names evoke a rich schema\nthat promotes the processing of several messages simultaneously: the\nhistorical origin of amutorunwa names, the associated birth conditions,\nthe appropriate ritual, and the relevant orfki and special song. Though\nfeatures of Yoruba ritual communication (see F. Niyi A"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_17500",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "kinnaso, \"The Literate Writes and the\nNonliterate Chants: Written Language and Ritual Communication inSociolinguistic Perspective, \"\ninLinguistics and Literacy, ed. William Frawley (New York: Plenum Press, 1982, pp. 7-36).\n146 F. N. Akinnaso\nrepeatable, dmutprunwa names are unique in form and meaning. In many\nways, they are distinguished from db[ku"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_17850",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "and ~yd names.\nAbiku Names\nThe full form of the term db[ku is ~ni t[ a b[ t[ 6 si ku \"one who is born to\ndie (young). \" Essentially, the term refers to someone who is predestined\nto a continual cycle of birth, death and rebirth by the same woman. In\n13\nYoruba folk belief, db[ku children have their primary home in the forest\n(i.e., the spirit world"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_18200",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "), and are believed to have signed a pact with the\nspirit forces, promising early return after a taste of ile aye \"the human\nworld.\" Their migration between spiritual and human worlds is believed\nto be mediated by iku \"Death.\" This group of children is traditionally\ndistinguishable by their personal names referred to in folk terminology as\noruk(J d"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_18550",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "b[ku \"db[ku personal names.\"\nAnother distinguishing feature of abfku children is the saara' 'propitia-\ntory sacrifice\" performed by their parents on their behalf. Participating in\nthe ritual are neighborhood children, usually of the db[ku's age grade,\nsymbolizing the db[ku' s ~gb\u00a2 \"spiritual companions. \" The ritual is char-\nacterized by generous f"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_18900",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "ood service, elaborate libations, singing and danc-\ning. The ritual serves a dual purpose: (a) to propitiate the spirit forces and\n(b) to lure the db[ku into staying permanently in ile aye \"the human\nworld\" which is portrayed in the ritual as friendly, enjoyable, and protec-\ntive.\nBecause of the apprehension of premature death, a predominant featur"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_19250",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "e\nof db[ku names is the overt or covert use of the concept of iku \"death\" in\ntheir construction. Sometimes, the word occurs directly as iku or in its\ncontracted form as 'ku or in its verbal form, ku \"die.\" At other times, iku\nor ku may not be overtly expressed in a given db[ku name. In such cases,\nthe overall semantico-pragmatic representations of"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_19600",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "the name and its un-\nderlying symbolic structures will jointly evoke the image of death and\ntherefore of db[ku. Let us, for a start, consider the following data:\n17a. KlIS{Ul11U Iku ~e aanu\n,'Death was merciful\"\nb. Kuforiji Iku fi orf ji\n,'Death granted a pardon\"\n13Foran account oftheab[ku phenomenon among the Igbo, Basotho, and Marathi Indians, se"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_19950",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "e,\nrespectively, Christie Achebe, \"Literary Insights into the Ogbanje Phenomenon,\" Journal of\nAfrican Studies, 7(1980), 31-38; Paulus M. Mohome, \"Naming inSesotho: ItsSociocultural and\nLinguistic Basis,\" Names, 20 (1972), 171-185; and Indira Y. Junghare. \"Socio-Psychological\nAspects and Linguistic Analysis of Marathi Names,\" Names, 22 (1975),31-43."
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_20300",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "Yoruba Names 147\nc. Kuyinfnnu Iku YIn fn nu\n,'Death left him alone\"\nd. Kuj9pr~ Iku jQwQ9 r~\n,'Death spared him\"\nEach of the above names is a simple declarative sentence constructed\naccording to the lexico-grammatical and semantic rules of the Yoruba\nlanguage. All the declarative sentence names affirm that the child's\nsurvival is due to Death' s me"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_20650",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "rcy or to the dissolution of the alliance\nbetween the child and Death, the underlying objective being to induce\nDeath to leave the abfku children alone so that they can complete the\nlegitimate life cycle. Though affirmative, these sentence names have an\nundertone of appeal; notice the use of subtle and appealing words/phrases\nsuch as aanu \"mercy,\""
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_21000",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "foriji \"pardon\" and yinfnnu \"leave him.\"\nHowever, when Death fails to heed their pleas, parents often direct\ntheir anger at it by constructing abfku names that directly accuse Death of\nwrongdoing:\n18a. KU$ikd Iku ~elka\n,'Death is very harmful\"\nb. KU$oro Iku ~e oro\n,'Death causes severe pain\"\nc. Kurunmf Ikli run mf\n,'Death ruined me\"\nLike the preced"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_21350",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "ing examples, these are also affirmative, declarative,\nsentence names, but the pragmatic focus shifts from appeal to indigna-\ntion, harsh words being used in the hope that Death might stop its\nmalevolent work by being told how harmful it is. Occasionally, however,\nparents resort to an angry, though often futile, command at Death to stop\nits malevol"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_21700",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "ent work, as in the following example:\n19. Kumapdyf Iku rna pa eyf\n\"Death, do not kill this one\"\nThis last example is cast in the imperative mood even though parents are\nfully aware they have no control whatsoever over Death. However, the\nuse of the imperative mood here serves a major psycholinguistic function,\nenabling the parents to release the e"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_22050",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "motional and psychological tension\narising from their experience of the abfku phenomenon. When we con-\nsider the subjugating role of imperatives in natural discourse, we soon\nrealize that Kumapayf is a command carefully coined to ritually down-\ngrade and insult Death, while symbolically reflecting the intensity of the\nparents' agony.\nWhen all appea"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_22400",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "ls to Death fail to generate a change in the abfku\n148 F. N. Akinnaso\nsituation, parents often shift attention from Death to the ilbfkl1 child itself\nin the belief that it must be party to the arrangement. When the focus is on\nthe dbfkl1 child itself, four major linguistic devices are used in construct-\ning dbfkl1 names. These are (a) conditional c"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_22750",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "lauses, (b) imperatives, (c)\nnegativizers, and (d) dehumanizing lexicon. Let us consider each of these\nin tum with typical examples drawn from attested Yoruba ilbfkl1 names.\nWe start with conditional clauses as indicated by the following exam-\nples:\n20a. Bfobdku Bf (k)o ba ku\n\"If he does not die . . . \"\nb. Beyfoku Bf eyf 0 ku\n\"If this one does not"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_23100",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "die ... \"\nThese uncompleted conditional statements are intended to keep the ilbfkl1\nchild in suspense concerning the\" goodies\" that await it if it can stay and\nlive long enough, thereby inducing it to renege its contract with the spirit\nforces. Conditional names also symbolize the uncertainties about the\nilbfkl1' s survival and the fears and doubts"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_23450",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "in the parents' minds.\nThough they can be interpreted as a special kind of ritual insult, ilbfkl1\nimperative names, with a focus on the dbfkl1 child itself, have a rather\npathetic emotional appeal. Consider the following examples:\n21a. Mdtanmf Ma(~e) tan mt\n\"Do not deceive me\"\nb.\nMdlQm6 Ma(~e) 19mQ\n\"Do not go (i.e., die) again\"\nc. Majek6dunmf Ma(~"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_23800",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "e) je kf 0 dun mf\n\"Do not cause me any pain\"\nd. Mdboogunje Ma(~e) ba oogun je\n,'Do not render medication ineffec-\ntive\"\ne.\nBdnjok6 Ba mi joko\n\"Sit down with me\"\nf. Bdnk6le Ba mi kQ ile\n\"Help me to build a home\"\ng. Dur6simf Duro sin mf\n\"Stay to bury me\"\nh.\nDur6jaye Duro j~ aye\n\"Stay and enjoy life\"\ni. Dur6~QmQ Duro ~e 9m9\n\"Stay and play the child\"\nj"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_24150",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": ". Kal~jaye Kal~ j~ aye\n\"Sit down (i.e., take your time) and\nenjoy life\"\nk. R6timf (Du)ro tl mt\n\"Stay by me\"\nYoruba Names 149\nAs can be deduced from the above examples, ilbfku imperative names dem-\nonstrate an unusual ambivalence. If we go by the usual pragmatic function of\nimperatives, especially their use in downgrading the addressee and thus\ncrea"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_24500",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "ting social distance, these names indicate some special kind of ritual\ninsult. Yet these same names also represent a subtle, though somewhat\noblique, invitation to the addressee to come closer to the addressor. For it is\nby carrying out the instruction signalled by the predication that the addressee\n(ilbfku child) and the addressor (parent) can liv"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_24850",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "e together happily and fulfill\nnormal life expectancies. Though apparently contradictory, these two func-\ntions of imperatives are intended in these names. In other words, ilbikl1\nimperative names are both command and appeal, both insult and invitation.\nThis ambivalent attitude toward the abfku is aptly demonstrated in Clark's\nfamous poem on the su"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_25200",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "bject.\n14\nThough none of the imperative names in (21) contains an explicit reference\nto Death, they all evoke its image for the direct consequence of the abfku's\nnegative response to the ritual command is death. The avoidance of direct\nreference to Death in these names indicates the Yoruba preference for indir-\nectness, especially in making areques"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_25550",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "t. When ikl1is explicitly encoded in the\nimperative sentence name addressed to the abiku child, the pragmatic target\nis Death rather than the child. This is clearly illustrated by (22):\n22. Gbekude Gbe ik6 de\n\"Arrest Death andtie him (figurative-\nly, prevent Death from taking\naction)\"\nSince this is, of course, an impossible task, it seems that the"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_25900",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "function of this\nname is not so much in instructing the abiku to punish Death as in ritually\ndowngrading ~nd insulting Death, thereby forcing him to leave the abfku\nchild alone.\nIt should be pointed out at this juncture that parents sometimes allow arole\nreversal between them and the ilbikl1 child as in the following example:\n23. MaSQmfnu Ma(~e) s<"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_26250",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": ")mf nu\n\"Do not throw me away\"\nHere itisthe ilbikl1 child talking to the parents, instructing them not to discard\nit. This is another use of indirectness which, in this case, metaphorically\nabsolves the parents of any responsibility for the instruction contained in the\nname. The ultimate goal is to achieve the subtle inducement of the abfku to\nstay"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_26600",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "and live long.\n14J.P. Clark, \"Abiku,\" inModern Poetryfrom Africa, ed. Gerald Moore and UBi Beier (London:\nPenguin, 1963).\n150 F. N. Akinnaso\nWhen imperative names are not used, the Yoruba sometimes ritually\ninstruct the ilbfku not to die by using the negative particle ko \"not\" or a\nnegativizing verb ko \"reject\" in name construction. Consider, for e"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_26950",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "xample,\nthe following common ilbfku names:\n24a. Kokumr Kb kli rnQ\n\"It (the child) no longer dies\"\nb. Kos{Jk{J Kb sf QkQ\n\"There is no hoe\"\nc. Kuk\u00a2yf Ikli kp eyf\n\"Death rejected this one\"\nd. igb\u00a2kQyf Igb6 kp eyi\n\"The forest rejected this one\"\nCulturally, these names ritually insult the ilbfku while emphasizing the\nYoruba positive expectation that the"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_27300",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "child will no longer die prematurely\nas before. This idea is expressed sometimes indirectly as in Kos(Jk(J (24b)\nwhich is an oblique statement from the parents to the ilbfku that they no\nlonger have any hoe to use in digging a grave in case the child chooses to\ndie again! But, as can be deduced from the indirectness of the statement,\nthere is an i"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_27650",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "mplicit undertone of appeal to the ilbfku not to die. In Yoruba\nfolklore, the ilbfku love to be petted even when dead. Since lack of a\nsuitable grave will be detested by the ilbfku, a name like Kos6k6 is\nbelieved to be able to prevent it from dying. If the ilbfku eventually dies,\nits body is sometimes mutilated as a further mark of humiliation, to"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_28000",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "prevent it from coming back to earth. If the ilbfku is born again, a name\n15\nlike igb\u00a2kr)yf (24d) is then used to make it realize that there is no room for\nit even in the forest where, in Yoruba folk classification, the ilbfku\noriginally belonged. Kukr)yf (24c) performs a similar function: it is to\nmake the ilbfku realize, through lying, that Death"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_28350",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "has reneged his own part\nof their mythical pact.\nBut perhaps the most ritually insulting subset of ilbfku names is\nachieved by the use of dehumanizing lexicon. Examples are:\n16\n25a. Aja Dog\nb. Ekol6 Earthworm\nc. Apata Rock\nSince these names are also regular proper names for the non-human\nsubjects to which they ordinarily refer, it follows that the"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_28700",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "ir function as\n15cf.Wole Soyinka, \"Abiku,' inModern Poetry from Africa, ed. Gerald Moore and UBiBeier\n(London: Penguin, 1963).\n'6Mohome also reports theuse ofdehumanizing lexicon inBasotho names for similar purposes.\nYoruba Names 151\npersonal names lies not in their ordinary referential!denotative meaning,\nbut in their ritual, symbolic representati"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_29050",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "ons. Essentially, these names\nrepresent some special kind of ritual insult. Such insults are symbolically\nencoded in ilbiku names to serve adual purpose: (a)to indicate the child's\n\"worthlessness\" and, by so doing, deter evil spirits from bothering to\nclaim it, and (b) to express the parents' attitude to the ilbiku situation.\nThere is, of course, c"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_29400",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "onsiderable variation in the intensity of such insults,\nthe most intense being the use of dehumanizing lexicon as in (25).\nIndeed, in a way, the differences in the overt linguistic devices used in\nconstructing abiku names is symbolic of the variation in the.intensity of\nthe parents' suffering and subsequently of the semantic load of the ritual\ninsu"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_29750",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "lt encoded in abiku names. Thus, the shift from conditional clauses\nthrough imperatives and negativizers to dehumanizing lexicon roughly\ncorresponds to variation in intensity of the parents' reaction to the abiku\nsituation. However, individual variation incoping with difficult situations\nmakes it difficult to predict which linguistic device will be"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_30100",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "used at what\npoint or by which parent.\nIn general, ilbiku names evoke a world that is accessible only through\nsome ritual transportation. Like amut\u00a2runwa names, they replicate cul-\ntural messages. However, as we shall see, the messages they encode are\nofadifferent order from those of\u00a2ya names, despite apparent similarities.\n~ya Names\nThe Yoruba co"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_30450",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "ncept of \u00a2ya has its base in the belief in ancestor\nreincarnation. In Yoruba traditional belief, the family is made up of both\nthe living members and departed ancestors. Those who are regarded as\nancestors are (grand)parents who died legitimately ofold age, that is, after\ncompleting the normal life cycle. They are believed to be keenly inter-\nested"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_30800",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "in the welfare of their living descendants:\nThey are the guardians of family affairs, traditions, ethics and activities. Offences in\nthese matters isultimately anoffence against theforefathers who, inthatcapacity, act\nas the invisible police of the families and communities.\n17\nBecause the Yoruba believe that the departed ancestors preside spiritua"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_31150",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "lly\nover their activities, it is not uncommon for a man in difficulty to seek\nhelp from his ancestors, saying\n26. Bilbail mi, ma sun 0 \"Please, myfather, donotsleep (i.e., do\nnot neglect me)\"\n17J.S. Mbiti, African Religions and Philosophy (Londo~: Heinemann, 1969), p. 83.\n152 F. N. Akinnaso\nItisno wonder then that, like recognized divinities, ances"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_31500",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "tors arenotonly\nrevered and venerated, but also worshipped.\n18\nConsequently, the Yoruba believe that departed ancestors have various\nways of communicating with the living. One of the most cherished ways\nis for the soul of the departed ancestor to be reincarnated and born to one\nof his/her offsprings. This motivates a highly positive desire among th"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_31850",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "e\nliving offsprings to have their parents and grandparents reincarnated soon\nafter their death. Indeed, a common statement of condolence from well-\nwishers to the bereaved offsprings is\n27. Babaliya a tete ya 0 ,'May father/mother reincarnate soon\"\nand, to a particular offspring, a familiar well-wisher would say\n28. Babaliya a ya lrw99 r~ 0 ,'May f"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_32200",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "ather/mother reincarnate through\nyou\"\nWhen such reincarnation is confirmed, usually as a result of childbirth\nsoon after the death of a parent (usually a grandparent) and, sometimes,\nafteroracular consultation, thepersonal naming system isagain employed\nto store and transmit such knowledge.\nWhile ab{ku names are not often differentiated for sex, \u00a2y"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_32550",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "a names are\nusually differentiated because of Yoruba belief that the deceased male\nreincarnates only in male offsprings and the deceased female only in\nfemale offsprings. Thus ifababy boy isbelieved tobe areincarnation ofa\ndeceased parent, anyone of the following names is automatically chosen,\ndepending on which pragmatic effect the namers wish to"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_32900",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "achieve:\n29a. Babatunde Baba tun de\n\"Father has returned\"\nb. Baba jfde Baba jf de\n\"Father is reincarnated\"\nc. Babatunjf Baba tun jf\n\"Father wakes again (i.e., is reincar-\nnated)\"\nd. Babawaye Baba wa (sf) aye\n\"Father returned to earth\"\ne. Babawale Baba wa (sf) ile\n\"Father returned home\"\nf. Babarinde Baba rin de\n\"Father returned (voluntarily)\"\n18SeeW"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_33250",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "ande Abimbola, \"The Yoruba Concept of Human Personality,\" in La Notion de\nPersonne en Afrique Noire (Paris: CNRS, 1973); J. Omosade Awolalu, Yoruba Beliefs and\nSacrificial Rites (London: Longman, 1979); and J.S. Eades, The Yoruba Today (Cambridge:\nCambridge University Press, 1980).\nYoruba Names 153\ng. Babay\u00a2misi Baba y~ mi sf\n\"Father honored me (by"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_33600",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "returning to\nmy family)\"\nOn the other hand, reincarnated females are given any of the following\nnames:19\n30a. Yetunde Yeye tun de\n,'Mother has returned\"\nb.\nYejide Yeye jf de\n,'Mother is reincarnated\"\nc. Yewande Yeye wa mi de\n,'Mother came back to find me\"\nd. Yeside Yeye si de\n,'Mother indeed returned\"\ne. Yek\u00a2mi Yeye k~ mi\n,'Mother petted me (by re"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_33950",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "turning to\nmy family)\"\nf. iyabt)de lya bb de\n\"Mother really returned\"\ng. iyaY4misi lya y~ mi sf\n\"Mother honored me\"\nThough they have slightly different pragmatic effects, all these names\nconvey essentially the same message: that father/mother isreincarnated in\nthe particular child so named. Structurally, all the names are simple\ndeclarative sentenc"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_34300",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "es with father/mother as subject and the evocation of\nthe notion of reincarnation in the predication.\nButwehave previously noted that declarative sentences arealso used in\nconstructing iLbfku names. We may, therefore, ask: what are the differ-\nences between iLbiku and \u00a2ya names and how do the differences help\ndistinguish between the two types of re"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_34650",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "birth after death that we have\ndiscussed? Basically, iLbfku and \u00a2yiL names differ in their cultural motiva-\ntion, in their structural possibilities, and in their pragmatic effects. These\ndifferences in turn reflect the wider differences between the notions of\niLbiku and \u00a2ya.\nAs can be readily deduced from the preceding discussion, iLbfku and\n~yiL a"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_35000",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "re two different, if not contradictory, subtypes of the same belief\nsystem, one (the iLbfku) being an epiphenomenon of the other. Though\nboth have to do with death and rebirth, one, ?yiL, conforms to legitimate\nexpectations about the life cycle whereas the other does not. Consequent-\nly, while fya is highly favored and respected, abiku is negativel"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_35350",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "y sanc-\n19jya and Yeye in the following examples are dialectal variants of \"mother.\"\n154 F. N. Akinnaso\ntioned and disrespected. It should be noted however that, even when\nnormal life expectancies are fulfilled, not every dead person comes in for\nconsideration as an ancestor. Awolalu lists the qualifications as follows:\nTo qualify, such men and wom"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_35700",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "en must have lived well, attained anenviable old age\nbefore dying, must have left behind good children and good memory. Children and\nyouths who die apremature death, barren women, and allwho die a 'bad' death ...\nare excluded from this respectable group.20\nThus, to die young and expect a rebirth is an anathema to ?ya belief\nsystem for it introduces"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_36050",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "discontinuity or lack of fulfillment to the estab-\nlished social order. Therefore, the abfka phenomenon is a serious punc-\nture to Yoruba cosmology. Yet it exists and draws attention to itself. But\nlike the archetypal contrasts between \"true\" and \"false\" prophets in\nChristian religion, or more generally between good and evil, ?ya and\nabfka belief"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_36400",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "systems coexist, the existence of one throwing the other into\nsharp relief.\nSince they differ in cosmological orientations, it is not surprising that\nabfka and ?ya employ different linguistic devices in name construction.\nEven where they both make use of the same syntactic device (viz.,\ndeclarative sentences) they differ considerably in pragmatic i"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_36750",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "mplications.\nThus, while (ibfku names are marked by indirectness and ritual insults,\nonly affirmative, declarative sentences, with positive pragmatic effects,\nare used in constructing ?ya names. Thus, while ?ya names announce a\nhappily awaited event (viz., reincarnation of a dead ancestor), abfku\nnames are partly appeals and partly ritual insults,"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_37100",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "expressive of a variety\nof moods from sympathy and pity to anger and indignation, and serving\nultimately as ritual medication for curing, as it were, the abfka syndrome.\nThese differences notwithstanding, abfka and ?yanames both perform the\ndual function of (a) providing a channel of communication between the\ndead (or Death) and the living and (b)"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_37450",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "serving as a medium of information\nstorage and cultural transmission.\nCertain paradoxes about the Yoruba belief in ?ya should be mentioned.\nThe paradoxes arise from the Yoruba belief that an ancestor may reincar-\nnate while he/she remains in the other' 'world\" where he/she continues to\nbe invoked from time to time. It is also believed that, althoug"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_37800",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "h an ancestor\nmay reincarnate only once within the same nuclear family, simultaneous\nreincarnations of the same ancestor is possible within the extended fam-\nily.21 Furthermore, it is believed that even though a male ancestor may\n2\u00b0Awolalu, p. 54.\n21SeeWilliam Bascom, \"Yoruba Concepts of the Soul,\" in Men and Cultures, ed. A.F.C.\nWallace (Philadelp"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_38150",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "hia: University ofPennsylvania Press, 1960),p.404; Idowu, p. 194;andEades,\np. 122.\nYoruba Names 155\nhave reincarnated, he can still come to earth in the materialized form of\negungun, a sacred phenomenon in Yoruba belief system often confus-\ningly glossed as 'masquerade' or 'masquerader' in the anthropological\nIiterature. 22\nThese paradoxes are supp"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_38500",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "orted by a belief system which sees life and\ndeath as a continuum in which death is not ultimately a tragedy but a\ntemporary occurrence and necessary prelude to the reincarnation of the\ndeparted ancestor. Moreover, Yoruba belief in the multiple composition\nof a person supports the separate survival of each of the composite\nelements except the corpo"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_38850",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "real which, being ordinary matter, decays.\nThus, the \u00a2mf \"spirit or vital force\" of the deceased can remain in the\nancestral world while his/her guardian soul is reborn with a new body,\nbreath, and destiny.23 Since his spirit \"lives on\" in the ancestral world, a\nmale ancestor can still visit in the form of egungun when appropriately\ninvoked, despit"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_39200",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "e (several) reincarnation(s)\".\nNames, Rituals, and Sociolinguistic Change\nTwo underlying causes of social change among the Yoruba today are\nthe spread of literacy and the adoption of two exogenous religions,\nChristianity and Islam. Basic changes in kinship, economic, and political\norganization, in the modes of communication, in the diagnosis and tr"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_39550",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "eat-\nment of diseases, and indeed in the entire social structure and \"world-\nview\" of the Yoruba are due largely to the spread of literacy, the con-\ncomitant diffusion of Western cultures and technologies, and the\nconversion of most Yaruba to Christianity or Islam.24 Though these\nprocesses began more than a century ago, their effects have never bee"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_39900",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "n so\nseriously felt as in the last three decades.\nSeriously affected are attitudes toward indigenous cultural traditions,\nespecially toward traditional ritual performances. Since the ritual motiva-\ntion of amutrJrunwa, abfku, and \u00a2ya names is no longer salient for all\nYoruba, we should expect some changes in naming practices and a\ndecline in the pe"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_40250",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "rformance of the appropriate rituals. These changes are of\ntwo kinds: (a) the adoption of Western, Christian, or Muslim names, and\n22Foranaccount oftheegungun cult, seeP.Morton-Williams, \"The Egungun CultinSouthwest-\nern Yoruba Kingdoms,\" in WAlSER Conference Proceedings (Ibadan: West African Institute of\nSocial and Economic Research, 1954);and O."
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_40600",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "Olajubu and J.R. Ojo, \"Some Aspects of Oyo\nYoruba Masqueraders,\" Africa, 47 (1977), 253-275.\n23Bascom,p. 404; cf. Awolalu, chapter 3.\n24Forageneral review oftheconsequences ofliteracy onlanguage, thought, culture, andsociety,\nseeF.NiyiAkinnaso, \"The Consequences ofLiteracy inPragmatic andTheoretical Perspectives,\"\nAnthropology and Education Quarter"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_40950",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "ly, 12(1981), 163-200.\n156 F. N. Akinnaso\n(b) the tendency toward positive naming. The former minimizes the\nrelevance of home context, an important principle of Yoruba naming,\nwhile the latter avoids the esoteric and sometimes derogatory connota-\ntions of ritually motivated names.\nFor example, instead of an abiku name like igbekoyi (24d), many\nlite"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_41300",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "rate Yoruba today prefer pragmatically positive names like (31):\nOlu(wa) ~eeyi\n\"God didthis(Le., gave usthischild)\"\nb. OIQrunrotemiwo Ol9run ro t'emi wo\n\"God tookmyproblems intoconsider-\nation\"\nThese are names given by two of my literate informants to their children\nwho should traditionally have been given abiku names because of the\nseries ofinfant"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_41650",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "ile mortality they had experienced. The use ofOlu(wa) and\nOI(5run (names now usually associated with the Christian God) as the\nsubject NP of these sentence names illustrates a major shift in religious\naffiliation and subsequently of \"world view.\" Another device favored by\nliterate Yoruba is the repetition of the deceased child's name if the\nnewborn"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_42000",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "is of the same sex. In this way, abiku names and their ritual\nconnotations are completely avoided.\nSimilar processes of change apply to fya names though the basic ones,\n(29) and (30), continue to be used by both the literate and non-literate.\nThis is partly due to the pervasiveness of the belief in reincarnation and\npartly to the non-derogatory im"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_42350",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "plications ofconventional fya names. One\nmajor change introduced to \u00a2ya names by literate Yoruba is repetition of\nallorpart (usually the subject NP) ofthedeceased person's sentence name\ninthe newborn's name. For example, one ofmy informants, whose father\ndied shortly before he had a new baby boy, gave the following name (32)\nto his baby:\n32. Akfnwa"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_42700",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "le Akin wa (sf) ile\n\"Akin (the valiant) returned home\n(i.e., is reincarnated)\"\nThe deceased father's name was (33) below:\n33. Akfnsunmade Akinb sun rna ade\n\"Akin (valor) is next to rank to\nthe crown (royalty)\"\nWhile \u00a2ya names continue to be used, amutQrunwa names are fast on\nthe decline, and, in fact, some of them, e.g., (5) and (11), have dropped"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_43050",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "out of the name repertoire of many Yoruba, partly because they have lost\ntheir historical significance and partly because the modem techniques of\nYoruba Names 157\nprenatal care and childbirth make some of the abnormal birth conditions\ninfrequent. Even when such abnormal conditions occur, explanations are\noften based on the logic of Western science."
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_43400",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "Since person definition and naming are usually based on the namer's\nvalue criteria,25 the adoption of exogenous religions often results in a\nchange in naming pattern. 26This is particularly true of the Muslim Yoru-\nba, expecially those who are born Muslim (second generation Muslims).\nMany of them now give Muslim names (often Yoruba adaptations of"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_43750",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "the\nArabic forms) directly to their children, without giving them any indig-\nenous Yoruba names and regardless of the circumstances of birth. Among\nthe Christian Yoruba, Christian (or English) names are given on bap-\ntism,27 and they coexist with the indigenous ones. Tonkin reports a\nsimilar process for the Jlao Kru of Liberia:\nConversion to Christ"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_44100",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "ianity was marked by a baptismal name, and most civilized\npeople today will have a 'European' name drawn from alimited repertoire of Bible,\nsaints' andEnglish Christian names, even ifthey arenotactive church members. This\nname is part of a civilized name.28\nTonkin's distinction between Kru 'country' and 'civilized' names is in\npart based on the non"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_44450",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "-literate/literate distinction. This distinction is evi-\ndent in Yoruba naming, though the adoption of exogenous religions is not\npeculiar to the literate Yoruba. Consequently, there are many non-literate\nYoruba who assumed Christian names on conversion and yet remained\nresolute traditionalists.\nBoth among the literate and non-literate, indigenous"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_44800",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "and 'foreign'\nnames coexist. Even when the literate do not give ritually motivated\nnames to their children, non-literate elders, whose advice on naming is\noften sought, usually suggest them. Most literate Yoruba still uphold the\ntraditional consultation of (grand)parents, for suggestions of appropriate\nnames for their new babies, and this guarantee"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_45150",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "s the perpetuation of\n25SeeLevi-Strauss, ch. 7.\n26SeeF. Niyi Akinnaso, \"Continuity and Change inYoruba Personal Names,\" paper presented\natasymposium onChanging Continuities Among theYoruba, Twenty-fifth Annual Meeting ofthe\nAfrican Studies Association, Washington, D.C., Nov. 3-7,1982; andElizabeth Tonkin, \"Jealosy\nNames, Civilized Names: Anthropono"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_45500",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "my oftheJIaoKruofLiberia,\" Man (N.S.), 15(1980), 653-\n664.\n27Thecurrent tendency toward indigenization in economic and political organization is also\nreflected in the adoption of indigenous Yoruba personal names for Christian baptismal purposes.\nThispointstothesyncretization oftraditional andexogenous religions. InThe Yoruba Today, Eades\nreports st"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_45850",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "riking correspondences between Muslim andtraditional methods ofdivination ontheone\nhand, andbetween Christian-Aladura andtraditional ritualpractices ontheother. Thissyncretism is\nnow particularly evident during iS9m9l6ruk9 \"naming ritual\" where Christian, Muslim, and\nYoruba traditional practices are blended as needed.\n28Tonkin,p. 658.\n158 F. N. Aki"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_46200",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "nnaso\nindigenous names. And despite conversion to Christianity or Islam, rit-\nually motivated names stillretain their vitality among non-literate Yoruba\nwho are, incidentally, still in the majority.\nConclusion\nIn his analysis of the forms and contents of Baktaman ritual, Fredrik\nBarth concludes that' 'every culture is an ongoing system of communica"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_46550",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "-\ntion and contains acorpus ofreplicated messages.' In this paper, Ihave\n'29\nsought to explicate certain aspects of Yoruba ritual knowledge through\ntheir system of person definition. It has become clear in the process that\nnames do not simply classify asLevi-Strauss claims; they are convention-\nalized communicative acts as my previous studies of Yo"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_46900",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "ruba names and\nTonkin's study of Kru names also suggest. AmutQrunwd, abfku, and \u00a2ya\nnames are thus basic to a theory of ritual communication in which the\nliving and the dead are participants; they arepart of acosmos in which the\ndead can come back and in which the living can take a message to the\ndead, even to Death himself! In order to understand"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_47250",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "the nature of this\ncommunicative act, it is necessary to go beyond surface linguistic repre-\nsentations to the level of cultural presuppositions and symbolism, that is,\nbeyond etic to emic representations, as this paper demonstrates.\n30\nIt is true that personal names are commonplace phenomena, being\nhighly secularized: asingle personal name can be"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_47600",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "used several times aday\neither to refer to the same individual or to several unrelated namesakes.\nBut it is precisely their potential for commonplace occurrence and fre-\nquent usage that makes personal names an appropriate medium for the\nstorage, retrieval and transmission of cultural knowledge in a predomi-\nnantly oral culture. When social and cul"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_47950",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "tural values change, names and\nnaming patterns often change accordingly. For some, e.g., Yoruba Chris-\ntians, new names reflect new realities, suppressing or coexisting with\ntraditional names. For others, e.g:, second generation Yoruba Muslims,\nnew names do not only reflect new realities, they replace traditional\nnames and what they symbolize or co"
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_48300",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "mmunicate. Thus, names define\nsociocultural and psychological realities, and are in tum defined by these\nrealities.\nUniversity of California, Berkeley\n29RitualandKnowledge among theBaktaman o/New Guinea (NewHaven: YaleUnivesity Press,\n1975), p. 15.\n30cf. Roger M. Keesing, \"Linguistic Knowledge and Cultural Knowledge: Some Doubts and\nSpeculations,\""
+    },
+    {
+      "id": "Yoruba_Traditional_Names_and_the_Transmi_48650",
+      "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+      "text": "American Anthropologist, 81 (1979), 14-36."
+    },
+    {
+      "id": "Yoruba_Praise_Names_0",
+      "paper": "Yoruba_Praise_Names.pdf",
+      "text": "Volume 2 INTERNATIONAL JOURNAL OF HUMANITIES AND\nIssue 1\nCULTURAL STUDIES ISSN 2356-5926\nJune 2015\nEtymological investigation of tones in the Yor\u00f9b\u00e1 personal praise names:\n(cid:852)\nOluwole Tewogboye Okewande\nUniversity of \u1ecd \u1ecdrin, Nigeria\nAbstract\nTo the Yor\u00f9b\u00e1 in particular and African in general, a name is not just a means of individual\nidentity,"
+    },
+    {
+      "id": "Yoruba_Praise_Names_350",
+      "paper": "Yoruba_Praise_Names.pdf",
+      "text": "but it has social, psychological and behavioural effects on the life of the bearer. Yor\u00f9b\u00e1\nis a tonal language, in other words, the meaning of a name is greatly influenced by the tones on\nthe name. Previous efforts have been made by scholars to classify Yor\u00f9b\u00e1 names into: \u1ecd\n\u1ecd (name given on the eighth \u1ecd \u1eb9 - \u1ecd\n\u1ecd \u1eb9 (religious k\u1ecd \u1ecd (name from birth c"
+    },
+    {
+      "id": "Yoruba_Praise_Names_700",
+      "paper": "Yoruba_Praise_Names.pdf",
+      "text": "ircumstance and signs)\namong others (1991).This paper focuses on the tones\npattern of \u1ecd (praise name given to a child on the eighth day), which is just a category\nout of the available to the Yor\u00f9b\u00e1. This is because can be realis\n\u1eb9 \u1ecd r\u1ecd (praise name for important personalities in the\nsociety) \u1ecd (praise name given on the eighth day) and so on. Till n"
+    },
+    {
+      "id": "Yoruba_Praise_Names_1050",
+      "paper": "Yoruba_Praise_Names.pdf",
+      "text": "ow, the root or origin\nof LLH (low-low-high) tone \u1ecd shared by the male and female has not been\ndiscovered, the challenge that is taken up by \u1ecd \u1ecd of LLH (low-low-high) tone\npattern associated with both male and female are collected and analyzed based on the Two Tones\nHypothesis (TTH). \u1ecd \u1ecd \u1ecd , y\u1ecd\nmetropolis of y\u1ecd and un States of Nigeria. These S \u1ecd i"
+    },
+    {
+      "id": "Yoruba_Praise_Names_1400",
+      "paper": "Yoruba_Praise_Names.pdf",
+      "text": "s most\nrealised among the Yor\u00f9b\u00e1. I \u1ecd are sourced from\n(1982) and (1991). The paper concludes that, tones of \u1ecd evolve\n\u1ecd \u1ecd associated with three\n. These names have no gender affiliation. Male or female child\n(exclusively associated with twins) bears any of these names\n- \u1ecd.\nKeywords: \u1ecd (cid:853) \u1ecd (cid:853) (cid:853) \u1ecd , low-low-high tone pattern (LL"
+    },
+    {
+      "id": "Yoruba_Praise_Names_1750",
+      "paper": "Yoruba_Praise_Names.pdf",
+      "text": "H)\nhttp://ijhcschiefeditor.wix.com/ijhcs Page 486\nVolume 2 INTERNATIONAL JOURNAL OF HUMANITIES AND\nIssue 1\nCULTURAL STUDIES ISSN 2356-5926\nJune 2015\nIntroduction\n\u1ecd (name) is the linguistic symbol by which you identify an individual; while\n(praise name) is the literary form by which you identify an individual within the history of his\nfamily, clan a"
+    },
+    {
+      "id": "Yoruba_Praise_Names_2100",
+      "paper": "Yoruba_Praise_Names.pdf",
+      "text": "nd tribe, hence the genealogical content of . (of any category), is a way of\ntracing an individual to his or her root, or to his genesis \u1e63 kan (1958), (cid:1232) n (1986),\nBabal(cid:1233) (2000) and Barber (1991) y(cid:1233) (1972, p. 63), is for a child \u201ca\nway of interacting him into a closely-knit web of family relationship and thus rescuing him"
+    },
+    {
+      "id": "Yoruba_Praise_Names_2450",
+      "paper": "Yoruba_Praise_Names.pdf",
+      "text": "from\na a \u201d I s a ha h potentiality of is wider and influential than \u1ecd: as it links\nan individual to the root and the society at large. This puts into historical pedestal. To the\nYor\u00f9b\u00e1, \u201c a , (cid:1213) (cid:1213) (cid:1213) \u201d ( a sh s s a sh history,\nwhoever has no history will soon be forgotten). operates at the macro-level because of its\ngenealo"
+    },
+    {
+      "id": "Yoruba_Praise_Names_2800",
+      "paper": "Yoruba_Praise_Names.pdf",
+      "text": "gical power and influence on individual life; while \u1ecd operates at the micro-level, as\nits scope is restricted to personal life and experience. Both (of any category) and \u1ecd (of\nany form) are beyond means of individual identification \u1ecd (1988, p. 79) sees \u1ecd\nbeyond a means of individual identification \u201c u is believed to be the signifier of the historic"
+    },
+    {
+      "id": "Yoruba_Praise_Names_3150",
+      "paper": "Yoruba_Praise_Names.pdf",
+      "text": "al,\nsociological and psychological behavioral a s f ha a s \u201d is realised as a deeper\nform of \u1ecd.\nApplication of tones on the Yor\u00f9b\u00e1 poems as it affects and influences meaning is\naddressed by (cid:1232) (2005) a \u1e63 kan (1956). Their observations are based on the impacts\nof the theme of a poem on the line-end tonal patterns. The unpredictability and ir"
+    },
+    {
+      "id": "Yoruba_Praise_Names_3500",
+      "paper": "Yoruba_Praise_Names.pdf",
+      "text": "regularity of the\ntonal arrangements at the line-ends of the Yor\u00f9b\u00e1 poetry is expressed by Bier a m(cid:1233) \u1e63\n(1959, 8) ha \u201c s Y s, h s u a a a Th a\ns u u h f s a a h a f u a \u201d \u1e63 (1970, pp.\n110&111) focuses his view on the effects of tonal configurations besides the deployments of\ntonal arrangement as a word-play. According to him, tones could be"
+    },
+    {
+      "id": "Yoruba_Praise_Names_3850",
+      "paper": "Yoruba_Praise_Names.pdf",
+      "text": "used as:\nThe device which consists in the use of contrastive tones\nthrough a deliberate choiceor distortion of lexical items. It is\ndone in such a way that some tones, or tone on the final\nsyllable in one lexical items will contrast with the tone(s) in\na h , \u2026\nFrom these reviewed works, one can see the manipulation of tones in Yor\u00f9b\u00e1 written\npoems"
+    },
+    {
+      "id": "Yoruba_Praise_Names_4200",
+      "paper": "Yoruba_Praise_Names.pdf",
+      "text": "and the manipulation of same to the advantage of the poet, as tones are not realised in this\ncontext as fixed or constantforms, unlike in \u1ecd, where the tonal patterns and structures\nare realised in fixed forms.\nhttp://ijhcschiefeditor.wix.com/ijhcs Page 487\nVolume 2 INTERNATIONAL JOURNAL OF HUMANITIES AND\nIssue 1\nCULTURAL STUDIES ISSN 2356-5926\nJun"
+    },
+    {
+      "id": "Yoruba_Praise_Names_4550",
+      "paper": "Yoruba_Praise_Names.pdf",
+      "text": "e 2015\ns f ( ) a (2007) examines twenty-seven (27) tone possibilities.\nOut of these possibilities, only LLH (low-low-high) tone possibility is identified to be peculiar\nand dominant with \u1ecd and the only tone pattern shared by male and female (\n1999). The LHH (low-high-high) and LMH (low-middle-high) tone patterns exclusively occur\nwith either female"
+    },
+    {
+      "id": "Yoruba_Praise_Names_4900",
+      "paper": "Yoruba_Praise_Names.pdf",
+      "text": "or male only. However, the origin of \u1ecd \u1ecd (which \u1ecd is\nin this work discovered to be a category) has not been known. This view s a\n( y(cid:1233) 1972, p. 85) ha \u201cw w h usa f h \u1ecd names, but their\netymologies are in most part now obscure.\u201d Th challenge of etymological accounts of\n\u1ecd, is open to cultural scholarship and is therefore taken up by this pap"
+    },
+    {
+      "id": "Yoruba_Praise_Names_5250",
+      "paper": "Yoruba_Praise_Names.pdf",
+      "text": "er.\nDefinition and Limitations of Scope\n\u1ecd,- is a nominalised tri-syllabic praise name given to a child on the naming day\nalongside with other names in the Yor\u00f9b\u00e1 community. Three forms of tone patterns have been\nidentified with \u1ecd in general, the LLH, LHH and LMM ( a 2007).\nThis class of names is common among the indegenes y\u1ecd and un states of Nigeri"
+    },
+    {
+      "id": "Yoruba_Praise_Names_5600",
+      "paper": "Yoruba_Praise_Names.pdf",
+      "text": "a and some\nparts of and . These names are uncommon in most parts of and in \u1eb9\n( 1991). Those who bear these names besides y\u1ecd and un States are likely to have\nbeen influenced by their cultural contact with y\u1ecd and un who are exclusively identifiable\nwith these sorts f a s ( , 1991). But interestingly, names of the three children born\nafter ( w s w , a"
+    },
+    {
+      "id": "Yoruba_Praise_Names_5950",
+      "paper": "Yoruba_Praise_Names.pdf",
+      "text": ") are generally accepted and adopted throughout the\nYor\u00f9b\u00e1 tribes. Therefore, these names evolve as a form of k\u1ecd \u1ecd (name by signs and\ncircumstances accomplishing the h \u2019s h) This then indirectly makes \u1ecd of LLH\ntone patterns to be identified with the Yor\u00f9b\u00e1 tribes in general. In other words, the source a s\n( w , a ) of \u1ecd LLH tone patterns are unive"
+    },
+    {
+      "id": "Yoruba_Praise_Names_6300",
+      "paper": "Yoruba_Praise_Names.pdf",
+      "text": "rsal in the Yor\u00f9b\u00e1 tradition.\nOther forms of along with the source mentioned above are peculiar to some Yor\u00f9b\u00e1 tribes.\nThe older persons are known to use \u1ecd a h h \u2019s h a s Th s work then\nrestricts itself to the LLH tone pattern.\nMethodology: The Two Tone Hypothesis\nThere are two explanations on the use of only three tones (L, H and M). The first is"
+    },
+    {
+      "id": "Yoruba_Praise_Names_6650",
+      "paper": "Yoruba_Praise_Names.pdf",
+      "text": "the\ntwo tones Hypothesis (TTH), and the Guided Accident Hypothesis (GAH). The TTH supports\nthat the existence of only two tones L and H need be seen as underlying tones in Yor\u00f9b\u00e1.\nScholars like Stahlike (1974), Courtana ( ) a a (1985) note that there is a kind of\nassymentary in the distribution of the three tones in Yor\u00f9b\u00e1. According to Stah \u2019s su"
+    },
+    {
+      "id": "Yoruba_Praise_Names_7000",
+      "paper": "Yoruba_Praise_Names.pdf",
+      "text": "s ,\nthe three-tone contrast in Yor\u00f9b\u00e1 today may be accounted for by the two-tone language, if it is\nassume that the M (mid-tone) originates from the L (low-tone). Likewise, Courtenay notes that\n\u201c h s u f h u clitics in relation to the verbs in Yor\u00f9b\u00e1 points in the\ndirection of high tone versus low tone if we explain M of the clitics as a case of to"
+    },
+    {
+      "id": "Yoruba_Praise_Names_7350",
+      "paper": "Yoruba_Praise_Names.pdf",
+      "text": "nal\nass a \u201d ( , , ) a is only disposed to two tones: High and Low. He\nhttp://ijhcschiefeditor.wix.com/ijhcs Page 488\nVolume 2 INTERNATIONAL JOURNAL OF HUMANITIES AND\nIssue 1\nCULTURAL STUDIES ISSN 2356-5926\nJune 2015\nrecognises the M as having no underlying status not because of historical postulation, but based\non the principles of tonal under-spec"
+    },
+    {
+      "id": "Yoruba_Praise_Names_7700",
+      "paper": "Yoruba_Praise_Names.pdf",
+      "text": "ification. Therefore, the theoretical frame work adopted for\nthis study is the Two Tone Hypothesis (TTH). This is because the theory is suitable to shed light\non the tone conditioned of the LLH tone pattern of \u1ecd.\nPresentation: Tonal Pattern in \u1ecd (cid:852)\nFor the purpose of this work, I have restricted the tonal pattern in Yor\u00f9b\u00e1 \u1ecd to\nLLH. This is"
+    },
+    {
+      "id": "Yoruba_Praise_Names_8050",
+      "paper": "Yoruba_Praise_Names.pdf",
+      "text": "because, only this pattern is observed to be exclusively associated with tone pattern\non the children born after (twins) male or female as explained earlier.\n(1999, p. 58), LLH tone pattern of \u1ecd is discovered to be the dominant form of\n\u1ecd \u201cI s fa h s I s s v d that the pattern is used for both male and\nf a \u201d Looking at the tonal patterns of \u1ecd, one m"
+    },
+    {
+      "id": "Yoruba_Praise_Names_8400",
+      "paper": "Yoruba_Praise_Names.pdf",
+      "text": "ay want to view the distribution of\nLLH as supporting the TTH because, the representation of L and H are exclusively established.\nThe representation of L and H are also more frequently used than M in other forms of \u1ecd:\nLHH and LMH. However, since the scope of this work excludes LHH and LMH patterns, it gives\nin strong terms the TTH credit. In other"
+    },
+    {
+      "id": "Yoruba_Praise_Names_8750",
+      "paper": "Yoruba_Praise_Names.pdf",
+      "text": "words, there is no exception of \u1ecd with LLH\na (f a a f a ) (1988, Pp. 197-267) had earlier asserted \u201c ha h M\nYor\u00f9b\u00e1 does not take part in a number of tonal processes - including the L and the H \u201d Examples\nof LLH (male and female) pattern that supports the exceptionalness with occurrence in\n\u1ecd f \u1ecd (cid:1233) \u1e63(cid:1233) , (cid:1232) y(cid:1233) a w u"
+    },
+    {
+      "id": "Yoruba_Praise_Names_9100",
+      "paper": "Yoruba_Praise_Names.pdf",
+      "text": "s f (cid:1232) y(cid:1233) and (cid:1232) \u1e63un States of Nigeria\nare rendered below\nLLH pattern (male) LLH pattern (female)\n(i) w(cid:1213) k(cid:1213)\n(ii)\n(iii) f(cid:1213)\n(iv) (cid:1213)\n(v) (cid:1213) f(cid:1213)\n(vi) (cid:1213)\n(vii) (cid:1213)\n(viii) (cid:1233)\n(ix) (cid:1233) (cid:1213)\n(x) (cid:1213)\n(xi) (cid:1233)\n(xii)\n(xiii) (cid:1213)"
+    },
+    {
+      "id": "Yoruba_Praise_Names_9450",
+      "paper": "Yoruba_Praise_Names.pdf",
+      "text": "k(cid:1213)\n(xiv) (cid:1213)\n(xv) w(cid:1213)\n(xvi) w(cid:1213)\n(xvii) (cid:1233) k(cid:1213)\nhttp://ijhcschiefeditor.wix.com/ijhcs Page 489\nVolume 2 INTERNATIONAL JOURNAL OF HUMANITIES AND\nIssue 1\nCULTURAL STUDIES ISSN 2356-5926\nJune 2015\n(xviii) s (cid:1233)\n(xix) \u1e63 (cid:1213)\n(xx) (cid:1213)\n(xxi) \u1e63\n(xxii) (cid:1213) j(cid:1213)\n(xxiii)\n(xxiv) \u1e63"
+    },
+    {
+      "id": "Yoruba_Praise_Names_9800",
+      "paper": "Yoruba_Praise_Names.pdf",
+      "text": "(xxv) (cid:1213)\n(xxvi) s (cid:1233) s\nThe above \u1ecd are among the available ones. From the sampled list of \u1ecd\nabove, we can observe these common features among or within the male and female names of\n\u1ecd:\n(i) they are tri-syllabic in structure\n(ii) \u2019 s mostly us as f , wh \u2019 s as a us as f h f a\n(iii) their tone patterns are exclusively LLH for male and"
+    },
+    {
+      "id": "Yoruba_Praise_Names_10150",
+      "paper": "Yoruba_Praise_Names.pdf",
+      "text": "female.\n(iv) they are of two verbs combinations - the first verb with low tone while the second verb contains high\ntone.\nDiscussion: Etymology of Llh Tone Pattern of \u1ecd (cid:852) (cid:852)\nIn contrast to the above data by this study, one can view that there is a close association of the\nabove data with these data below.\nL L H\n(a male or female chil"
+    },
+    {
+      "id": "Yoruba_Praise_Names_10500",
+      "paper": "Yoruba_Praise_Names.pdf",
+      "text": "d born after the twins)\n(a a f a h af w )\n(a a f a h af )\nIt is observed from this work that, these names are a separate category of \u1ecd \u1ecd ;\nbecause their names come into being in connection with their birth circumstances. Looking at the\nstructures of these names with the earlier sets listed above, one can equally say that:\n(i) they are tri-syllabic"
+    },
+    {
+      "id": "Yoruba_Praise_Names_10850",
+      "paper": "Yoruba_Praise_Names.pdf",
+      "text": "in structure\n(ii) \u2019 a \u2019 a us as h f s\n(iii) their tone patterns are exclusively LLH for male and female.\n(v) they are of two verbs combinations. The first verb with the low tone while the second verb contains a\nhigh tone.\nIn the Yor\u00f9b\u00e1 tradition, \u1ecd is supposed not to be given on the eighth day (as it is\npresently canvassed in this work), because, t"
+    },
+    {
+      "id": "Yoruba_Praise_Names_11200",
+      "paper": "Yoruba_Praise_Names.pdf",
+      "text": "he signs or circumstances of birth have culturally\nestablished the . Mere formalisation is only required or observed on the eighth day in regards\nhttp://ijhcschiefeditor.wix.com/ijhcs Page 490\nVolume 2 INTERNATIONAL JOURNAL OF HUMANITIES AND\nIssue 1\nCULTURAL STUDIES ISSN 2356-5926\nJune 2015\nto \u1ecd \u1ecd in which I have recategorised \u1ecd in this work becaus"
+    },
+    {
+      "id": "Yoruba_Praise_Names_11550",
+      "paper": "Yoruba_Praise_Names.pdf",
+      "text": "e of their\naffiliation with the LLH tone pattern of the three children born after the twins.\nAlmost all the scholars are of the opinion that the tradition in regards to the cultural\nenforcement of the \u1ecd with LLH t a s u v sa (1982 and 85) a\n\u1ecd nb(cid:1233) w (1979). According to (cid:1232) , Mustapha, w , and (cid:1232) p(cid:1233) (1986,\np. 155):\n("
+    },
+    {
+      "id": "Yoruba_Praise_Names_11900",
+      "paper": "Yoruba_Praise_Names.pdf",
+      "text": "cid:1212) a w(cid:1233) , \u1e63e (cid:1233)\no , a (cid:1233) (cid:1233) u w (cid:1213)\n\u1ecd , (cid:1213) w(cid:1233) (cid:1213) w\n, (cid:1213) (cid:1213) \u1ecd .\nA child born after the twins either a male or\na female, is referred to by celestial name as\n. A child born after- is .\nThe child that follows is named .\nWhile there are other religions and behavioura"
+    },
+    {
+      "id": "Yoruba_Praise_Names_12250",
+      "paper": "Yoruba_Praise_Names.pdf",
+      "text": "l codes with these names, my concern in\nthis work is the influence of their tones on the entire LLH of k \u1ecd shared by the male and\nfemale children among the Yor\u00f9b\u00e1. The historical nature of \u1ecd makes it to be the base or\nbasic form of LLH tone pattern of male and female. According to Martins (2007, p. 485)\ncontrastive features between a Language and a"
+    },
+    {
+      "id": "Yoruba_Praise_Names_12600",
+      "paper": "Yoruba_Praise_Names.pdf",
+      "text": "nother or within a Language on the basis of\nsyntactic, morphology, semantic or phonological levels, it is necessary that words in contrast\nmust not be borrowed. In other words, those words of contrast must be local or cultural words.\nAccording to Martins, the contrast words must not be alien to the community, by this, one will be\nable to\n\u2026 s a sh a"
+    },
+    {
+      "id": "Yoruba_Praise_Names_12950",
+      "paper": "Yoruba_Praise_Names.pdf",
+      "text": "basis for relatedness such as similarities in basic\nvocabulary and regular sound correspondences not resulting\nfrom chance or borrowing. Only then can the comparative\nmethod be applied to reconstruct the extinct proto a ua \u2026\nBoth the first sets of data and the second sets above are Yor\u00f9b\u00e1 local words. We are able\nto trace the present tone forms on"
+    },
+    {
+      "id": "Yoruba_Praise_Names_13300",
+      "paper": "Yoruba_Praise_Names.pdf",
+      "text": "the \u1ecd by the past forms of the same words, since\nwithout the past there cannot be the present forms. In other words, the past words or names serve\nas experimental data to validate the originality of the present status of words or names. In another\n, Saussu ( , ) sa s \u201c h vas a f w s a wa a h ,\nnew combinations of phonetic s f f s \u201d Our analysis on"
+    },
+    {
+      "id": "Yoruba_Praise_Names_13650",
+      "paper": "Yoruba_Praise_Names.pdf",
+      "text": "etymology of a\nword or combination of words will not be complete without the past historical events. In other\nwords, the veracity of the present forms of words, including the tones on such words is located in\nhttp://ijhcschiefeditor.wix.com/ijhcs Page 491\nVolume 2 INTERNATIONAL JOURNAL OF HUMANITIES AND\nIssue 1\nCULTURAL STUDIES ISSN 2356-5926\nJune"
+    },
+    {
+      "id": "Yoruba_Praise_Names_14000",
+      "paper": "Yoruba_Praise_Names.pdf",
+      "text": "2015\nthe past of the historical development of such words before they are realised in their present\nforms.\nThrough the historical development of the present LLH tone forms on \u1ecd, one is\nable to account for the fixed or constant LLH tones on \u1ecd. These names are as old as\nYor\u00f9b\u00e1 history and religion; because, (twins) that serves as bedrock for , and\n-"
+    },
+    {
+      "id": "Yoruba_Praise_Names_14350",
+      "paper": "Yoruba_Praise_Names.pdf",
+      "text": "s f h Y a s s ( 1985). Through this historical and\ngenealogical event, we are able to account for the tone status of LLH on \u1ecd in the Yor\u00f9b\u00e1\ntradition.\nSummary and Conclusion\nIt has been found out from this paper that, all the Yor\u00f9b\u00e1 human : \u1ecd r\u1ecd\n(praise name for important personalities), \u1eb9 ( a s a f \u2019s a ), \u1ecd\n(praise name given to a child on the e"
+    },
+    {
+      "id": "Yoruba_Praise_Names_14700",
+      "paper": "Yoruba_Praise_Names.pdf",
+      "text": "ighth day) serve as trace elements. In other words, they\noffer a means of identity of locating an individual from the past or origin. It is discovered from\nthis finding that \u1ecd with LLH tone pattern evolves from : a male or female child\nafter the twins, : a male or female child after and : a male or female child after\n. In other words, tone on \u1ecd ori"
+    },
+    {
+      "id": "Yoruba_Praise_Names_15050",
+      "paper": "Yoruba_Praise_Names.pdf",
+      "text": "ginates from these names. The origin of these names\nequally has religion connections; since that brought about these names and their tones is an\nimportant Yor\u00f9b\u00e1 deity.\nIt is further observed that these names (guided by their tones) are non-gender in nature.\nThis is why there is a strict or exclusive application of the LLH tones for either male or"
+    },
+    {
+      "id": "Yoruba_Praise_Names_15400",
+      "paper": "Yoruba_Praise_Names.pdf",
+      "text": "female of\n\u1ecd. Therefore, we are able to establish the LLH tones on , and as\nprototones. This form of tones has earlier been realised as the commonest of other forms of\n\u1ecd: LHH and LMH are mostly associated with the female children. By this finding, we are\nable to establish the origin of \u1ecd \u1ecd as a category of \u1ecd \u1ecd (names by birth\ncircumstance and signs)"
+    },
+    {
+      "id": "Yoruba_Praise_Names_15750",
+      "paper": "Yoruba_Praise_Names.pdf",
+      "text": ". It has been discovered in this paper that the potentiality of the origin of\nLLH tone pattern of on the source of \u1ecd with the present-day forms of \u1ecd are\nsimilar. For instance, both the LLH tone patterns on , and and the realisation\nof tones on the present day LLH tone patterns on \u1ecd remain unchanged. In other words,\nth a h f -s a f , h f s f w f a a"
+    },
+    {
+      "id": "Yoruba_Praise_Names_16100",
+      "paper": "Yoruba_Praise_Names.pdf",
+      "text": "\u2019 a \u2019 and they both\ncomprise two verbs with low tones.\nhttp://ijhcschiefeditor.wix.com/ijhcs Page 492\nVolume 2 INTERNATIONAL JOURNAL OF HUMANITIES AND\nIssue 1\nCULTURAL STUDIES ISSN 2356-5926\nJune 2015\nRefrences\n- , C. L. (1982). \u1ecd Yor\u00f9b\u00e1 : University Press.\n- , C. L. (1985) \u1ecd \u1eb9 : Evans Brothers (Nigeria Publishers)\nLimited.\n- a , M. A. (1985). Ton"
+    },
+    {
+      "id": "Yoruba_Praise_Names_16450",
+      "paper": "Yoruba_Praise_Names.pdf",
+      "text": "al underspecification. Ph. ss a , v s f .\n- , ( ) h (cid:1233) s (cid:1213) ta \u2019 Y I (Ed.).\n: J\u1ecd \u1eb9 . No. 13, Pp. 18-24.\n-Babal(cid:1233) , A. (2000). \u1ecd \u1eb9 m\u1eb9 \u1ecd gb\u1ecd n. Lagos: Longman.\n- \u1e63 , A. (1970). Word play in Yor\u00f9b\u00e1 poetry. International Journal of American\nLinguistics, Vol. 36, No. 2, Pp. 110-116.\n-Barber, K. (1991). I could speak until tomorro"
+    },
+    {
+      "id": "Yoruba_Praise_Names_16800",
+      "paper": "Yoruba_Praise_Names.pdf",
+      "text": "w. Edinburgh: University Press.\n-Beir, U. a (cid:1233) \u1e63 , B. (1959). Yor\u00f9b\u00e1 poetry : Government Printers.\nCourtenay, K. R. (1969). A generative phonology of Yor\u00f9b\u00e1 . Ph.D Dissertation, UCLA,\nCalifornia.\n-De Saussure, F. (1959). Course in generative linguistics. New York: Philosophical Library.\n- \u1e63 a , E. L. (1956). . London: Oxford University Pres"
+    },
+    {
+      "id": "Yoruba_Praise_Names_17150",
+      "paper": "Yoruba_Praise_Names.pdf",
+      "text": "s.\n-Martins, B. (2007). Language change: The syllables of time. In V. Fromkin, R. Rodman & N.\nHyams (8th Edition) Introduction to language . Pp. 484-487. Boston: Thomson Wadsworth.\n- (cid:1233) , M. (1972). Yor\u00f9b\u00e1 names: Their structure and their meanings : Daystar\nPress.\n-\u1ecd (cid:1233) w , P. (1979). \u1eb9 Yor\u00f9b\u00e1: University Press.\n-\u1ecd , ( 88) s s u f ("
+    },
+    {
+      "id": "Yoruba_Praise_Names_17500",
+      "paper": "Yoruba_Praise_Names.pdf",
+      "text": "cid:1233) \u2019s M h -Historical plays. Unpublished\nPh.D Thesis submitted to the Department of Linguistics and African Studies, v s f\n, , Nigeria.\n- , B. A. (1988). Issues in the analysis of Yor\u00f9b\u00e1 tone. Ph.D Dissertation, University of\nLondon, London, United Kingdom.\nhttp://ijhcschiefeditor.wix.com/ijhcs Page 493\nVolume 2 INTERNATIONAL JOURNAL OF HUMA"
+    },
+    {
+      "id": "Yoruba_Praise_Names_17850",
+      "paper": "Yoruba_Praise_Names.pdf",
+      "text": "NITIES AND\nIssue 1\nCULTURAL STUDIES ISSN 2356-5926\nJune 2015\n- , ( ) T s h Y s a a s a s s(cid:1233). In w(cid:1233)\n( ). Researh in Yor\u00f9b\u00e1 language and literature, Vol. 1. Pp. 55-64\n-(cid:1232) , A. (1988). \u1ecdp\u1ecd \u1eb9 k\u1ecd : Paperback Publishers.\n-(cid:1232) , T , Mus a ha, , w , I , , O. & (cid:1232) (cid:1233) , O. (1986). \u1ecdp\u1ecd\n\u1eb9 . ; Macmillan Nig. Limi"
+    },
+    {
+      "id": "Yoruba_Praise_Names_18200",
+      "paper": "Yoruba_Praise_Names.pdf",
+      "text": "ted. (cid:1232) , O. (2005). Features of Yor\u00f9b\u00e1 oral\npoetry : University Press. PLC.\n-Stahike, H. (1974). The development of the three-way tona contrast in Yor\u00f9b\u00e1 . In E, Voeltz\n(Ed.). Third Annual Conference on African Linguistics. Pp. 60-77 Bloomington, Indiana: Indiana\nUniversity Press.\nhttp://ijhcschiefeditor.wix.com/ijhcs Page 494"
+    }
+  ]
+}

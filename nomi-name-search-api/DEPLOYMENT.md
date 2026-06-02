@@ -78,6 +78,12 @@ railway variables set OPENAI_API_KEY=your-key
    - Render will build and deploy
    - You'll get a URL like: `https://nomi-name-search-api.onrender.com`
 
+6. **Instance size (memory)**:
+   - Render's free/starter **512 MB** plan is often **too small** for this API when semantic search loads **PyTorch** + **sentence-transformers** (~400 MB+ RAM on first `/search` request).
+   - **`GET /`**, **`GET /insights`**, and dataset-only routes (`/name`, `/card`, etc.) avoid loading the embedding model; **`GET /search`** (semantic queries) and full RAG with query encoding need more headroom.
+   - Recommended: **at least 1 GB RAM** (Render Standard or higher). If `/search` returns **502** after deploy while `/` returns 200, check **Logs** for OOM / worker exit and upgrade the instance.
+   - Set **`ANTHROPIC_API_KEY`** for `/insights` (Claude synthesis).
+
 ---
 
 ## Option 3: Fly.io
@@ -162,15 +168,36 @@ curl "http://localhost:8000/search?q=love&language=Yoruba"
 Once deployed, test your API:
 
 ```bash
+export API_BASE="https://nomi-name-search-api.onrender.com"  # replace if Render assigned a different hostname
+
 # Health check
-curl https://your-api-url.com/
+curl "$API_BASE/"
 
 # Search
-curl "https://your-api-url.com/search?q=love&language=Yoruba"
+curl "$API_BASE/search?q=love&language=Yoruba"
 
 # Get languages
-curl https://your-api-url.com/languages
+curl "$API_BASE/languages"
 ```
+
+### Current Render smoke test
+
+The expected Render hostname from `render.yaml` is `https://nomi-name-search-api.onrender.com`. A smoke test from this workspace on 2026-05-26 timed out after 60 seconds for both:
+
+- `GET https://nomi-name-search-api.onrender.com/`
+- `GET https://nomi-name-search-api.onrender.com/search?q=love&language=Yoruba`
+
+That means the demo should keep `API_BASE` configurable until the Render dashboard confirms the live hostname and a successful `GET /search` response.
+
+### Insights endpoint
+
+```bash
+export ANTHROPIC_API_KEY="your-key"
+curl "$API_BASE/insights?name=Folasade&language=Yoruba"
+curl "$API_BASE/insights/languages"
+```
+
+Deploy from **repo root** so `research_papers_index/` and `rag/` are available. Build indexes with `python rag/index_language_papers.py yoruba` (and other languages as needed).
 
 ---
 

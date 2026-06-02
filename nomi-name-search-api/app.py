@@ -7,6 +7,7 @@ Exposes semantic search functionality as REST API for frontend use
 import io
 import math
 import os
+import sys
 import re as _re
 import html as html_mod
 import urllib.request as _urllib
@@ -23,7 +24,6 @@ try:
 except ImportError:
     PIL_AVAILABLE = False
 import numpy as np
-from pinecone import Pinecone
 from huggingface_hub import hf_hub_download
 import json
 
@@ -149,6 +149,18 @@ class NameLookupResponse(BaseModel):
     results: List[NameCardData]
     total: int
 
+
+class InsightsResponse(BaseModel):
+    name: str
+    language: str
+    meaning: str
+    insight: str
+    rag_used: bool
+    rag_language_key: Optional[str] = None
+    attributions: List[str] = []
+    model: Optional[str] = None
+
+
 def load_dataset_fallback():
     """Load dataset using HuggingFace Hub API directly (lighter weight)"""
     global ds
@@ -182,26 +194,72 @@ def load_dataset_fallback():
                 ds = []
     return ds
 
-# Initialize components
-def initialize_components():
-    """Lazy initialization of all components"""
-    global ds, pc, index, model, openai_client
-    
-    if ds is None:
-        load_dataset_fallback()
-    
-    if pc is None and PINECONE_API_KEY:
-        print("Connecting to Pinecone...")
-        pc = Pinecone(api_key=PINECONE_API_KEY)
-        index = pc.Index("nomi-name-encoder")
-    
-    if model is None:
-        print("Loading embedding model...")
-        from sentence_transformers import SentenceTransformer  # lazy: torch is ~400MB
+class SearchUnavailableError(Exception):
+    """Semantic search backends (Pinecone / embedding model) could not be initialized."""
+
+
+def ensure_dataset():
+    """Load the names dataset only (no torch, no Pinecone)."""
+    load_dataset_fallback()
+
+
+def ensure_pinecone():
+    """Connect to Pinecone index (required for semantic search)."""
+    global pc, index
+    if index is not None:
+        return
+    if not PINECONE_API_KEY:
+        raise SearchUnavailableError("PINECONE_API_KEY is not set")
+    print("Connecting to Pinecone...")
+    from pinecone import Pinecone
+    pc = Pinecone(api_key=PINECONE_API_KEY)
+    index = pc.Index("nomi-name-encoder")
+
+
+def ensure_embedding_model():
+    """Load SentenceTransformer (~400MB+ with torch; semantic search only)."""
+    global model
+    if model is not None:
+        return
+    print("Loading embedding model...")
+    try:
+        from sentence_transformers import SentenceTransformer
         model = SentenceTransformer("fajayi/nomi-name-encoder")
-    
-    if openai_client is None and OPENAI_AVAILABLE and OPENAI_API_KEY:
+    except Exception as exc:
+        raise SearchUnavailableError(
+            f"Embedding model failed to load: {exc}"
+        ) from exc
+
+
+def ensure_openai_client():
+    """Initialize OpenAI client for complex-query embeddings (optional)."""
+    global openai_client
+    if openai_client is not None:
+        return
+    if OPENAI_AVAILABLE and OPENAI_API_KEY:
         openai_client = OpenAI(api_key=OPENAI_API_KEY)
+
+
+def ensure_search_components(query: str):
+    """Initialize only what semantic search needs for this query."""
+    ensure_dataset()
+    ensure_pinecone()
+    if is_complex_query(query) and OPENAI_API_KEY:
+        ensure_openai_client()
+        if openai_client is not None:
+            return
+    ensure_embedding_model()
+
+
+def initialize_components():
+    """Load all search backends. Prefer granular ensure_* calls per route."""
+    ensure_dataset()
+    try:
+        ensure_pinecone()
+        ensure_embedding_model()
+    except SearchUnavailableError:
+        pass
+    ensure_openai_client()
 
 def _build_lookup_from_rows(rows):
     """Build (name_strip, language) -> row dict from an iterable of row dicts."""
@@ -306,8 +364,10 @@ def get_name_metadata_from_dataset(name_strip: str, language: str) -> Dict[str, 
         except Exception:
             pass
     
+    phonetic_spelling = match.get("Phonetic spelling") or match.get("Phonetic Spelling", "")
+
     return {
-        "phonetic_spelling": match.get("Phonetic Spelling", ""),
+        "phonetic_spelling": phonetic_spelling,
         "pronunciation_url": audio_url,
         "pronunciation_by": match.get("pronunciation_by", ""),
         "validated_by": match.get("Validated_By", ""),
@@ -369,10 +429,12 @@ def is_complex_query(query: str) -> bool:
 
 def query_with_sentence_transformer(query: str, lang_filter: str) -> List[Dict[str, Any]]:
     """Query using Sentence Transformer and Pinecone"""
-    global model, index, ds
+    global model, index
     
     if not model or not index:
-        raise HTTPException(status_code=500, detail="Search service not initialized")
+        raise SearchUnavailableError(
+            "Semantic search unavailable (embedding model or Pinecone not loaded)"
+        )
     
     query_embedding = model.encode([query])[0].tolist()
     
@@ -418,9 +480,10 @@ def query_with_sentence_transformer(query: str, lang_filter: str) -> List[Dict[s
 
 def query_with_openai(query: str, lang_filter: str) -> List[Dict[str, Any]]:
     """Query using OpenAI embeddings (for complex queries)"""
-    global openai_client, index, ds
+    global openai_client, index
     
     if not openai_client or not index:
+        ensure_embedding_model()
         return query_with_sentence_transformer(query, lang_filter)
     
     response = openai_client.embeddings.create(
@@ -493,9 +556,7 @@ def build_result_dict(name_data: Dict, metadata: Dict, story: Dict, score: float
     }
 
 def query_name_db(query: str, lang_filter: str) -> List[Dict[str, Any]]:
-    """Main query function - hybrid search"""
-    global ds, openai_client
-    
+    """Main query function - hybrid search (dataset-only exact match, then semantic)."""
     dataset = load_dataset_fallback()
     # Handle both list and dataset object
     if isinstance(dataset, list):
@@ -525,13 +586,12 @@ def query_name_db(query: str, lang_filter: str) -> List[Dict[str, Any]]:
         
         return [build_result_dict(name_data, metadata, story, 1.0)]
     
-    # 2) Semantic search
+    # 2) Semantic search — lazy-init Pinecone + embeddings only when needed
+    ensure_search_components(query)
     use_openai = is_complex_query(query) and openai_client is not None
-    
     if use_openai:
         return query_with_openai(query, lang_filter)
-    else:
-        return query_with_sentence_transformer(query, lang_filter)
+    return query_with_sentence_transformer(query, lang_filter)
 
 # API Endpoints
 @app.get("/")
@@ -567,8 +627,6 @@ async def search(
     stories_only: bool = Query(False, description="Only return names with published stories")
 ):
     """Search for names by meaning, theme, or exact name"""
-    initialize_components()
-    
     if stories_only:
         load_stories_data()
         dataset_lookup = get_dataset_lookup()
@@ -605,7 +663,10 @@ async def search(
             stories_only=stories_only
         )
     else:
-        results = query_name_db(q, language)
+        try:
+            results = query_name_db(q, language)
+        except SearchUnavailableError as exc:
+            raise HTTPException(status_code=503, detail=str(exc)) from exc
     
     return SearchResponse(
         query=q,
@@ -615,10 +676,66 @@ async def search(
         stories_only=stories_only
     )
 
+@app.get("/insights", response_model=InsightsResponse)
+async def get_insights(
+    name: str = Query(..., description="Display name or NameStrip"),
+    language: Optional[str] = Query(None, description="Dataset language (recommended)"),
+    meaning: Optional[str] = Query(None, description="Override meaning if not in dataset"),
+):
+    """
+    Generate a 2–4 sentence cultural insight for a name using research-paper RAG
+    (when indexed for the language) and Claude (claude-sonnet-4-20250514).
+    """
+    try:
+        from insights_service import generate_insight_paragraph
+    except ImportError as exc:
+        raise HTTPException(status_code=501, detail=f"Insights module unavailable: {exc}") from exc
+
+    try:
+        payload = generate_insight_paragraph(
+            name,
+            language or "",
+            meaning or "",
+            lookup_name_fn=_lookup_name_results,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Insight generation failed: {exc}") from exc
+
+    return InsightsResponse(**payload)
+
+
+@app.get("/insights/languages")
+async def insights_languages():
+    """List RAG language keys and whether an index file exists on this deployment."""
+    try:
+        rag_path = str(_REPO_ROOT / "rag")
+        if rag_path not in sys.path:
+            sys.path.insert(0, rag_path)
+        from language_config import LANGUAGE_CONFIG, INDEX_DIR
+    except ImportError as exc:
+        raise HTTPException(status_code=501, detail=str(exc)) from exc
+
+    items = []
+    for key, cfg in sorted(LANGUAGE_CONFIG.items()):
+        index_path = INDEX_DIR / cfg["index_file"]
+        items.append(
+            {
+                "rag_key": key,
+                "display_name": cfg["display_name"],
+                "index_available": index_path.exists(),
+                "paper_count": len(cfg.get("papers") or []),
+            }
+        )
+    return {"languages": items}
+
+
 @app.get("/languages")
 async def get_languages():
     """Get list of available languages"""
-    initialize_components()
     dataset = load_dataset_fallback()
     languages = set()
     
