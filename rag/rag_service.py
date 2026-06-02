@@ -11,13 +11,6 @@ from typing import Dict, List, Optional
 
 import numpy as np
 
-try:
-    from sentence_transformers import SentenceTransformer
-
-    ST_AVAILABLE = True
-except ImportError:
-    ST_AVAILABLE = False
-
 from language_config import dataset_language_to_rag_key, get_language_config
 
 TOP_K = 5
@@ -79,7 +72,11 @@ class LanguageRAGService:
         )
 
     def _load_model(self) -> None:
-        if not ST_AVAILABLE or self.embeddings is None:
+        if self.embeddings is None:
+            return
+        try:
+            from sentence_transformers import SentenceTransformer
+        except ImportError:
             return
         self.model = SentenceTransformer("all-MiniLM-L6-v2")
 

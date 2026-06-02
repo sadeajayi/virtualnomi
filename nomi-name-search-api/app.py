@@ -27,15 +27,6 @@ import numpy as np
 from huggingface_hub import hf_hub_download
 import json
 
-# Try to import datasets, but make it optional
-try:
-    from datasets import load_dataset
-    DATASETS_AVAILABLE = True
-except ImportError:
-    DATASETS_AVAILABLE = False
-    # Fallback: use requests to load data directly
-    import requests
-
 # Optional OpenAI for hybrid embeddings
 try:
     from openai import OpenAI
@@ -47,6 +38,27 @@ except ImportError:
 HF_TOKEN = os.environ.get("HF_TOKEN")
 PINECONE_API_KEY = os.environ.get("PINECONE_API_KEY")
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
+NOMI_DATASET_REPO = "nomi-stories/nomi-names"
+NOMI_DATASET_PARQUET = "data/train-00000-of-00001.parquet"
+NOMI_STORIES_REPO = "nomi-stories/nomi-stories"
+NOMI_STORIES_PARQUET = "data/train-00000-of-00001.parquet"
+# Metadata columns only — skip embedded audio bytes (~12 MB saved in RAM).
+NOMI_DATASET_COLUMNS = [
+    "Name",
+    "NameStrip",
+    "Meaning",
+    "Phonetic spelling",
+    "Language",
+    "Additional meaning",
+    "Attribution",
+    "Validation_Status",
+    "validated_by",
+    "pronunciation_by",
+    "cultural_context",
+    "themes",
+    "transformation_status",
+    "source_notes",
+]
 
 # Initialize FastAPI app
 app = FastAPI(title="Nomi Name Search API", version="1.0.0")
@@ -70,6 +82,10 @@ _stories_data = None
 _stories_lookup = None
 _dataset_lookup = None
 _paraphrase_lookup = None
+_parquet_path_cache: Optional[str] = None
+_audio_column_rows: Optional[List[Dict[str, Any]]] = None
+_audio_keys_cache: Optional[set] = None
+_audio_bytes_cache: Dict[tuple, bytes] = {}
 
 _REPO_ROOT = Path(__file__).resolve().parent.parent
 # Paraphrase file: prefer repo root (local/full deploy), then same dir as app (Render when only nomi-name-search-api is deployed)
@@ -161,41 +177,124 @@ class InsightsResponse(BaseModel):
     model: Optional[str] = None
 
 
+def semantic_search_enabled() -> bool:
+    """
+    Semantic /search (Pinecone + SentenceTransformer) needs ~1 GB RAM.
+    Set NOMI_SEMANTIC_SEARCH=0 on 512 MB Render; install requirements-semantic.txt and set =1 on 1 GB+.
+    """
+    flag = os.environ.get("NOMI_SEMANTIC_SEARCH", "auto").strip().lower()
+    if flag in ("0", "false", "no", "off", "disabled"):
+        return False
+    if flag in ("1", "true", "yes", "on", "enabled"):
+        if not PINECONE_API_KEY:
+            return False
+        return True
+    # auto: only when Pinecone is configured and the semantic stack is installed
+    if not PINECONE_API_KEY:
+        return False
+    try:
+        import importlib.util
+
+        return importlib.util.find_spec("sentence_transformers") is not None
+    except Exception:
+        return False
+
+
+def _names_parquet_path() -> str:
+    global _parquet_path_cache
+    if _parquet_path_cache is None:
+        _parquet_path_cache = hf_hub_download(
+            repo_id=NOMI_DATASET_REPO,
+            repo_type="dataset",
+            filename=NOMI_DATASET_PARQUET,
+            token=HF_TOKEN,
+        )
+    return _parquet_path_cache
+
+
+def _read_parquet_rows(repo_id: str, filename: str, columns: Optional[List[str]] = None) -> List[Dict[str, Any]]:
+    path = hf_hub_download(
+        repo_id=repo_id,
+        repo_type="dataset",
+        filename=filename,
+        token=HF_TOKEN,
+    )
+    import pyarrow.parquet as pq
+
+    table = pq.read_table(path, columns=columns) if columns else pq.read_table(path)
+    return table.to_pylist()
+
+
 def load_dataset_fallback():
-    """Load dataset using HuggingFace Hub API directly (lighter weight)"""
+    """Load names metadata from parquet (no datasets lib, no embedded audio bytes)."""
     global ds
     if ds is None:
-        if DATASETS_AVAILABLE:
-            print("Loading dataset using datasets library...")
-            ds = load_dataset("nomi-stories/nomi-names", split="train", token=HF_TOKEN)
-        else:
-            print("Loading dataset using HuggingFace Hub API...")
-            # Use HuggingFace Hub API to download parquet file
-            try:
-                parquet_path = hf_hub_download(
-                    repo_id="nomi-stories/nomi-names",
-                    repo_type="dataset",
-                    filename="data/train-00000-of-00001.parquet",
-                    token=HF_TOKEN
-                )
-                # Read parquet using pyarrow (lighter than pandas)
-                try:
-                    import pyarrow.parquet as pq
-                    table = pq.read_table(parquet_path)
-                    # to_pylist() already returns list of dicts
-                    ds = table.to_pylist()
-                except ImportError:
-                    # Fallback to pandas if pyarrow not available
-                    import pandas as pd
-                    df = pd.read_parquet(parquet_path)
-                    ds = df.to_dict('records')
-            except Exception as e:
-                print(f"Error loading dataset: {e}")
-                ds = []
+        print("Loading dataset from parquet (metadata columns only)...")
+        try:
+            ds = _read_parquet_rows(
+                NOMI_DATASET_REPO,
+                NOMI_DATASET_PARQUET,
+                columns=NOMI_DATASET_COLUMNS,
+            )
+        except Exception as exc:
+            print(f"Error loading dataset: {exc}")
+            ds = []
     return ds
 
 class SearchUnavailableError(Exception):
     """Semantic search backends (Pinecone / embedding model) could not be initialized."""
+
+
+def _load_audio_column_rows() -> List[Dict[str, Any]]:
+    """Lazy load NameStrip/Language/Audio Pronunciation (once per process)."""
+    global _audio_column_rows
+    if _audio_column_rows is None:
+        try:
+            _audio_column_rows = _read_parquet_rows(
+                NOMI_DATASET_REPO,
+                NOMI_DATASET_PARQUET,
+                columns=["NameStrip", "Language", "Audio Pronunciation"],
+            )
+        except Exception as exc:
+            print(f"[audio_column] failed to load: {exc}")
+            _audio_column_rows = []
+    return _audio_column_rows
+
+
+def _load_audio_keys() -> set:
+    """Lazy set of (name_strip, language) pairs that have embedded audio."""
+    global _audio_keys_cache
+    if _audio_keys_cache is not None:
+        return _audio_keys_cache
+    _audio_keys_cache = set()
+    for row in _load_audio_column_rows():
+        name_strip = str(row.get("NameStrip", "")).strip()
+        language = str(row.get("Language", "")).strip()
+        audio_val = row.get("Audio Pronunciation")
+        if name_strip and language and isinstance(audio_val, dict) and audio_val.get("bytes"):
+            _audio_keys_cache.add((name_strip, language))
+    return _audio_keys_cache
+
+
+def _fetch_audio_bytes(name_strip: str, language: str) -> Optional[bytes]:
+    key = (name_strip.strip(), language.strip())
+    if key in _audio_bytes_cache:
+        return _audio_bytes_cache[key]
+    needle_ns = name_strip.strip().lower()
+    needle_lang = language.strip().lower()
+    for row in _load_audio_column_rows():
+        ns = str(row.get("NameStrip", "")).strip()
+        lang = str(row.get("Language", "")).strip()
+        if ns.lower() != needle_ns or lang.lower() != needle_lang:
+            continue
+        audio_val = row.get("Audio Pronunciation")
+        if isinstance(audio_val, dict):
+            audio_bytes = audio_val.get("bytes")
+            if audio_bytes:
+                _audio_bytes_cache[key] = audio_bytes
+                return audio_bytes
+        break
+    return None
 
 
 def ensure_dataset():
@@ -242,6 +341,12 @@ def ensure_openai_client():
 
 def ensure_search_components(query: str):
     """Initialize only what semantic search needs for this query."""
+    if not semantic_search_enabled():
+        raise SearchUnavailableError(
+            "Semantic search is disabled on this deployment (512 MB tier). "
+            "Use exact name lookup (/name, /card) or upgrade to 1 GB+ RAM, "
+            "install requirements-semantic.txt, and set NOMI_SEMANTIC_SEARCH=1."
+        )
     ensure_dataset()
     ensure_pinecone()
     if is_complex_query(query) and OPENAI_API_KEY:
@@ -264,6 +369,7 @@ def initialize_components():
 def _build_lookup_from_rows(rows):
     """Build (name_strip, language) -> row dict from an iterable of row dicts."""
     lookup = {}
+    audio_keys = _load_audio_keys()
     for i, row in enumerate(rows):
         if i == 0:
             print(f"[dataset_lookup] first row keys: {list(row.keys())[:10]}")
@@ -271,7 +377,7 @@ def _build_lookup_from_rows(rows):
         language = str(row.get("Language", "")).strip()
         if name_strip and language:
             key = (name_strip, language)
-            if key not in lookup or row.get("Audio Pronunciation"):
+            if key not in lookup or key in audio_keys:
                 lookup[key] = row
     print(f"[dataset_lookup] built {len(lookup)} entries")
     if lookup:
@@ -294,50 +400,11 @@ def get_dataset_lookup():
     lookup = {}
 
     if isinstance(dataset, list):
-        # Already a list of dicts (pyarrow/pandas fallback path)
+        # Parquet metadata rows (list of dicts)
         print(f"[dataset_lookup] list path: {len(dataset)} rows")
         lookup = _build_lookup_from_rows(dataset)
     else:
-        # datasets.Dataset — try multiple access strategies to avoid torchcodec
-        # Strategy 1: dataset.data.to_pydict() (PyArrow table, avoids audio decoder)
-        try:
-            table_dict = dataset.data.to_pydict()
-            n = len(next(iter(table_dict.values()), []))
-            rows = [{col: table_dict[col][i] for col in table_dict} for i in range(n)]
-            lookup = _build_lookup_from_rows(rows)
-            print(f"[dataset_lookup] strategy 1 (data.to_pydict): {len(lookup)} entries")
-        except Exception as e1:
-            print(f"[dataset_lookup] strategy 1 failed: {e1}")
-
-        # Strategy 2: dataset._data.to_pydict() (private attr, more stable across versions)
-        if not lookup:
-            try:
-                table_dict = dataset._data.to_pydict()
-                n = len(next(iter(table_dict.values()), []))
-                rows = [{col: table_dict[col][i] for col in table_dict} for i in range(n)]
-                lookup = _build_lookup_from_rows(rows)
-                print(f"[dataset_lookup] strategy 2 (_data.to_pydict): {len(lookup)} entries")
-            except Exception as e2:
-                print(f"[dataset_lookup] strategy 2 failed: {e2}")
-
-        # Strategy 3: pandas (bypasses audio decoder entirely)
-        if not lookup:
-            try:
-                df = dataset.to_pandas()
-                lookup = _build_lookup_from_rows(df.to_dict("records"))
-                print(f"[dataset_lookup] strategy 3 (to_pandas): {len(lookup)} entries")
-            except Exception as e3:
-                print(f"[dataset_lookup] strategy 3 failed: {e3}")
-
-        # Strategy 4: strip audio columns then iterate (last resort, loses audio data)
-        if not lookup:
-            try:
-                audio_cols = [c for c in dataset.column_names if "audio" in c.lower() or "pronunciation" in c.lower()]
-                stripped = dataset.remove_columns(audio_cols) if audio_cols else dataset
-                lookup = _build_lookup_from_rows(stripped)
-                print(f"[dataset_lookup] strategy 4 (remove_columns+iterate): {len(lookup)} entries")
-            except Exception as e4:
-                print(f"[dataset_lookup] strategy 4 failed: {e4}")
+        print(f"[dataset_lookup] unexpected dataset type: {type(dataset)}")
 
     if lookup:
         _dataset_lookup = lookup
@@ -354,15 +421,9 @@ def get_name_metadata_from_dataset(name_strip: str, language: str) -> Dict[str, 
         return {}
     
     audio_url = ""
-    audio_val = match.get("Audio Pronunciation")
-    if audio_val:
-        try:
-            if isinstance(audio_val, dict):
-                # Audio bytes are embedded in the parquet — serve via local endpoint
-                if audio_val.get("bytes"):
-                    audio_url = f"/audio/{name_strip}?language={language}"
-        except Exception:
-            pass
+    audio_keys = _load_audio_keys()
+    if (name_strip.strip(), language.strip()) in audio_keys:
+        audio_url = f"/audio/{name_strip}?language={language}"
     
     phonetic_spelling = match.get("Phonetic spelling") or match.get("Phonetic Spelling", "")
 
@@ -376,29 +437,11 @@ def get_name_metadata_from_dataset(name_strip: str, language: str) -> Dict[str, 
     }
 
 def load_stories_data():
-    """Load stories from HuggingFace dataset"""
+    """Load stories from HuggingFace dataset parquet."""
     global _stories_data, _stories_lookup
     if _stories_data is None:
         try:
-            if DATASETS_AVAILABLE:
-                stories_ds = load_dataset("nomi-stories/nomi-stories", split="train", token=HF_TOKEN)
-            else:
-                # Use HuggingFace Hub API
-                stories_path = hf_hub_download(
-                    repo_id="nomi-stories/nomi-stories",
-                    repo_type="dataset",
-                    filename="data/train-00000-of-00001.parquet",
-                    token=HF_TOKEN
-                )
-                try:
-                    import pyarrow.parquet as pq
-                    table = pq.read_table(stories_path)
-                    stories_ds = table.to_pylist()
-                except ImportError:
-                    import pandas as pd
-                    df = pd.read_parquet(stories_path)
-                    stories_ds = df.to_dict('records')
-            
+            stories_ds = _read_parquet_rows(NOMI_STORIES_REPO, NOMI_STORIES_PARQUET)
             _stories_data = {}
             _stories_lookup = {}
             for row in stories_ds:
@@ -600,7 +643,8 @@ async def root():
     return {
         "status": "ok",
         "service": "Nomi Name Search API",
-        "version": "1.0.0"
+        "version": "1.0.0",
+        "semantic_search": semantic_search_enabled(),
     }
 
 
@@ -1687,22 +1731,21 @@ async def get_audio(
     language: Optional[str] = Query(None, description="Language to fetch audio for")
 ):
     """Serve embedded audio bytes for a name directly from the dataset parquet."""
-    dataset_lookup = get_dataset_lookup()
+    audio_keys = _load_audio_keys()
     needle = name_strip.strip()
-    # Find the matching row (prefer the requested language, else first with audio)
-    row = None
-    for (ns, lang), r in dataset_lookup.items():
+    row_lang = None
+    for (ns, lang) in audio_keys:
         if ns.lower() != needle.lower():
             continue
         if language and lang.lower() != language.lower():
             continue
-        audio_val = r.get("Audio Pronunciation")
-        if isinstance(audio_val, dict) and audio_val.get("bytes"):
-            row = r
-            break
-    if row is None:
+        row_lang = lang
+        break
+    if row_lang is None:
         raise HTTPException(status_code=404, detail="No audio for this name")
-    audio_bytes = row["Audio Pronunciation"]["bytes"]
+    audio_bytes = _fetch_audio_bytes(needle, row_lang)
+    if not audio_bytes:
+        raise HTTPException(status_code=404, detail="No audio for this name")
     return Response(content=audio_bytes, media_type="audio/wav")
 
 

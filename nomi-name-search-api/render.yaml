@@ -5,8 +5,10 @@ services:
     name: nomi-name-search-api
     runtime: python
     buildCommand: cd nomi-name-search-api && pip install -r requirements.txt
-    startCommand: cd nomi-name-search-api && uvicorn app:app --host 0.0.0.0 --port $PORT
+    startCommand: cd nomi-name-search-api && uvicorn app:app --host 0.0.0.0 --port $PORT --workers 1
     envVars:
+      - key: NOMI_SEMANTIC_SEARCH
+        value: "0"
       - key: HF_TOKEN
         sync: false
       - key: PINECONE_API_KEY

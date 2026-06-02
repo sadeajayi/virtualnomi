@@ -79,10 +79,12 @@ railway variables set OPENAI_API_KEY=your-key
    - You'll get a URL like: `https://nomi-name-search-api.onrender.com`
 
 6. **Instance size (memory)**:
-   - Render's free/starter **512 MB** plan is often **too small** for this API when semantic search loads **PyTorch** + **sentence-transformers** (~400 MB+ RAM on first `/search` request).
-   - **`GET /`**, **`GET /insights`**, and dataset-only routes (`/name`, `/card`, etc.) avoid loading the embedding model; **`GET /search`** (semantic queries) and full RAG with query encoding need more headroom.
-   - Recommended: **at least 1 GB RAM** (Render Standard or higher). If `/search` returns **502** after deploy while `/` returns 200, check **Logs** for OOM / worker exit and upgrade the instance.
-   - Set **`ANTHROPIC_API_KEY`** for `/insights` (Claude synthesis).
+   - Render's free/starter **512 MB** plan cannot run **PyTorch + sentence-transformers** (~400 MB+ RAM on first semantic `/search`). The default build uses **`requirements.txt` only** (no torch) so the service stays up for exact-name routes, cards, and insights.
+   - Set **`NOMI_SEMANTIC_SEARCH=0`** (recommended on 512 MB) to disable meaning-based search and return **503** with a clear message instead of OOM.
+   - **`GET /`** reports `"semantic_search": true|false`. When `false`, `/search?q=folasade` (exact name) still works; `/search?q=love` (meaning query) returns 503.
+   - For full semantic search: upgrade to **at least 1 GB RAM**, set build to `pip install -r requirements-semantic.txt`, set **`NOMI_SEMANTIC_SEARCH=1`**, and keep **`PINECONE_API_KEY`** set.
+   - **`GET /insights`** uses text-only RAG (no torch) and needs **`ANTHROPIC_API_KEY`**; it fits 512 MB once indexes are deployed from repo root.
+   - If the instance shows **"Ran out of memory (used over 512MB)"**, check Logs for the first heavy request (usually semantic `/search` or an old deploy that still installed torch). Upgrade or disable semantic search as above.
 
 ---
 

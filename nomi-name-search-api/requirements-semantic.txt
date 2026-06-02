@@ -1,0 +1,6 @@
+# Full semantic search stack (PyTorch + embeddings). Requires ~1 GB RAM on Render.
+# Install with: pip install -r requirements-semantic.txt
+-r requirements.txt
+sentence-transformers==2.2.2
+pinecone-client==3.2.2
+torch==2.1.0
