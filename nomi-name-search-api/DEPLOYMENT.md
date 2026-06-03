@@ -6,7 +6,13 @@ The API loads `nomi-stories/nomi-names` from Hugging Face at **process startup**
 
 Example: `python scripts/dataset_updates/update_morenikeji_meaning.py`
 
----
+To restore missing **audio pronunciations** from an older HF dataset revision (e.g. Ikeme, Ogechukwukanma after a row restore dropped embedded bytes):
+
+```bash
+python scripts/dataset_updates/restore_audio_from_hf_history.py
+```
+
+Then redeploy the API so `/search` and `/audio/...` serve the updated parquet.
 
 ## Option 1: Railway (Recommended - Easiest)
 
