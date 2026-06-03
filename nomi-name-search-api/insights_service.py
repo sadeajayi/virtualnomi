@@ -28,11 +28,13 @@ except ImportError:
 INSIGHTS_MODEL = os.environ.get("NOMI_INSIGHTS_MODEL", "claude-sonnet-4-20250514")
 _PROMPT_PATH = Path(__file__).resolve().parent / "prompts" / "nomi_insights_system_prompt.md"
 _system_prompt_cache: Optional[str] = None
+_PROMPT_MTIME: Optional[float] = None
 
 
 def load_insights_system_prompt() -> str:
-    global _system_prompt_cache
-    if _system_prompt_cache is not None:
+    global _system_prompt_cache, _PROMPT_MTIME
+    mtime = _PROMPT_PATH.stat().st_mtime if _PROMPT_PATH.exists() else None
+    if _system_prompt_cache is not None and mtime == _PROMPT_MTIME:
         return _system_prompt_cache
     if not _PROMPT_PATH.exists():
         raise FileNotFoundError(f"Insights system prompt not found: {_PROMPT_PATH}")
