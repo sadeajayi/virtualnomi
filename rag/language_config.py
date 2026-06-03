@@ -82,6 +82,7 @@ LANGUAGE_CONFIG: Dict[str, Dict] = {
             "Decolonizing_Hausa_Naming.pdf",
             "Hausa Names.pdf",
             "Hausa Names (Ghana).pdf",
+            "HausaNamesandNamingTraditions.pdf",
             "Hausa_Naming_Patternspdf.pdf",
             "Hausa_Naming_Practices_Modern.pdf",
         ],
