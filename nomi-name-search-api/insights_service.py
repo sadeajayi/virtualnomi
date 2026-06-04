@@ -39,6 +39,7 @@ def load_insights_system_prompt() -> str:
     if not _PROMPT_PATH.exists():
         raise FileNotFoundError(f"Insights system prompt not found: {_PROMPT_PATH}")
     _system_prompt_cache = _PROMPT_PATH.read_text(encoding="utf-8")
+    _PROMPT_MTIME = mtime
     return _system_prompt_cache
 
 
