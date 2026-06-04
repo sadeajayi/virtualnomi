@@ -6,8 +6,9 @@ RAG service for querying indexed African naming research papers by language.
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Set
 
 import numpy as np
 
@@ -16,6 +17,84 @@ from language_config import dataset_language_to_rag_key, get_language_config
 TOP_K = 5
 TOP_K_DIVERSIFY = 20
 MAX_CHUNKS_PER_PAPER = 2
+
+_NAME_DEFINITION_HINTS = (
+    "meaning",
+    "translation",
+    "literally",
+    "literal",
+    "signify",
+    "denote",
+    "gloss",
+    "etymology",
+    "morpheme",
+    "semantic",
+    "translated",
+    "consumer",
+    "named",
+)
+_GENERIC_THEME_WORDS = frozenset(
+    {
+        "personal",
+        "name",
+        "names",
+        "naming",
+        "cultural",
+        "significance",
+        "tradition",
+        "traditions",
+        "child",
+        "children",
+        "born",
+        "birth",
+        "male",
+        "female",
+        "abundance",
+        "prosperity",
+        "harvest",
+        "season",
+        "plentiful",
+        "wealth",
+        "satisfied",
+        "satisfaction",
+        "community",
+        "communal",
+    }
+)
+_MEANING_STOPWORDS = frozenset(
+    {
+        "a",
+        "an",
+        "the",
+        "one",
+        "who",
+        "when",
+        "was",
+        "were",
+        "is",
+        "are",
+        "into",
+        "with",
+        "for",
+        "and",
+        "or",
+        "to",
+        "of",
+        "in",
+        "on",
+        "at",
+        "by",
+        "from",
+        "that",
+        "this",
+        "has",
+        "have",
+        "had",
+        "be",
+        "been",
+        "being",
+    }
+)
 
 _rag_instances: Dict[str, "LanguageRAGService"] = {}
 
@@ -80,26 +159,130 @@ class LanguageRAGService:
             return
         self.model = SentenceTransformer("all-MiniLM-L6-v2")
 
-    def search(self, query: str, top_k: int = TOP_K) -> List[Dict]:
+    def search(
+        self,
+        query: str,
+        top_k: int = TOP_K,
+        *,
+        name: Optional[str] = None,
+        meaning: Optional[str] = None,
+    ) -> List[Dict]:
         if not self.chunks:
             return []
         if self.embeddings is not None and self.model is not None:
-            return self._semantic_search(query, top_k)
-        return self._text_search(query, top_k)
+            return self._semantic_search(query, top_k, name=name, meaning=meaning)
+        return self._text_search(query, top_k, name=name, meaning=meaning)
 
-    def _semantic_search(self, query: str, top_k: int) -> List[Dict]:
+    @staticmethod
+    def _text_tokens(text: str) -> Set[str]:
+        """Tokenize text; split slash/hyphen compounds so Cidawa/Dawa matches cidawa."""
+        lower = text.lower()
+        words = set(re.findall(r"[a-zà-ỹọẹṣáéíóúãêɓɗƙƴ]+", lower))
+        for part in re.split(r"[/\-]", lower):
+            part = part.strip()
+            if len(part) >= 2:
+                words.update(re.findall(r"[a-zà-ỹọẹṣáéíóúãêɓɗƙƴ]+", part))
+        return words
+
+    def _name_appears_in_text(self, name: str, text: str) -> bool:
+        name_lower = (name or "").strip().lower()
+        if not name_lower:
+            return False
+        if name_lower in text.lower():
+            return True
+        return name_lower in self._text_tokens(text)
+
+    def _meaning_content_tokens(self, meaning: str) -> Set[str]:
+        tokens = self._text_tokens(meaning or "")
+        return {
+            t
+            for t in tokens
+            if len(t) >= 4 and t not in _MEANING_STOPWORDS and t not in _GENERIC_THEME_WORDS
+        }
+
+    def _has_name_definition_context(self, name: str, text: str) -> bool:
+        text_lower = text.lower()
+        name_lower = name.lower()
+        if not self._name_appears_in_text(name, text):
+            return False
+        if any(hint in text_lower for hint in _NAME_DEFINITION_HINTS):
+            return True
+        if re.search(
+            rf"{re.escape(name_lower)}.{{0,120}}(mean|translat|literal|gloss|signif|denot)",
+            text_lower,
+            re.DOTALL,
+        ):
+            return True
+        if re.search(r"name\s+literal\s+meaning", text_lower):
+            return True
+        return False
+
+    def _insights_rerank_score(
+        self,
+        name: str,
+        meaning: str,
+        chunk: Dict,
+        base_sim: float,
+        query_words: Set[str],
+    ) -> float:
+        text = chunk["text"]
+        text_tokens = self._text_tokens(text)
+        score = base_sim
+        name_present = self._name_appears_in_text(name, text)
+
+        if name_present:
+            score += 0.55
+            if self._has_name_definition_context(name, text):
+                score += 0.35
+        else:
+            overlap_words = query_words & text_tokens
+            generic_only = overlap_words and overlap_words <= (
+                _GENERIC_THEME_WORDS | set(self.query_suffix.lower().split())
+            )
+            if generic_only or (base_sim > 0 and not name_present):
+                score -= 0.3
+
+        meaning_tokens = self._meaning_content_tokens(meaning)
+        if name_present and meaning_tokens & text_tokens:
+            score += 0.2
+
+        name_tokens = self._text_tokens(name)
+        related_in_chunk = sum(
+            1 for t in name_tokens if t in text_tokens and t != name.lower()
+        )
+        if name_present and related_in_chunk:
+            score += min(0.15 * related_in_chunk, 0.25)
+
+        return score
+
+    def _semantic_search(
+        self,
+        query: str,
+        top_k: int,
+        *,
+        name: Optional[str] = None,
+        meaning: Optional[str] = None,
+    ) -> List[Dict]:
         query_embedding = self.model.encode([query])[0]
         similarities = np.dot(self.embeddings, query_embedding) / (
             np.linalg.norm(self.embeddings, axis=1) * np.linalg.norm(query_embedding)
         )
-        top_indices = np.argsort(similarities)[::-1][:top_k]
+        pool_k = max(top_k * 4, TOP_K_DIVERSIFY) if (name or meaning) else top_k
+        top_indices = np.argsort(similarities)[::-1][:pool_k]
         results = []
+        query_words = set(query.lower().split())
         for idx in top_indices:
             chunk = self.chunks[idx].copy()
-            chunk["similarity"] = float(similarities[idx])
+            base_sim = float(similarities[idx])
+            if name:
+                base_sim = self._insights_rerank_score(
+                    name, meaning or "", chunk, base_sim, query_words
+                )
+            chunk["similarity"] = base_sim
             chunk.pop("embedding", None)
             results.append(chunk)
-        return results
+        results.sort(key=lambda x: x["similarity"], reverse=True)
+        return results[:top_k]
 
     def _diversify_by_paper(
         self,
@@ -121,20 +304,33 @@ class LanguageRAGService:
             per_paper[paper] = per_paper.get(paper, 0) + 1
         return chosen
 
-    def _text_search(self, query: str, top_k: int) -> List[Dict]:
-        query_lower = query.lower()
-        query_words = set(query_lower.split())
+    def _text_search(
+        self,
+        query: str,
+        top_k: int,
+        *,
+        name: Optional[str] = None,
+        meaning: Optional[str] = None,
+    ) -> List[Dict]:
+        query_words = self._text_tokens(query)
         scored_chunks = []
         for chunk in self.chunks:
-            text_lower = chunk["text"].lower()
-            text_words = set(text_lower.split())
-            overlap = len(query_words & text_words)
-            score = overlap / len(query_words) if query_words else 0
-            if score > 0:
-                chunk_copy = chunk.copy()
-                chunk_copy["similarity"] = score
-                chunk_copy.pop("embedding", None)
-                scored_chunks.append(chunk_copy)
+            text_tokens = self._text_tokens(chunk["text"])
+            overlap = len(query_words & text_tokens)
+            base_sim = overlap / len(query_words) if query_words else 0.0
+            if name and self._name_appears_in_text(name, chunk["text"]):
+                base_sim = max(base_sim, 0.12)
+            if base_sim <= 0:
+                continue
+            chunk_copy = chunk.copy()
+            if name:
+                chunk_copy["similarity"] = self._insights_rerank_score(
+                    name, meaning or "", chunk, base_sim, query_words
+                )
+            else:
+                chunk_copy["similarity"] = base_sim
+            chunk_copy.pop("embedding", None)
+            scored_chunks.append(chunk_copy)
         scored_chunks.sort(key=lambda x: x["similarity"], reverse=True)
         return scored_chunks[:top_k]
 
@@ -155,7 +351,19 @@ class LanguageRAGService:
         else:
             query = base_query
 
-        raw_results = self.search(query, top_k=TOP_K_DIVERSIFY)
+        search_query = f"{name} {meaning}".strip()
+        raw_results = self.search(
+            search_query,
+            top_k=TOP_K_DIVERSIFY,
+            name=name,
+            meaning=meaning,
+        )
+        raw_results.sort(
+            key=lambda r: (
+                0 if self._name_appears_in_text(name, r["text"]) else 1,
+                -r.get("similarity", 0),
+            )
+        )
         results = self._diversify_by_paper(raw_results, top_k=5, max_per_paper=MAX_CHUNKS_PER_PAPER)
         if not results:
             return ""
@@ -198,8 +406,20 @@ class LanguageRAGService:
 
         return "\n\n".join(context_parts)
 
-    def get_relevant_excerpts(self, query: str, max_excerpts: int = 3) -> List[Dict]:
-        results = self.search(query, top_k=max_excerpts)
+    def get_relevant_excerpts(
+        self,
+        query: str,
+        max_excerpts: int = 3,
+        *,
+        name: Optional[str] = None,
+        meaning: Optional[str] = None,
+    ) -> List[Dict]:
+        results = self.search(
+            query,
+            top_k=max_excerpts,
+            name=name,
+            meaning=meaning,
+        )
         return [
             {
                 "paper": result["paper"],

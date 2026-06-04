@@ -61,7 +61,9 @@ def gather_rag_context(
         return "", [], False, None
 
     context = rag.get_cultural_context(name, meaning)
-    excerpts = rag.get_relevant_excerpts(f"{name} {meaning}", max_excerpts=4)
+    excerpts = rag.get_relevant_excerpts(
+        f"{name} {meaning}", max_excerpts=4, name=name, meaning=meaning
+    )
 
     parts: List[str] = []
     if context.strip():
