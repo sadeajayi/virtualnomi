@@ -1,0 +1,69 @@
+Name,NameStrip,Meaning,Language,source_page,in_dataset_already
+Afelechiaanya,Afelechiaanya,Does one see God?,Igbo,manual_structural,False
+Afuluenuanya,Afuluenuanya,Does one see heaven?,Igbo,manual_structural,False
+Agaegbu,Agaegbu,Does one need to kill?,Igbo,manual_structural,False
+Aghadinuno,Aghadinuno,War is in the house,Igbo,manual_structural,False
+Akakuru,Akakuru,Let hand carry child,Igbo,p5_arrow,False
+Akanegbu,Akanegbu,Hand is killing,Igbo,manual_structural,False
+Akobundu,Akobundu,Wisdom is life,Igbo,manual_structural,True
+Amandaneze,Amandaneze,Does one know those to avoid?,Igbo,manual_structural,False
+Amauche,Amauche,Does one know the mind of God?,Igbo,manual_structural,False
+Anagbogu,Anagbogu,Let land intervene in the war,Igbo,manual_structural,False
+Anagboso,Anagboso,Land does not run,Igbo,manual_structural,False
+Azubuike,Azubuike,Support is strength,Igbo,manual_structural,True
+Chekwubechukwu,Chekwubechukwu,Trust in God,Igbo,manual_structural,False
+Chibueze,Chibueze,God is road/way,Igbo,manual_structural,True
+Chibuzo,Chibuzo,God leads the way,Igbo,manual_structural,False
+Chijioke,Chijioke,God apportions gifts,Igbo,manual_structural,True
+Chimalu,Chimalu,Let God know,Igbo,p5_arrow,False
+Chinenye,Chinenye,God gives,Igbo,p5_arrow,True
+Chinyelu,Chinyelu,God has given/God’s gift,Igbo,p5_arrow,False
+Chisom,Chisom,God follows me,Igbo,p5_arrow,True
+Chitoo,Chitoo,Let God praise,Igbo,p5_arrow,False
+Chizoba,Chizoba,Let God save,Igbo,p5_arrow,True
+Chukwucheta,Chukwucheta,Let God remember,Igbo,p5_arrow,False
+Ekwunife,Ekwunife,Don’t say anything,Igbo,p9_injunction,True
+Ekwutosi,Ekwutosi,Don’t talk evil/ don’t malign/ blaspheme,Igbo,p9_injunction,False
+Emenanjo,Emenanjo,Don’t do evil,Igbo,p9_injunction,True
+Ibebuike,Ibebuike,There is strength in cordial relationship,Igbo,manual_structural,False
+Ibekwe,Ibekwe,If kinsmen agree,Igbo,p5_arrow,True
+Ifedi,Ifedi,Something exists,Igbo,manual_structural,False
+Ifeedi,Ifeedi,There is something,Igbo,p5_arrow,False
+Igwebuike,Igwebuike,There is strength in cordial relationship,Igbo,manual_structural,True
+Ikeegbunam,Ikeegbunam,Let forces not kill me,Igbo,p9_injunction,False
+Isiguzoro,Isiguzoro,Let the head remain upwards,Igbo,p5_arrow,False
+Kaosisichukwu,Kaosisichukwu,As it pleases God,Igbo,manual_structural,False
+Mmagwulaku,Mmagwulaku,Beauty that exhausted wealth,Igbo,manual_structural,False
+Mmesomachukwu,Mmesomachukwu,The kindness of God,Igbo,p9_injunction,False
+Ndidiamaka,Ndidiamaka,Patience is very good,Igbo,manual_structural,True
+Nebeolisa,Nebeolisa,Look up to God,Igbo,p9_injunction,True
+Nkemjika,Nkemjika,The one I hold is greater,Igbo,p9_injunction,False
+Nnamdi,Nnamdi,My father exists,Igbo,p5_arrow,False
+Nwaaku,Nwaaku,Child of wealth/fortune,Igbo,p5_arrow,False
+Nwaanyiaba,Nwaanyiaba,A woman has come,Igbo,manual_structural,False
+Nwabugo,Nwabugo,Child is glory,Igbo,manual_structural,True
+Nwakaego,Nwakaego,Child surpasses money,Igbo,manual_structural,True
+Nwanneka,Nwanneka,Relation surpasses all,Igbo,manual_structural,False
+Obiageli,Obiageli,She comes to enjoy,Igbo,manual_structural,True
+Obianuju,Obianuju,She comes in abundance,Igbo,manual_structural,True
+Obummneme,Obummneme,Am I the creator?,Igbo,manual_structural,False
+Odirachukwumma,Odirachukwumma,Once it pleases God,Igbo,manual_structural,False
+Ogbugbunam,Ogbugbunam,Let charity not kill me,Igbo,manual_structural,False
+Oledimma,Oledimma,How many are good?,Igbo,manual_structural,False
+Olekamma,Olekamma,How many are better?,Igbo,manual_structural,False
+Omanukwue,Omanukwue,Let the one who knows speak,Igbo,p9_injunction,False
+Onukwube,Onukwube,Let the mouth start talking,Igbo,p5_arrow,False
+Onumajuru,Onumajuru,Let anger cease,Igbo,p5_arrow,False
+Onwuegbunam,Onwuegbunam,Let death not kill me,Igbo,manual_structural,False
+Onyeaghananwanne,Onyeaghananwanne,Let no one abandon his/her relation,Igbo,p9_injunction,False
+Onyebechi,Onyebechi,Who is God?,Igbo,manual_structural,False
+Onyedikachukwu,Onyedikachukwu,Who is like God?,Igbo,manual_structural,False
+Onyekachi,Onyekachi,Who is greater than God?,Igbo,manual_structural,True
+Onyekozulu,Onyekozulu,Who is self-sufficient?,Igbo,manual_structural,False
+Onyemaechi,Onyemaechi,Who knows tomorrow?,Igbo,manual_structural,True
+Onyenweewa,Onyenweewa,Who owns the world?,Igbo,manual_structural,False
+Udoka,Udoka,Peace is supreme,Igbo,p5_arrow,True
+Ugboaku,Ugboaku,Vehicle of wealth/fortune,Igbo,p5_arrow,False
+Umekwulu,Umekwulu,Let untimely death cease,Igbo,p5_arrow,False
+Uzamaka,Uzamaka,The road is very good,Igbo,manual_structural,False
+Uzodimma,Uzodimma,The road is fine,Igbo,manual_structural,True
