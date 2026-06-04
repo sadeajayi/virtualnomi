@@ -482,15 +482,11 @@ def query_with_sentence_transformer(query: str, lang_filter: str) -> List[Dict[s
     
     query_embedding = model.encode([query])[0].tolist()
     
-    filter_dict = {}
-    if lang_filter != "All":
-        filter_dict = {"language": lang_filter}
-    
     results = index.query(
         vector=query_embedding,
         top_k=20,
         include_metadata=True,
-        filter=filter_dict if filter_dict else None
+        filter=None,
     )
     
     hits = []
@@ -500,6 +496,8 @@ def query_with_sentence_transformer(query: str, lang_filter: str) -> List[Dict[s
         metadata = match.metadata
         name_strip = metadata.get("name_strip", "")
         language = metadata.get("language", "")
+        if lang_filter != "All" and not _language_matches(lang_filter, language):
+            continue
         
         row = dataset_lookup.get((name_strip, language))
         if not row:
@@ -536,15 +534,11 @@ def query_with_openai(query: str, lang_filter: str) -> List[Dict[str, Any]]:
     )
     query_embedding = response.data[0].embedding
     
-    filter_dict = {}
-    if lang_filter != "All":
-        filter_dict = {"language": lang_filter}
-    
     results = index.query(
         vector=query_embedding,
         top_k=20,
         include_metadata=True,
-        filter=filter_dict if filter_dict else None
+        filter=None,
     )
     
     hits = []
@@ -554,6 +548,8 @@ def query_with_openai(query: str, lang_filter: str) -> List[Dict[str, Any]]:
         metadata = match.metadata
         name_strip = metadata.get("name_strip", "")
         language = metadata.get("language", "")
+        if lang_filter != "All" and not _language_matches(lang_filter, language):
+            continue
         
         row = dataset_lookup.get((name_strip, language))
         if not row:
@@ -608,27 +604,28 @@ def query_name_db(query: str, lang_filter: str) -> List[Dict[str, Any]]:
     else:
         rows = dataset
     
-    # 1) Direct name lookup (exact match)
+    # 1) Direct name lookup (exact match, optional language family filter)
     match = next((row for row in rows if row.get("NameStrip", "").strip().lower() == query.strip().lower()), None)
     if match:
         name_strip = str(match.get("NameStrip", "")).strip()
         lang = str(match.get("Language", "")).strip()
-        name = match.get("Name", name_strip)
-        meaning = match.get("Meaning", "")
-        
-        metadata = get_name_metadata_from_dataset(name_strip, lang)
-        story = get_story_from_dataset(name_strip, lang)
-        
-        name_data = {
-            "name": name,
-            "name_strip": name_strip,
-            "meaning": meaning,
-            "language": lang,
-            "cultural_context": match.get("cultural_context", ""),
-            "themes": match.get("themes", []),
-        }
-        
-        return [build_result_dict(name_data, metadata, story, 1.0)]
+        if lang_filter == "All" or _language_matches(lang_filter, lang):
+            name = match.get("Name", name_strip)
+            meaning = match.get("Meaning", "")
+            
+            metadata = get_name_metadata_from_dataset(name_strip, lang)
+            story = get_story_from_dataset(name_strip, lang)
+            
+            name_data = {
+                "name": name,
+                "name_strip": name_strip,
+                "meaning": meaning,
+                "language": lang,
+                "cultural_context": match.get("cultural_context", ""),
+                "themes": match.get("themes", []),
+            }
+            
+            return [build_result_dict(name_data, metadata, story, 1.0)]
     
     # 2) Semantic search — lazy-init Pinecone + embeddings only when needed
     ensure_search_components(query)
@@ -681,7 +678,7 @@ async def search(
         if _stories_lookup is None:
             load_stories_data()
         for (name_strip, lang), story_data in _stories_lookup.items():
-            if language != "All" and language != lang:
+            if language != "All" and not _language_matches(language, lang):
                 continue
             
             match = dataset_lookup.get((name_strip, lang))
@@ -1695,6 +1692,38 @@ function showToast(m){{
 
 # ── Name lookup & card endpoints ──────────────────────────────────────────────
 
+def _language_matches(lang_filter: Optional[str], dataset_language: str) -> bool:
+    """
+    True when no filter, All, or dataset Language matches the filter.
+
+    Supports family labels (e.g. filter ``Hausa`` matches
+    ``Hausa (Localised Islamic/Arabic)``), same rule as RAG language mapping.
+    """
+    if not lang_filter or lang_filter.strip() == "All":
+        return True
+    filt = lang_filter.strip().lower()
+    data = (dataset_language or "").strip().lower()
+    if not data:
+        return False
+    if filt == data:
+        return True
+    if filt in data or data in filt:
+        return True
+    try:
+        rag_path = str(_REPO_ROOT / "rag")
+        if rag_path not in sys.path:
+            sys.path.insert(0, rag_path)
+        from language_config import dataset_language_to_rag_key
+
+        fk = dataset_language_to_rag_key(lang_filter)
+        dk = dataset_language_to_rag_key(dataset_language)
+        if fk and dk and fk == dk:
+            return True
+    except ImportError:
+        pass
+    return False
+
+
 def _lookup_name_results(name_strip: str, language: Optional[str]) -> list:
     """Shared logic: find all dataset rows matching name_strip (case-insensitive)."""
     load_dataset_fallback()
@@ -1705,7 +1734,7 @@ def _lookup_name_results(name_strip: str, language: Optional[str]) -> list:
     for (ns, lang), row in dataset_lookup.items():
         if ns.lower() != needle:
             continue
-        if language and lang.lower() != language.lower():
+        if language and not _language_matches(language, lang):
             continue
         metadata = get_name_metadata_from_dataset(ns, lang)
         story = get_story_from_dataset(ns, lang)
@@ -1738,7 +1767,7 @@ async def get_audio(
     for (ns, lang) in audio_keys:
         if ns.lower() != needle.lower():
             continue
-        if language and lang.lower() != language.lower():
+        if language and not _language_matches(language, lang):
             continue
         row_lang = lang
         break
