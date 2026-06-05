@@ -74,8 +74,6 @@ LANGUAGE_CONFIG: Dict[str, Dict] = {
             "Semantic_Analysis_of_Igbo_Names.pdf",
             "The_Sociolinguistics_of_Igbo_Personal_Na.pdf",
             "Trends_Igbo_Names.pdf",
-            "Trends_Igbo_Naming_Systems.pdf",
-            "igbo.pdf",
         ],
         "morphemes": [],
     },
