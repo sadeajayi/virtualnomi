@@ -15,7 +15,7 @@ HF_TOKEN = os.getenv("HF_TOKEN") or HfFolder.get_token()
 DATASET_REPO = "nomi-stories/nomi-names"
 NAME_STRIP = "Ebube"
 LANGUAGE = "Igbo"
-PHONETIC_SPELLING = "eh-boo-beh"
+PHONETIC_SPELLING = "ay-boo-bay"
 
 
 def main() -> None:
