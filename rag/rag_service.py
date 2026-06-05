@@ -17,6 +17,8 @@ from language_config import dataset_language_to_rag_key, get_language_config
 TOP_K = 5
 TOP_K_DIVERSIFY = 20
 MAX_CHUNKS_PER_PAPER = 2
+INSIGHTS_TOP_K = 4
+INSIGHTS_MAX_CHUNKS_PER_PAPER = 1
 
 _NAME_DEFINITION_HINTS = (
     "meaning",
@@ -419,6 +421,40 @@ class LanguageRAGService:
             top_k=max_excerpts,
             name=name,
             meaning=meaning,
+        )
+        return [
+            {
+                "paper": result["paper"],
+                "excerpt": result["text"],
+                "relevance_score": result.get("similarity", 0),
+            }
+            for result in results
+        ]
+
+    def get_insights_excerpts(
+        self,
+        name: str,
+        meaning: str,
+        *,
+        top_k: int = INSIGHTS_TOP_K,
+        max_per_paper: int = INSIGHTS_MAX_CHUNKS_PER_PAPER,
+    ) -> List[Dict]:
+        """Retrieve capped, per-paper-diversified excerpts for the insights endpoint."""
+        query = f"{name} {meaning}".strip()
+        raw_results = self.search(
+            query,
+            top_k=TOP_K_DIVERSIFY,
+            name=name,
+            meaning=meaning,
+        )
+        raw_results.sort(
+            key=lambda r: (
+                0 if self._name_appears_in_text(name, r["text"]) else 1,
+                -r.get("similarity", 0),
+            )
+        )
+        results = self._diversify_by_paper(
+            raw_results, top_k=top_k, max_per_paper=max_per_paper
         )
         return [
             {

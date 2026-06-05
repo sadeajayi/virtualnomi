@@ -1740,11 +1740,15 @@ def _lookup_name_results(name_strip: str, language: Optional[str]) -> list:
         story = get_story_from_dataset(ns, lang)
         canonical_meaning = row.get("Meaning", "")
         meaning = display_meaning_for_result(lang, ns, canonical_meaning)
+        additional = row.get("Additional meaning")
+        if additional is not None and str(additional).strip().lower() in ("", "nan", "none"):
+            additional = None
         results.append({
             "name": row.get("Name", ns),
             "name_strip": ns,
             "language": lang,
             "meaning": meaning,
+            "additional_meaning": str(additional).strip() if additional else None,
             "phonetic_spelling": metadata.get("phonetic_spelling") or None,
             "audio_url": metadata.get("audio_url") or None,
             "pronunciation_by": metadata.get("pronunciation_by") or None,

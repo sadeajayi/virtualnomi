@@ -139,9 +139,12 @@ If the meaning field and the RAG gloss differ, treat the RAG gloss as primary. D
 Name: {name}
 Language: {language}
 Meaning: {meaning}
+Additional meaning (if provided): {additional_meaning}
 RAG context (if available): {rag_excerpts}
 Source attributions (if available): {attributions}
 ```
+
+If Additional meaning is provided, treat it as dataset context alongside Meaning — naming occasion, tradition, or nuance from the Nomi dataset. If it differs from the RAG gloss, treat the RAG gloss as primary for etymology and literal meaning.
 
 If RAG context is provided, the insight must stay within what the sources support. Do not go beyond them.
 

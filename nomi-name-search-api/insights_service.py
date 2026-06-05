@@ -43,6 +43,15 @@ def load_insights_system_prompt() -> str:
     return _system_prompt_cache
 
 
+def _normalize_additional_meaning(value: Optional[str]) -> str:
+    if not value:
+        return ""
+    text = str(value).strip()
+    if not text or text.lower() in ("nan", "none"):
+        return ""
+    return text
+
+
 def gather_rag_context(
     name: str,
     meaning: str,
@@ -60,14 +69,9 @@ def gather_rag_context(
     if rag is None:
         return "", [], False, None
 
-    context = rag.get_cultural_context(name, meaning)
-    excerpts = rag.get_relevant_excerpts(
-        f"{name} {meaning}", max_excerpts=4, name=name, meaning=meaning
-    )
+    excerpts = rag.get_insights_excerpts(name, meaning)
 
     parts: List[str] = []
-    if context.strip():
-        parts.append(context.strip())
     for item in excerpts:
         parts.append(f"[{item['paper']}]: {item['excerpt'][:500]}")
 
@@ -82,16 +86,24 @@ def build_user_message(
     meaning: str,
     rag_excerpts: str,
     attributions: List[str],
+    additional_meaning: str = "",
 ) -> str:
     attr_text = ", ".join(attributions) if attributions else "(none)"
     rag_block = rag_excerpts if rag_excerpts else "(none — stay within meaning and precise general knowledge)"
-    return (
-        f"Name: {name}\n"
-        f"Language: {language}\n"
-        f"Meaning: {meaning}\n"
-        f"RAG context (if available): {rag_block}\n"
-        f"Source attributions (if available): {attr_text}"
+    lines = [
+        f"Name: {name}",
+        f"Language: {language}",
+        f"Meaning: {meaning}",
+    ]
+    if additional_meaning:
+        lines.append(f"Additional meaning: {additional_meaning}")
+    lines.extend(
+        [
+            f"RAG context (if available): {rag_block}",
+            f"Source attributions (if available): {attr_text}",
+        ]
     )
+    return "\n".join(lines)
 
 
 def _clean_insight_output(text: str) -> str:
@@ -115,15 +127,23 @@ def generate_insight_paragraph(
     resolved_name = name
     resolved_meaning = (meaning or "").strip()
     resolved_language = (language or "").strip()
+    resolved_additional_meaning = ""
 
-    if lookup_name_fn and (not resolved_meaning or not resolved_language):
+    if lookup_name_fn:
         matches = lookup_name_fn(name, language or None)
-        if not matches:
-            raise ValueError(f"Name '{name}' not found in dataset")
-        primary = matches[0]
-        resolved_name = primary.get("name") or name
-        resolved_meaning = primary.get("meaning") or resolved_meaning
-        resolved_language = primary.get("language") or resolved_language
+        if not resolved_meaning or not resolved_language:
+            if not matches:
+                raise ValueError(f"Name '{name}' not found in dataset")
+        if matches:
+            primary = matches[0]
+            resolved_name = primary.get("name") or name
+            if not resolved_meaning:
+                resolved_meaning = primary.get("meaning") or resolved_meaning
+            if not resolved_language:
+                resolved_language = primary.get("language") or resolved_language
+            resolved_additional_meaning = _normalize_additional_meaning(
+                primary.get("additional_meaning")
+            )
 
     if not resolved_meaning:
         raise ValueError("Meaning is required (provide meaning= or a name in the dataset)")
@@ -147,6 +167,7 @@ def generate_insight_paragraph(
         resolved_meaning,
         rag_excerpts,
         attributions,
+        additional_meaning=resolved_additional_meaning,
     )
 
     client = anthropic.Anthropic(api_key=api_key)
