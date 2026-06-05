@@ -37,7 +37,7 @@ LANGUAGE_CONFIG: Dict[str, Dict] = {
         "query_suffix": "Yoruba personal name cultural significance morpheme",
         "papers": [
             "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
-            "Semantics_Yoruba_Names.pdf",
+            # Excluded: Semantics_Yoruba_Names.pdf — image-only scan, 0 extractable text chunks (needs OCR)
             "Yoruba_Traditional_Names_and_the_Transmi.pdf",
             "Yoruba_Praise_Names.pdf",
             "Endangerment_of_Yoruba_Individual_Names.pdf",
@@ -58,6 +58,7 @@ LANGUAGE_CONFIG: Dict[str, Dict] = {
             "iya", "ìyá", "yeye",
             "ori", "orí",
             "ife", "ifẹ",
+            "ifá", "ifa", "Ifa", "Ifá",
             "tolu", "tólú",
             "fola", "fọlá",
             "sade", "ṣade",
