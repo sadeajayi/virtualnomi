@@ -1,5 +1,5 @@
 # Nomi Insights — System Prompt v5.3
-### For use inside the `/insights` endpoint (claude-sonnet-4-20250514)
+### For use inside the `/insights` endpoint (claude-sonnet-4-6)
 ### Version 5.3 — pattern schemas OK; Gagarau gloss-only unchanged
 
 ---

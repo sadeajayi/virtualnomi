@@ -25,7 +25,7 @@ try:
 except ImportError:
     anthropic = None  # type: ignore
 
-INSIGHTS_MODEL = os.environ.get("NOMI_INSIGHTS_MODEL", "claude-sonnet-4-20250514")
+INSIGHTS_MODEL = os.environ.get("NOMI_INSIGHTS_MODEL", "claude-sonnet-4-6")
 _PROMPT_PATH = Path(__file__).resolve().parent / "prompts" / "nomi_insights_system_prompt.md"
 _system_prompt_cache: Optional[str] = None
 _PROMPT_MTIME: Optional[float] = None
