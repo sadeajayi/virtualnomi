@@ -17,8 +17,11 @@ from language_config import dataset_language_to_rag_key, get_language_config
 TOP_K = 5
 TOP_K_DIVERSIFY = 20
 MAX_CHUNKS_PER_PAPER = 2
-INSIGHTS_TOP_K = 4
+INSIGHTS_TOP_K = 6
 INSIGHTS_MAX_CHUNKS_PER_PAPER = 1
+INSIGHTS_MAX_CHUNKS_PER_PAPER_PATTERN = 2
+_PARALLEL_NAME_COLON = re.compile(r"[A-ZÀ-Ỹ][\w\u00C0-\u024F\u1E00-\u1EFF]+:\s*[\(\[]")
+_NUMBERED_NAME_ENTRY = re.compile(r"\d+\.\s+[A-ZÀ-Ỹ][\w\u00C0-\u024F\u1E00-\u1EFF]+\s")
 
 _NAME_DEFINITION_HINTS = (
     "meaning",
@@ -255,7 +258,88 @@ class LanguageRAGService:
         if name_present and related_in_chunk:
             score += min(0.15 * related_in_chunk, 0.25)
 
+        if self._is_pattern_family_chunk(text):
+            score += 0.2
+            if meaning_tokens & text_tokens:
+                score += 0.25
+
         return score
+
+    @staticmethod
+    def _is_pattern_family_chunk(text: str) -> bool:
+        """Detect parallel name lists (Omuma-style or numbered gloss tables)."""
+        if len(_PARALLEL_NAME_COLON.findall(text)) >= 2:
+            return True
+        if len(_NUMBERED_NAME_ENTRY.findall(text)) >= 3:
+            return True
+        return False
+
+    @staticmethod
+    def _insights_query_expansions(name: str, meaning: str) -> List[str]:
+        """Add secondary search terms for rhetorical / sentential name families."""
+        meaning_lower = (meaning or "").strip().lower()
+        if not meaning_lower:
+            return []
+        expansions: List[str] = []
+        if "who knows" in meaning_lower or "tomorrow" in meaning_lower:
+            expansions.append(
+                "Onyemaechi Omuma sentential rhetorical question names"
+            )
+        if "?" in meaning_lower or meaning_lower.startswith("who "):
+            expansions.append("interrogative phrasal names rhetorical question")
+        return expansions
+
+    def _select_insights_excerpts(
+        self,
+        results: List[Dict],
+        top_k: int,
+        name: str,
+    ) -> List[Dict]:
+        """Pick diversified excerpts; allow a second chunk per paper for pattern lists."""
+        results.sort(
+            key=lambda r: (
+                0 if self._name_appears_in_text(name, r["text"]) else 1,
+                -r.get("similarity", 0),
+            )
+        )
+        chosen: List[Dict] = []
+        per_paper: Dict[str, int] = {}
+        chosen_keys: Set[str] = set()
+
+        def chunk_key(result: Dict) -> str:
+            return str(result.get("id") or result["text"][:120])
+
+        for result in results:
+            if len(chosen) >= top_k:
+                break
+            paper = result.get("paper") or "unknown"
+            if per_paper.get(paper, 0) >= INSIGHTS_MAX_CHUNKS_PER_PAPER:
+                continue
+            key = chunk_key(result)
+            if key in chosen_keys:
+                continue
+            chosen.append(result)
+            chosen_keys.add(key)
+            per_paper[paper] = per_paper.get(paper, 0) + 1
+
+        for result in results:
+            if len(chosen) >= top_k:
+                break
+            paper = result.get("paper") or "unknown"
+            if per_paper.get(paper, 0) >= INSIGHTS_MAX_CHUNKS_PER_PAPER_PATTERN:
+                continue
+            if per_paper.get(paper, 0) < 1:
+                continue
+            if not self._is_pattern_family_chunk(result["text"]):
+                continue
+            key = chunk_key(result)
+            if key in chosen_keys:
+                continue
+            chosen.append(result)
+            chosen_keys.add(key)
+            per_paper[paper] = per_paper.get(paper, 0) + 1
+
+        return chosen
 
     def _semantic_search(
         self,
@@ -440,22 +524,27 @@ class LanguageRAGService:
         max_per_paper: int = INSIGHTS_MAX_CHUNKS_PER_PAPER,
     ) -> List[Dict]:
         """Retrieve capped, per-paper-diversified excerpts for the insights endpoint."""
-        query = f"{name} {meaning}".strip()
-        raw_results = self.search(
-            query,
-            top_k=TOP_K_DIVERSIFY,
-            name=name,
-            meaning=meaning,
-        )
-        raw_results.sort(
-            key=lambda r: (
-                0 if self._name_appears_in_text(name, r["text"]) else 1,
-                -r.get("similarity", 0),
-            )
-        )
-        results = self._diversify_by_paper(
-            raw_results, top_k=top_k, max_per_paper=max_per_paper
-        )
+        del max_per_paper  # selection uses INSIGHTS_MAX_* constants
+        queries = [f"{name} {meaning}".strip()]
+        for expansion in self._insights_query_expansions(name, meaning):
+            queries.append(f"{expansion} {meaning}".strip())
+
+        merged: List[Dict] = []
+        seen_keys: Set[str] = set()
+        for query in queries:
+            for result in self.search(
+                query,
+                top_k=TOP_K_DIVERSIFY,
+                name=name,
+                meaning=meaning,
+            ):
+                key = str(result.get("id") or result["text"][:120])
+                if key in seen_keys:
+                    continue
+                seen_keys.add(key)
+                merged.append(result)
+
+        results = self._select_insights_excerpts(merged, top_k=top_k, name=name)
         return [
             {
                 "paper": result["paper"],
