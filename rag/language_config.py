@@ -110,6 +110,8 @@ LANGUAGE_CONFIG: Dict[str, Dict] = {
         "papers": [
             "Ibibio_Name_Structure.pdf",
             "Ibibio_Names.pdf",
+            "Ibibio_Emotionreferencing_Names (1).pdf",
+            "Ibibio_MensahEnglishisation.pdf",
         ],
         "morphemes": [],
     },
