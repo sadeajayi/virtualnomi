@@ -88,7 +88,6 @@ def build_user_message(
     attributions: List[str],
     additional_meaning: str = "",
 ) -> str:
-    attr_text = ", ".join(attributions) if attributions else "(none)"
     rag_block = rag_excerpts if rag_excerpts else "(none — stay within meaning and precise general knowledge)"
     lines = [
         f"Name: {name}",
@@ -97,19 +96,39 @@ def build_user_message(
     ]
     if additional_meaning:
         lines.append(f"Additional meaning: {additional_meaning}")
-    lines.extend(
-        [
-            f"RAG context (if available): {rag_block}",
-            f"Source attributions (if available): {attr_text}",
-        ]
+    lines.append(
+        f"Background notes (internal — never mention in your paragraph): {rag_block}"
     )
     return "\n".join(lines)
+
+
+_META_SOURCE_SENTENCE = re.compile(
+    r"(?i)^(?:the\s+)?(?:rag\s+)?(?:sources?|excerpts?|background\s+notes?|research\s+papers?|"
+    r"attributions?|literature)\s+(?:list|show|say|describe|note|give|mention)\b"
+)
+_META_SOURCE_INLINE = re.compile(
+    r"(?i)\b(?:the\s+)?(?:rag\s+)?(?:sources?|excerpts?|background\s+notes?)\s+"
+    r"(?:list|show|say|describe|note|give|mention)\b"
+)
+
+
+def _strip_meta_source_sentences(text: str) -> str:
+    """Drop sentences that report what background material says instead of the name."""
+    parts = re.split(r"(?<=[.!?])\s+", text.strip())
+    kept = [part for part in parts if part and not _META_SOURCE_SENTENCE.search(part)]
+    if not kept:
+        return text.strip()
+    cleaned = " ".join(kept)
+    cleaned = _META_SOURCE_INLINE.sub("", cleaned)
+    cleaned = re.sub(r"\s{2,}", " ", cleaned)
+    return cleaned.strip()
 
 
 def _clean_insight_output(text: str) -> str:
     cleaned = text.strip()
     cleaned = re.sub(r"^(here is the insight:?\s*)", "", cleaned, flags=re.IGNORECASE)
     cleaned = re.sub(r"^#+\s*", "", cleaned)
+    cleaned = _strip_meta_source_sentences(cleaned)
     return cleaned.strip()
 
 
