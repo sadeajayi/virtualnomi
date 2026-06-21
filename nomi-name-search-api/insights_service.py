@@ -102,25 +102,54 @@ def build_user_message(
     return "\n".join(lines)
 
 
-_META_SOURCE_SENTENCE = re.compile(
-    r"(?i)^(?:the\s+)?(?:rag\s+)?(?:sources?|excerpts?|background\s+notes?|research\s+papers?|"
-    r"attributions?|literature)\s+(?:list|show|say|describe|note|give|mention)\b"
+_META_SOURCE_PATTERNS: Tuple[re.Pattern[str], ...] = (
+    re.compile(r"(?i)\brag\b"),
+    re.compile(
+        r"(?i)\b(?:the\s+)?(?:rag\s+)?(?:sources?|excerpts?|background\s+notes?|"
+        r"research\s+papers?|attributions?|literature|source\s+material)\s+"
+        r"(?:list|lists|show|shows|say|says|describe|describes|note|notes|give|gives|"
+        r"mention|mentions|indicate|indicates|suggest|suggests|state|states|reveal|reveals)\b"
+    ),
+    re.compile(
+        r"(?i)\b(?:according to|based on|drawing on)\s+"
+        r"(?:the\s+)?(?:rag\s+)?(?:sources?|excerpts?|research|literature|"
+        r"background\s+notes?|notes?|papers?)\b"
+    ),
+    re.compile(
+        r"(?i)(?:^|[.!?]\s+)(?:in (?:the )?(?:research|literature|sources?|notes?|excerpts?)|"
+        r"research shows?|the literature)\b"
+    ),
+    re.compile(r"(?i)\b(?:one|a)\s+source\s+(?:give|gives|list|lists|note|notes|mention|mentions)\b"),
+    re.compile(r"(?i)\blisted alongside\b"),
+    re.compile(
+        r"(?i)\b(?:researchers?|studies|papers?)\s+"
+        r"(?:show|shows|note|notes|describe|describes|list|lists|suggest|suggests)\b"
+    ),
+    re.compile(r"(?i)\b(?:meaning field|gloss|dataset|index|academic literature)\b"),
 )
-_META_SOURCE_INLINE = re.compile(
-    r"(?i)\b(?:the\s+)?(?:rag\s+)?(?:sources?|excerpts?|background\s+notes?)\s+"
-    r"(?:list|show|say|describe|note|give|mention)\b"
-)
+
+
+def _sentence_has_meta_source(sentence: str) -> bool:
+    return any(pattern.search(sentence) for pattern in _META_SOURCE_PATTERNS)
+
+
+def _contains_meta_source_language(text: str) -> bool:
+    stripped = text.strip()
+    if not stripped:
+        return False
+    parts = re.split(r"(?<=[.!?])\s+", stripped)
+    return any(_sentence_has_meta_source(part) for part in parts if part)
 
 
 def _strip_meta_source_sentences(text: str) -> str:
     """Drop sentences that report what background material says instead of the name."""
     parts = re.split(r"(?<=[.!?])\s+", text.strip())
-    kept = [part for part in parts if part and not _META_SOURCE_SENTENCE.search(part)]
+    kept = [part for part in parts if part and not _sentence_has_meta_source(part)]
     if not kept:
-        return text.strip()
+        return ""
     cleaned = " ".join(kept)
-    cleaned = _META_SOURCE_INLINE.sub("", cleaned)
     cleaned = re.sub(r"\s{2,}", " ", cleaned)
+    cleaned = re.sub(r"\s+([,.;:!?])", r"\1", cleaned)
     return cleaned.strip()
 
 
@@ -130,6 +159,37 @@ def _clean_insight_output(text: str) -> str:
     cleaned = re.sub(r"^#+\s*", "", cleaned)
     cleaned = _strip_meta_source_sentences(cleaned)
     return cleaned.strip()
+
+
+def _extract_response_text(response) -> str:
+    raw = ""
+    for block in response.content:
+        if getattr(block, "type", None) == "text":
+            raw += block.text
+    return raw
+
+
+def _call_insights_model(
+    client: "anthropic.Anthropic",
+    system_prompt: str,
+    user_message: str,
+    *,
+    retry_note: str = "",
+) -> str:
+    content = user_message if not retry_note else f"{user_message}\n\n{retry_note}"
+    response = client.messages.create(
+        model=INSIGHTS_MODEL,
+        max_tokens=320,
+        system=system_prompt,
+        messages=[{"role": "user", "content": content}],
+    )
+    return _extract_response_text(response)
+
+
+_META_RETRY_NOTE = (
+    "Important: Do not mention RAG, sources, excerpts, background notes, research, "
+    "literature, or attributions. Write only as a griot about the name."
+)
 
 
 def generate_insight_paragraph(
@@ -190,19 +250,16 @@ def generate_insight_paragraph(
     )
 
     client = anthropic.Anthropic(api_key=api_key)
-    response = client.messages.create(
-        model=INSIGHTS_MODEL,
-        max_tokens=320,
-        system=system_prompt,
-        messages=[{"role": "user", "content": user_message}],
-    )
-
-    raw = ""
-    for block in response.content:
-        if getattr(block, "type", None) == "text":
-            raw += block.text
-
+    raw = _call_insights_model(client, system_prompt, user_message)
     insight = _clean_insight_output(raw)
+    if not insight or _contains_meta_source_language(insight):
+        raw = _call_insights_model(
+            client,
+            system_prompt,
+            user_message,
+            retry_note=_META_RETRY_NOTE,
+        )
+        insight = _clean_insight_output(raw)
     if not insight:
         raise RuntimeError("Claude returned an empty insight")
 
