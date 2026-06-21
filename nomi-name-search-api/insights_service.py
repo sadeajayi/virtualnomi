@@ -141,16 +141,54 @@ def _contains_meta_source_language(text: str) -> bool:
     return any(_sentence_has_meta_source(part) for part in parts if part)
 
 
-def _strip_meta_source_sentences(text: str) -> str:
-    """Drop sentences that report what background material says instead of the name."""
-    parts = re.split(r"(?<=[.!?])\s+", text.strip())
-    kept = [part for part in parts if part and not _sentence_has_meta_source(part)]
-    if not kept:
+def _split_sentences(text: str) -> List[str]:
+    return [part for part in re.split(r"(?<=[.!?])\s+", text.strip()) if part]
+
+
+def _join_sentences(parts: List[str]) -> str:
+    if not parts:
         return ""
-    cleaned = " ".join(kept)
+    cleaned = " ".join(parts)
     cleaned = re.sub(r"\s{2,}", " ", cleaned)
     cleaned = re.sub(r"\s+([,.;:!?])", r"\1", cleaned)
     return cleaned.strip()
+
+
+def _strip_meta_source_sentences(text: str) -> str:
+    """Drop sentences that report what background material says instead of the name."""
+    kept = [part for part in _split_sentences(text) if not _sentence_has_meta_source(part)]
+    return _join_sentences(kept)
+
+
+_CONTRAST_PEDAGOGY_PATTERNS: Tuple[re.Pattern[str], ...] = (
+    re.compile(r"(?i)\brather than\b"),
+    re.compile(r"(?i)\bnot\b[^.!?]{0,120}\bbut\b"),
+    re.compile(r"(?i)\bnot a\b[^.!?]{0,120}\bbut\b"),
+    re.compile(
+        r"(?i)\bit(?:'s| is| was| isn\'t| is not| wasn\'t| was not)\b"
+        r"[^.!?]{0,120}\b(?:but|it(?:'s| is))\b"
+    ),
+    re.compile(r"(?i)\bless\b[^.!?]{0,60}\bthan\b"),
+)
+
+
+def _sentence_has_contrast_pedagogy(sentence: str) -> bool:
+    return any(pattern.search(sentence) for pattern in _CONTRAST_PEDAGOGY_PATTERNS)
+
+
+def _contains_contrast_pedagogy(text: str) -> bool:
+    parts = _split_sentences(text)
+    if not parts:
+        return False
+    return _sentence_has_contrast_pedagogy(parts[0])
+
+
+def _strip_contrast_pedagogy_opening(text: str) -> str:
+    """Drop a contrast-setup first sentence (not X but Y, rather than, etc.)."""
+    parts = _split_sentences(text)
+    if parts and _sentence_has_contrast_pedagogy(parts[0]):
+        parts = parts[1:]
+    return _join_sentences(parts)
 
 
 def _clean_insight_output(text: str) -> str:
@@ -158,6 +196,7 @@ def _clean_insight_output(text: str) -> str:
     cleaned = re.sub(r"^(here is the insight:?\s*)", "", cleaned, flags=re.IGNORECASE)
     cleaned = re.sub(r"^#+\s*", "", cleaned)
     cleaned = _strip_meta_source_sentences(cleaned)
+    cleaned = _strip_contrast_pedagogy_opening(cleaned)
     return cleaned.strip()
 
 
@@ -190,6 +229,20 @@ _META_RETRY_NOTE = (
     "Important: Do not mention RAG, sources, excerpts, background notes, research, "
     "literature, or attributions. Write only as a griot about the name."
 )
+
+_CONTRAST_RETRY_NOTE = (
+    "Important: The first sentence must state the insight directly — no rather-than "
+    "or not-but constructions. Lead with what the name is or asks."
+)
+
+
+def _build_insight_retry_note(insight: str) -> str:
+    notes: List[str] = []
+    if not insight or _contains_meta_source_language(insight):
+        notes.append(_META_RETRY_NOTE)
+    if _contains_contrast_pedagogy(insight):
+        notes.append(_CONTRAST_RETRY_NOTE)
+    return "\n\n".join(notes)
 
 
 def generate_insight_paragraph(
@@ -252,12 +305,13 @@ def generate_insight_paragraph(
     client = anthropic.Anthropic(api_key=api_key)
     raw = _call_insights_model(client, system_prompt, user_message)
     insight = _clean_insight_output(raw)
-    if not insight or _contains_meta_source_language(insight):
+    retry_note = _build_insight_retry_note(insight)
+    if retry_note:
         raw = _call_insights_model(
             client,
             system_prompt,
             user_message,
-            retry_note=_META_RETRY_NOTE,
+            retry_note=retry_note,
         )
         insight = _clean_insight_output(raw)
     if not insight:
