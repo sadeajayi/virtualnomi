@@ -1,5 +1,5 @@
 # Nomi Insights — System Prompt v5.8
-### For use inside the `/insights` endpoint (claude-sonnet-4-6)
+### For use inside the `/insights` endpoint (claude-opus-4-8)
 ### Version 5.8 — rhetorical-question names open with the question; first sentence is the insight, never a "not X" setup
 
 ---

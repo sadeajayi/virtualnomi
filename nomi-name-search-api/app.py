@@ -726,7 +726,8 @@ async def get_insights(
 ):
     """
     Generate a 2–4 sentence cultural insight for a name using research-paper RAG
-    (when indexed for the language) and Claude (claude-sonnet-4-6).
+    (when indexed for the language) and Claude (claude-opus-4-8 by default;
+    override with NOMI_INSIGHTS_MODEL).
     """
     try:
         from insights_service import generate_insight_paragraph
