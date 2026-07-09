@@ -94,12 +94,15 @@ def get_llm_client():
     elif openai_key:
         print("⚠️  OPENAI_API_KEY is set but openai is not installed (pip install openai)")
 
-    hints = []
-    if PREFERRED_MODEL in ("gpt4", "gpt35") and anthropic_key and not openai_key:
-        hints.append(
-            f"PARAPHRASE_MODEL={PREFERRED_MODEL!r} requires OPENAI_API_KEY "
-            "(Anthropic key is ignored in this mode; use PARAPHRASE_MODEL=claude or auto)"
+    # Fallback when PARAPHRASE_MODEL names one provider but only the other's key is set
+    if PREFERRED_MODEL in ("gpt4", "gpt35") and anthropic_key and ANTHROPIC_AVAILABLE:
+        print(
+            f"⚠️  PARAPHRASE_MODEL={PREFERRED_MODEL!r} needs OPENAI_API_KEY; "
+            "using Claude instead"
         )
+        return Anthropic(api_key=anthropic_key), "claude"
+
+    hints = []
     if PREFERRED_MODEL == "claude" and openai_key and not anthropic_key:
         hints.append("PARAPHRASE_MODEL='claude' requires ANTHROPIC_API_KEY")
     if not anthropic_key and not openai_key:
