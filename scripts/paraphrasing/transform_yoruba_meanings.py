@@ -16,6 +16,15 @@ _REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 _DATA_PARAPHRASING = _REPO_ROOT / "data" / "paraphrasing"
 sys.path.insert(0, str(_REPO_ROOT / "rag"))
 
+
+def _load_env_files() -> None:
+    """Load repo-root .env so API keys work without manual export."""
+    try:
+        from dotenv import load_dotenv
+    except ImportError:
+        return
+    load_dotenv(_REPO_ROOT / ".env")
+
 # Try to import different LLM providers
 OPENAI_AVAILABLE = False
 ANTHROPIC_AVAILABLE = False
@@ -40,6 +49,8 @@ else:
     AnthropicType = type(None)
     OpenAIType = type(None)
 
+_load_env_files()
+
 # Configuration
 HF_TOKEN = os.environ.get("HF_TOKEN")
 INPUT_FILE = str(_DATA_PARAPHRASING / "yoruba_names_ab_for_transformation.json")
@@ -56,20 +67,22 @@ PARAPHRASE_CLAUDE_MODEL = os.environ.get("PARAPHRASE_CLAUDE_MODEL", "claude-sonn
 
 def get_llm_client():
     """Initialize and return the best available LLM client"""
-    
+    anthropic_key = (os.environ.get("ANTHROPIC_API_KEY") or "").strip()
+    openai_key = (os.environ.get("OPENAI_API_KEY") or "").strip()
+
     # Auto mode: Try Claude first, then GPT-4, then GPT-3.5
-    if PREFERRED_MODEL == "auto" or PREFERRED_MODEL == "claude":
+    if PREFERRED_MODEL in ("auto", "claude"):
         if ANTHROPIC_AVAILABLE:
-            api_key = os.environ.get("ANTHROPIC_API_KEY")
-            if api_key:
-                return Anthropic(api_key=api_key), "claude"
+            if anthropic_key:
+                return Anthropic(api_key=anthropic_key), "claude"
             if PREFERRED_MODEL == "claude":
                 print("⚠️  ANTHROPIC_API_KEY not set, trying OpenAI...")
-    
+        elif anthropic_key:
+            print("⚠️  ANTHROPIC_API_KEY is set but anthropic is not installed (pip install anthropic)")
+
     if OPENAI_AVAILABLE:
-        api_key = os.environ.get("OPENAI_API_KEY")
-        if api_key:
-            client = OpenAI(api_key=api_key)
+        if openai_key:
+            client = OpenAI(api_key=openai_key)
             # Determine which OpenAI model to use
             if PREFERRED_MODEL == "gpt4":
                 model_name = "gpt-4"
@@ -78,11 +91,31 @@ def get_llm_client():
             else:  # auto mode - default to GPT-4 for quality
                 model_name = "gpt-4"
             return client, model_name
-    
+    elif openai_key:
+        print("⚠️  OPENAI_API_KEY is set but openai is not installed (pip install openai)")
+
+    hints = []
+    if PREFERRED_MODEL in ("gpt4", "gpt35") and anthropic_key and not openai_key:
+        hints.append(
+            f"PARAPHRASE_MODEL={PREFERRED_MODEL!r} requires OPENAI_API_KEY "
+            "(Anthropic key is ignored in this mode; use PARAPHRASE_MODEL=claude or auto)"
+        )
+    if PREFERRED_MODEL == "claude" and openai_key and not anthropic_key:
+        hints.append("PARAPHRASE_MODEL='claude' requires ANTHROPIC_API_KEY")
+    if not anthropic_key and not openai_key:
+        hints.append(
+            "Set ANTHROPIC_API_KEY or OPENAI_API_KEY "
+            "(export in shell, inline on the command, or add to .env at repo root)"
+        )
+    if not ANTHROPIC_AVAILABLE and not OPENAI_AVAILABLE:
+        hints.append("Install a provider SDK: pip install -r requirements/requirements_paraphrasing.txt")
+
+    detail = "\n".join(f"  • {hint}" for hint in hints) if hints else ""
     raise ValueError(
         "No LLM API key found. Set either ANTHROPIC_API_KEY or OPENAI_API_KEY.\n"
         "For Claude: export ANTHROPIC_API_KEY='your-key'\n"
         "For OpenAI: export OPENAI_API_KEY='your-key'"
+        + (f"\n\nLikely issue:\n{detail}" if detail else "")
     )
 
 def create_paraphrase_prompt(name: str, meaning: str, cultural_context: str = "", language: str = "Yoruba") -> str:
