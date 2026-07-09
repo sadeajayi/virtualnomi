@@ -171,7 +171,6 @@ def paraphrase_with_claude(client, name: str, meaning: str, cultural_context: st
             message = client.messages.create(
                 model=model_name,
                 max_tokens=2000,
-                temperature=0.3,  # Lower = more faithful to original, less ornate drift
                 messages=[
                     {
                         "role": "user",
