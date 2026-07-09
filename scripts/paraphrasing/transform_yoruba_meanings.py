@@ -52,6 +52,7 @@ RAG_PREVIEW_MAX_CHARS = 350  # Store this many chars of RAG context per result f
 # Options: "claude" (best quality), "gpt4" (high quality), "gpt35" (cost-effective)
 # Default: Try Claude first, fallback to GPT-4, then GPT-3.5
 PREFERRED_MODEL = os.environ.get("PARAPHRASE_MODEL", "auto")  # "auto", "claude", "gpt4", "gpt35"
+PARAPHRASE_CLAUDE_MODEL = os.environ.get("PARAPHRASE_CLAUDE_MODEL", "claude-sonnet-5")
 
 def get_llm_client():
     """Initialize and return the best available LLM client"""
@@ -123,11 +124,9 @@ def paraphrase_with_claude(client, name: str, meaning: str, cultural_context: st
     
     prompt = create_paraphrase_prompt(name, meaning, cultural_context)
     
-    # Try Claude 3.5 Sonnet first, fallback to Claude 3 Haiku if not available
     models_to_try = [
-        "claude-3-5-sonnet-20241022",  # Claude 3.5 Sonnet (latest)
-        "claude-3-5-sonnet-20240620",  # Claude 3.5 Sonnet (June)
-        "claude-3-haiku-20240307",     # Claude 3 Haiku (fallback)
+        PARAPHRASE_CLAUDE_MODEL,
+        "claude-3-haiku-20240307",  # fallback if primary model unavailable
     ]
     
     last_error = None
@@ -251,6 +250,7 @@ def paraphrase_name(client, model_type: str, name: str, meaning: str, rag_servic
     
     start_time = time.time()
     
+    llm_model = PARAPHRASE_CLAUDE_MODEL if model_type == "claude" else model_type
     if model_type == "claude":
         variations = paraphrase_with_claude(client, name, meaning, cultural_context)
     else:
@@ -264,6 +264,7 @@ def paraphrase_name(client, model_type: str, name: str, meaning: str, rag_servic
         "variations": variations,
         "num_variations": len(variations),
         "processing_time": round(elapsed, 2),
+        "llm_model": llm_model,
         "rag_context_used": bool(cultural_context and cultural_context.strip()),
     }
     if RAG_PREVIEW_MAX_CHARS and cultural_context:
@@ -407,17 +408,25 @@ def main():
     # Initialize LLM client
     try:
         client, model_type = get_llm_client()
-        print(f"✅ Using {model_type} model")
+        model_label = PARAPHRASE_CLAUDE_MODEL if model_type == "claude" else model_type
+        print(f"✅ Using {model_label} model")
     except ValueError as e:
         print(f"❌ {e}")
         return
     
-    # Initialize RAG service if available
+    # Initialize RAG service if available (same retrieval path as /insights)
     rag_service = None
     try:
-        from rag_service import YorubaRAGService
-        rag_service = YorubaRAGService()
-        print(f"✅ RAG service loaded - will use research papers for cultural context\n")
+        from rag_service import get_rag_service_for_dataset_language
+        rag_service = get_rag_service_for_dataset_language(
+            "Yoruba", quiet=False, text_search_only=True
+        )
+        if rag_service is None:
+            raise FileNotFoundError("Yoruba RAG index not found")
+        print(
+            "✅ RAG service loaded — insights-style retrieval "
+            "(morpheme reranking, query expansion, per-paper diversity)\n"
+        )
     except (ImportError, FileNotFoundError) as e:
         print(f"⚠️  RAG service not available: {e}")
         print(f"   Continuing without research paper context...\n")
@@ -521,7 +530,9 @@ def main():
             "processed_this_run": len(results),
             "successful_this_run": sum(1 for r in results if r.get("variations")),
             "failed_this_run": sum(1 for r in results if not r.get("variations")),
-            "model_used": model_type,
+            "model_used": (
+                PARAPHRASE_CLAUDE_MODEL if model_type == "claude" else model_type
+            ),
             "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
             "rag_used": rag_used,
             "rag_names_this_run": names_with_rag_context if rag_used else None,

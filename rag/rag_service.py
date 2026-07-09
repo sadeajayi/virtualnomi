@@ -429,65 +429,54 @@ class LanguageRAGService:
         return found
 
     def get_cultural_context(self, name: str, meaning: str) -> str:
+        """Format research excerpts for paraphrasing (same retrieval path as /insights)."""
         morphemes = self._extract_morphemes(name)
-        base_query = f"{name} {meaning} {self.query_suffix}"
-        if morphemes:
-            morpheme_query = " ".join(f"{m} morpheme meaning semantic" for m in morphemes)
-            query = f"{base_query} {morpheme_query}"
-        else:
-            query = base_query
-
-        search_query = f"{name} {meaning}".strip()
-        raw_results = self.search(
-            search_query,
-            top_k=TOP_K_DIVERSIFY,
-            name=name,
-            meaning=meaning,
-        )
-        raw_results.sort(
-            key=lambda r: (
-                0 if self._name_appears_in_text(name, r["text"]) else 1,
-                -r.get("similarity", 0),
-            )
-        )
-        results = self._diversify_by_paper(raw_results, top_k=5, max_per_paper=MAX_CHUNKS_PER_PAPER)
-        if not results:
+        excerpts = self.get_insights_excerpts(name, meaning)
+        if not excerpts:
             return ""
 
         context_parts: List[str] = []
-        morpheme_results: List[Dict] = []
+        morpheme_excerpts: List[Dict] = []
+        morpheme_keys: Set[str] = set()
 
         if morphemes:
-            for result in results:
-                text_lower = result["text"].lower()
+            for item in excerpts:
+                text_lower = item["excerpt"].lower()
                 for morpheme in morphemes:
                     if morpheme.lower() in text_lower:
-                        semantic_keywords = [
+                        semantic_keywords = (
                             "mean",
                             "meaning",
                             "signify",
                             "denote",
                             "semantic",
                             "morpheme",
-                        ]
+                        )
                         if any(kw in text_lower for kw in semantic_keywords):
-                            morpheme_results.append(result)
+                            key = str(item.get("paper") or "") + item["excerpt"][:120]
+                            if key not in morpheme_keys:
+                                morpheme_excerpts.append(item)
+                                morpheme_keys.add(key)
                             break
-            if morpheme_results:
+            if morpheme_excerpts:
                 context_parts.append("Morpheme Analysis:")
-                for result in morpheme_results[:2]:
+                for item in morpheme_excerpts[:2]:
                     context_parts.append(
-                        f"[From {result['paper']}]: {result['text'][:400]}..."
+                        f"[From {item['paper']}]: {item['excerpt'][:400]}..."
                     )
                 context_parts.append("")
 
-        general_results = [r for r in results if r not in morpheme_results][:3]
-        if general_results:
+        general_excerpts = [
+            item
+            for item in excerpts
+            if (str(item.get("paper") or "") + item["excerpt"][:120]) not in morpheme_keys
+        ][:3]
+        if general_excerpts:
             if morphemes:
                 context_parts.append("General Cultural Context:")
-            for result in general_results:
+            for item in general_excerpts:
                 context_parts.append(
-                    f"[From {result['paper']}]: {result['text'][:300]}..."
+                    f"[From {item['paper']}]: {item['excerpt'][:300]}..."
                 )
 
         return "\n\n".join(context_parts)
@@ -558,8 +547,18 @@ class LanguageRAGService:
 class YorubaRAGService(LanguageRAGService):
     """Backward-compatible alias for Yoruba-only callers."""
 
-    def __init__(self, index_file: Optional[str] = None, quiet: bool = False):
-        super().__init__("yoruba", index_file=index_file, quiet=quiet)
+    def __init__(
+        self,
+        index_file: Optional[str] = None,
+        quiet: bool = False,
+        text_search_only: bool = False,
+    ):
+        super().__init__(
+            "yoruba",
+            index_file=index_file,
+            quiet=quiet,
+            text_search_only=text_search_only,
+        )
 
 
 def get_rag_service_for_dataset_language(

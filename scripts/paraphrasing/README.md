@@ -7,6 +7,8 @@ Yoruba name meaning paraphrasing pipeline.
    - Batch: `python3 scripts/paraphrasing/transform_yoruba_meanings.py` (prompts for count)
    - Single name: `python3 scripts/paraphrasing/transform_yoruba_meanings.py --name Folasade`
    - Regenerate one: add `--rephrase` if already in output JSON
+   - Default LLM: `claude-sonnet-5` (set `PARAPHRASE_CLAUDE_MODEL` to override)
+   - View one result: CLI one-liner in `docs/RAG_PARAPHRASING_INTEGRATION.md` or `python3 scripts/paraphrasing/paraphrase_lookup.py`
 3. **review_paraphrased_variations.py** — Gradio UI to review and approve; writes `data/paraphrasing/approved_paraphrased_meanings.json`.
 4. **paraphrase_lookup.py** — Local read-only Gradio lookup by name (canonical meaning, 5 variations, approval status).
 
