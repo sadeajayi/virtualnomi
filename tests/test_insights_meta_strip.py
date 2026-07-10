@@ -3,6 +3,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "nomi-name-search-api"))
 
+import insights_service  # noqa: E402
 from insights_service import (  # noqa: E402
     _clean_insight_output,
     _contains_contrast_pedagogy,
@@ -12,6 +13,7 @@ from insights_service import (  # noqa: E402
     _strip_meta_source_sentences,
     build_about_the_name,
     format_attribution,
+    generate_insight_paragraph,
 )
 
 
@@ -144,3 +146,59 @@ def test_format_attribution_single_and_multiple():
     )
     assert "Sources:" in format_attribution(["a.pdf", "b.pdf"])
     assert format_attribution([]) == ""
+
+
+def test_generate_insight_keeps_about_without_anthropic_key(monkeypatch):
+    def fake_gather_rag_context(name, meaning, language):
+        return "Background excerpt", ["Yoruba_Praise_Names.pdf"], True, "yoruba"
+
+    monkeypatch.setattr(insights_service, "gather_rag_context", fake_gather_rag_context)
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+
+    result = generate_insight_paragraph("Folasade", "Yoruba", "Crown me with honour.")
+
+    assert result["about_the_name"]["headline"] == "Crown me with honour."
+    assert result["cultural_depth"] is None
+    assert result["attribution"] is None
+    assert result["cultural_depth_error"] == "ANTHROPIC_API_KEY is not set"
+
+
+def test_generate_insight_keeps_about_when_rag_context_fails(monkeypatch):
+    def broken_gather_rag_context(name, meaning, language):
+        raise RuntimeError("index is corrupt")
+
+    monkeypatch.setattr(insights_service, "gather_rag_context", broken_gather_rag_context)
+
+    result = generate_insight_paragraph("Folasade", "Yoruba", "Crown me with honour.")
+
+    assert result["about_the_name"]["headline"] == "Crown me with honour."
+    assert result["cultural_depth"] is None
+    assert result["attribution"] is None
+    assert result["rag_used"] is False
+    assert result["cultural_depth_error"] == "index is corrupt"
+
+
+def test_generate_insight_keeps_about_when_model_call_fails(monkeypatch):
+    def fake_gather_rag_context(name, meaning, language):
+        return "Background excerpt", ["Yoruba_Praise_Names.pdf"], True, "yoruba"
+
+    class DummyAnthropicModule:
+        class Anthropic:
+            def __init__(self, api_key):
+                self.api_key = api_key
+
+    def broken_call(*args, **kwargs):
+        raise RuntimeError("model unavailable")
+
+    monkeypatch.setattr(insights_service, "gather_rag_context", fake_gather_rag_context)
+    monkeypatch.setattr(insights_service, "anthropic", DummyAnthropicModule)
+    monkeypatch.setattr(insights_service, "load_insights_system_prompt", lambda: "## Role\n")
+    monkeypatch.setattr(insights_service, "_call_insights_model", broken_call)
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "test-key")
+
+    result = generate_insight_paragraph("Folasade", "Yoruba", "Crown me with honour.")
+
+    assert result["about_the_name"]["headline"] == "Crown me with honour."
+    assert result["cultural_depth"] is None
+    assert result["attribution"] is None
+    assert result["cultural_depth_error"] == "model unavailable"

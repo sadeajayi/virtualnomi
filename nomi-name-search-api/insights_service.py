@@ -389,9 +389,17 @@ def generate_insight_paragraph(
         cultural_context=resolved_cultural_context,
     )
 
-    rag_excerpts, attributions, rag_used, rag_key = gather_rag_context(
-        resolved_name, resolved_meaning, resolved_language
-    )
+    try:
+        rag_excerpts, attributions, rag_used, rag_key = gather_rag_context(
+            resolved_name, resolved_meaning, resolved_language
+        )
+    except Exception as exc:
+        # Cultural depth is optional; dataset-backed about-the-name copy should
+        # still render if an index is corrupt or temporarily unavailable.
+        rag_excerpts, attributions, rag_used, rag_key = "", [], False, None
+        cultural_depth_error: Optional[str] = str(exc)
+    else:
+        cultural_depth_error = None
 
     cultural_depth: Optional[str] = None
     attribution: Optional[str] = None
@@ -408,44 +416,47 @@ def generate_insight_paragraph(
     )
 
     if rag_used and rag_excerpts:
-        api_key = os.environ.get("ANTHROPIC_API_KEY")
-        if not api_key:
-            raise RuntimeError("ANTHROPIC_API_KEY is not set")
-        if anthropic is None:
-            raise RuntimeError("anthropic package is not installed")
+        try:
+            api_key = os.environ.get("ANTHROPIC_API_KEY")
+            if not api_key:
+                raise RuntimeError("ANTHROPIC_API_KEY is not set")
+            if anthropic is None:
+                raise RuntimeError("anthropic package is not installed")
 
-        raw_prompt = load_insights_system_prompt()
-        role_idx = raw_prompt.find("## Role")
-        system_prompt = raw_prompt[role_idx:] if role_idx >= 0 else raw_prompt
-        user_message = build_user_message(
-            resolved_name,
-            resolved_language,
-            resolved_meaning,
-            rag_excerpts,
-            attributions,
-            additional_meaning=resolved_additional_meaning,
-            about_the_name=about_the_name,
-        )
-
-        client = anthropic.Anthropic(api_key=api_key)
-        raw = _call_insights_model(client, system_prompt, user_message)
-        depth_candidate = _clean_insight_output(raw)
-        retry_note = _build_insight_retry_note(depth_candidate)
-        if retry_note:
-            raw = _call_insights_model(
-                client,
-                system_prompt,
-                user_message,
-                retry_note=retry_note,
+            raw_prompt = load_insights_system_prompt()
+            role_idx = raw_prompt.find("## Role")
+            system_prompt = raw_prompt[role_idx:] if role_idx >= 0 else raw_prompt
+            user_message = build_user_message(
+                resolved_name,
+                resolved_language,
+                resolved_meaning,
+                rag_excerpts,
+                attributions,
+                additional_meaning=resolved_additional_meaning,
+                about_the_name=about_the_name,
             )
-            depth_candidate = _clean_insight_output(raw)
 
-        if depth_candidate and depth_candidate.upper() != "NONE":
-            if _cultural_depth_adds_value(depth_candidate, dataset_corpus):
-                formatted = format_attribution(attributions)
-                if formatted:
-                    cultural_depth = depth_candidate
-                    attribution = formatted
+            client = anthropic.Anthropic(api_key=api_key)
+            raw = _call_insights_model(client, system_prompt, user_message)
+            depth_candidate = _clean_insight_output(raw)
+            retry_note = _build_insight_retry_note(depth_candidate)
+            if retry_note:
+                raw = _call_insights_model(
+                    client,
+                    system_prompt,
+                    user_message,
+                    retry_note=retry_note,
+                )
+                depth_candidate = _clean_insight_output(raw)
+
+            if depth_candidate and depth_candidate.upper() != "NONE":
+                if _cultural_depth_adds_value(depth_candidate, dataset_corpus):
+                    formatted = format_attribution(attributions)
+                    if formatted:
+                        cultural_depth = depth_candidate
+                        attribution = formatted
+        except Exception as exc:
+            cultural_depth_error = str(exc)
 
     return {
         "name": resolved_name,
@@ -459,4 +470,5 @@ def generate_insight_paragraph(
         "rag_language_key": rag_key,
         "attributions": attributions,
         "model": INSIGHTS_MODEL if cultural_depth else None,
+        "cultural_depth_error": cultural_depth_error,
     }
