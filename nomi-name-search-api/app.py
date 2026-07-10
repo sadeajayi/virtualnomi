@@ -181,9 +181,15 @@ class InsightsResponse(BaseModel):
     name: str
     language: str
     meaning: str
+    insight: str
     about_the_name: AboutTheName
     cultural_depth: Optional[str] = None
     attribution: Optional[str] = None
+    rag_used: bool
+    rag_excerpts: str = ""
+    rag_language_key: Optional[str] = None
+    attributions: List[str] = []
+    model: Optional[str] = None
 
 
 def semantic_search_enabled() -> bool:
@@ -733,11 +739,10 @@ async def get_insights(
     meaning: Optional[str] = Query(None, description="Override meaning if not in dataset"),
 ):
     """
-    Know-me + honor-me content for a name.
+    Cultural insight for a name using research-paper RAG (when indexed) and Claude.
 
-  `about_the_name` is dataset-templated (headline + body, no citation).
-  `cultural_depth` and `attribution` are set only when RAG adds information
-  beyond what the dataset already says.
+    `insight` is the full griot paragraph (legacy field). `cultural_depth` mirrors it
+    for two-box UIs. `about_the_name` is dataset-templated headline + body (no model).
     """
     try:
         from insights_service import generate_insight_paragraph

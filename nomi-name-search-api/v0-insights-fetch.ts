@@ -46,9 +46,17 @@ export interface InsightsResponse {
   name: string;
   language: string;
   meaning: string;
+  /** Full griot paragraph (primary legacy field). */
+  insight: string;
   about_the_name: AboutTheName;
+  /** Mirrors `insight` for two-box UIs. */
   cultural_depth: string | null;
   attribution: string | null;
+  rag_used: boolean;
+  rag_excerpts?: string;
+  rag_language_key?: string | null;
+  attributions?: string[];
+  model?: string | null;
 }
 
 async function fetchWithTimeout(
@@ -82,7 +90,7 @@ export async function fetchName(
   return res.json();
 }
 
-/** Returns null on timeout, HTTP error, or missing about_the_name — never throws. */
+/** Returns null on timeout, HTTP error, or missing insight — never throws. */
 export async function fetchInsights(
   nameStrip: string,
   language: string,
@@ -98,16 +106,21 @@ export async function fetchInsights(
   if (!res?.ok) return null;
   try {
     const data: InsightsResponse = await res.json();
+    const insight = (data.insight ?? data.cultural_depth ?? '').trim();
+    if (!insight) return null;
     const headline = (data.about_the_name?.headline ?? '').trim();
-    if (!headline) return null;
     return {
       ...data,
+      insight,
       about_the_name: {
-        headline,
+        headline: headline || (data.meaning ?? '').trim(),
         body: (data.about_the_name?.body ?? '').trim(),
       },
-      cultural_depth: (data.cultural_depth ?? '').trim() || null,
+      cultural_depth: (data.cultural_depth ?? insight).trim() || null,
       attribution: (data.attribution ?? '').trim() || null,
+      rag_used: Boolean(data.rag_used),
+      rag_excerpts: data.rag_excerpts ?? '',
+      attributions: data.attributions ?? [],
     };
   } catch {
     return null;

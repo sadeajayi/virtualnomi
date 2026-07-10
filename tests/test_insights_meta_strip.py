@@ -144,3 +144,21 @@ def test_format_attribution_single_and_multiple():
     )
     assert "Sources:" in format_attribution(["a.pdf", "b.pdf"])
     assert format_attribution([]) == ""
+
+
+def test_build_user_message_uses_full_insight_prompt():
+    from insights_service import build_user_message
+
+    msg = build_user_message("Ikeme", "Igbo", "It is not by our power", "", [])
+    assert "NONE" not in msg
+    assert "cultural depth ONLY" not in msg
+    assert "stay within meaning and precise general knowledge" in msg
+
+
+def test_build_about_the_name_includes_additional_only():
+    about = build_about_the_name(
+        "It is not by our power.",
+        additional_meaning="Often given when parents acknowledge divine agency.",
+    )
+    assert about["headline"] == "It is not by our power."
+    assert "divine agency" in about["body"]

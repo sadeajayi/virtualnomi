@@ -175,12 +175,8 @@ def build_user_message(
     rag_excerpts: str,
     attributions: List[str],
     additional_meaning: str = "",
-    about_the_name: Optional[Dict[str, str]] = None,
 ) -> str:
-    rag_block = rag_excerpts if rag_excerpts else "(none)"
-    about = about_the_name or {}
-    about_headline = (about.get("headline") or "").strip()
-    about_body = (about.get("body") or "").strip()
+    rag_block = rag_excerpts if rag_excerpts else "(none — stay within meaning and precise general knowledge)"
     lines = [
         f"Name: {name}",
         f"Language: {language}",
@@ -188,17 +184,8 @@ def build_user_message(
     ]
     if additional_meaning:
         lines.append(f"Additional meaning: {additional_meaning}")
-    if about_headline or about_body:
-        lines.append(f"About the name (already shown to the reader): {about_headline}")
-        if about_body:
-            lines.append(f"About the name body: {about_body}")
-    lines.extend(
-        [
-            "Task: Write 2–4 sentences of cultural depth ONLY if background notes add "
-            "something the about-the-name text does not already say. Do not restate the "
-            "gloss, meaning, or about copy. If notes add nothing new, return exactly: NONE",
-            f"Background notes (internal — never mention in your paragraph): {rag_block}",
-        ]
+    lines.append(
+        f"Background notes (internal — never mention in your paragraph): {rag_block}"
     )
     return "\n".join(lines)
 
@@ -354,7 +341,7 @@ def generate_insight_paragraph(
     lookup_name_fn: Optional[Callable[[str, Optional[str]], list]] = None,
 ) -> Dict:
     """
-    Full pipeline: dataset about-the-name + optional RAG cultural depth.
+    Full pipeline: dataset about-the-name + RAG + Claude griot paragraph.
     `lookup_name_fn` should match `_lookup_name_results` signature when called from the API.
     """
     resolved_name = name
@@ -393,70 +380,52 @@ def generate_insight_paragraph(
         resolved_name, resolved_meaning, resolved_language
     )
 
-    cultural_depth: Optional[str] = None
-    attribution: Optional[str] = None
-    dataset_corpus = " ".join(
-        part
-        for part in (
-            resolved_meaning,
-            resolved_additional_meaning,
-            resolved_cultural_context,
-            about_the_name.get("headline", ""),
-            about_the_name.get("body", ""),
-        )
-        if part
+    api_key = os.environ.get("ANTHROPIC_API_KEY")
+    if not api_key:
+        raise RuntimeError("ANTHROPIC_API_KEY is not set")
+    if anthropic is None:
+        raise RuntimeError("anthropic package is not installed")
+
+    raw_prompt = load_insights_system_prompt()
+    role_idx = raw_prompt.find("## Role")
+    system_prompt = raw_prompt[role_idx:] if role_idx >= 0 else raw_prompt
+    user_message = build_user_message(
+        resolved_name,
+        resolved_language,
+        resolved_meaning,
+        rag_excerpts,
+        attributions,
+        additional_meaning=resolved_additional_meaning,
     )
 
-    if rag_used and rag_excerpts:
-        api_key = os.environ.get("ANTHROPIC_API_KEY")
-        if not api_key:
-            raise RuntimeError("ANTHROPIC_API_KEY is not set")
-        if anthropic is None:
-            raise RuntimeError("anthropic package is not installed")
-
-        raw_prompt = load_insights_system_prompt()
-        role_idx = raw_prompt.find("## Role")
-        system_prompt = raw_prompt[role_idx:] if role_idx >= 0 else raw_prompt
-        user_message = build_user_message(
-            resolved_name,
-            resolved_language,
-            resolved_meaning,
-            rag_excerpts,
-            attributions,
-            additional_meaning=resolved_additional_meaning,
-            about_the_name=about_the_name,
+    client = anthropic.Anthropic(api_key=api_key)
+    raw = _call_insights_model(client, system_prompt, user_message)
+    insight = _clean_insight_output(raw)
+    retry_note = _build_insight_retry_note(insight)
+    if retry_note:
+        raw = _call_insights_model(
+            client,
+            system_prompt,
+            user_message,
+            retry_note=retry_note,
         )
+        insight = _clean_insight_output(raw)
+    if not insight:
+        raise RuntimeError("Claude returned an empty insight")
 
-        client = anthropic.Anthropic(api_key=api_key)
-        raw = _call_insights_model(client, system_prompt, user_message)
-        depth_candidate = _clean_insight_output(raw)
-        retry_note = _build_insight_retry_note(depth_candidate)
-        if retry_note:
-            raw = _call_insights_model(
-                client,
-                system_prompt,
-                user_message,
-                retry_note=retry_note,
-            )
-            depth_candidate = _clean_insight_output(raw)
-
-        if depth_candidate and depth_candidate.upper() != "NONE":
-            if _cultural_depth_adds_value(depth_candidate, dataset_corpus):
-                formatted = format_attribution(attributions)
-                if formatted:
-                    cultural_depth = depth_candidate
-                    attribution = formatted
+    attribution = format_attribution(attributions) or None
 
     return {
         "name": resolved_name,
         "language": resolved_language,
         "meaning": resolved_meaning,
+        "insight": insight,
         "about_the_name": about_the_name,
-        "cultural_depth": cultural_depth,
+        "cultural_depth": insight,
         "attribution": attribution,
         "rag_used": rag_used,
         "rag_excerpts": rag_excerpts,
         "rag_language_key": rag_key,
         "attributions": attributions,
-        "model": INSIGHTS_MODEL if cultural_depth else None,
+        "model": INSIGHTS_MODEL,
     }
