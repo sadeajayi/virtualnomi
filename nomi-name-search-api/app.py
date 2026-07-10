@@ -166,16 +166,18 @@ class NameLookupResponse(BaseModel):
     total: int
 
 
+class AboutTheName(BaseModel):
+    headline: str
+    body: str
+
+
 class InsightsResponse(BaseModel):
     name: str
     language: str
     meaning: str
-    insight: str
-    rag_used: bool
-    rag_excerpts: str = ""
-    rag_language_key: Optional[str] = None
-    attributions: List[str] = []
-    model: Optional[str] = None
+    about_the_name: AboutTheName
+    cultural_depth: Optional[str] = None
+    attribution: Optional[str] = None
 
 
 def semantic_search_enabled() -> bool:
@@ -725,9 +727,11 @@ async def get_insights(
     meaning: Optional[str] = Query(None, description="Override meaning if not in dataset"),
 ):
     """
-    Generate a 2–4 sentence cultural insight for a name using research-paper RAG
-    (when indexed for the language) and Claude (claude-sonnet-5 by default;
-    override with NOMI_INSIGHTS_MODEL).
+    Know-me + honor-me content for a name.
+
+  `about_the_name` is dataset-templated (headline + body, no citation).
+  `cultural_depth` and `attribution` are set only when RAG adds information
+  beyond what the dataset already says.
     """
     try:
         from insights_service import generate_insight_paragraph
@@ -1165,6 +1169,14 @@ body{background:var(--page-bg);font-family:'Livvic',system-ui,sans-serif;min-hei
 .story-link-row{margin-bottom:24px}
 .story-link{font-family:'Sen',sans-serif;font-size:13px;font-weight:600;color:var(--accent);text-decoration:none;display:inline-flex;align-items:center;gap:5px}
 .story-link:hover{opacity:.75}
+.story-preview{margin-bottom:26px;padding-top:2px}
+.story-preview-label{font-family:'Sen',sans-serif;font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);opacity:.75;margin-bottom:10px}
+.story-preview-text{font-family:'Livvic',sans-serif;font-size:17px;font-weight:400;color:var(--ink);line-height:1.55;margin:0;opacity:.9}
+.story-attribution{display:block;font-family:'Sen',sans-serif;font-size:12px;font-weight:500;color:var(--stone);margin-top:10px;font-style:normal}
+.story-preview .story-link{margin-top:12px}
+.card.wedge .meaning-text{font-weight:400;font-size:22px}
+.not-found-lead{font-family:'Livvic',sans-serif;font-size:20px;font-weight:700;color:var(--ink);line-height:1.45;margin-bottom:12px}
+.not-found-sub{font-family:'Sen',sans-serif;font-size:15px;color:var(--stone);line-height:1.6;margin-bottom:8px}
 .share-label{font-family:'Sen',sans-serif;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink);opacity:.35;margin-bottom:10px}
 .footer{text-align:center;margin-top:20px}
 .footer a{font-family:'Sen',sans-serif;font-size:12px;color:var(--stone);text-decoration:none;letter-spacing:.04em}
@@ -1216,24 +1228,29 @@ def _not_found_html(name_strip: str) -> str:
     esc = html_mod.escape(name_strip)
     accent = _pick_accent(name_strip)
     vars_css = _css_vars_cream_stationery(accent)
+    og_title = html_mod.escape(f"{name_strip} — name not found")
     return f"""<!DOCTYPE html>
 <html lang="en"><head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>{esc} — Nomi</title>
+<title>{og_title}</title>
+<meta name="description" content="This name is not in Nomi yet.">
+<meta property="og:title" content="{og_title}">
+<meta property="og:description" content="This name is not in Nomi yet.">
+<meta property="og:site_name" content="Nomi">
+<meta property="og:type" content="website">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;700;800&family=Sen:wght@400;600;700&display=swap" rel="stylesheet">
-<style>
-{_CARD_CSS}
-.add-btn{{display:inline-flex;align-items:center;justify-content:center;padding:14px 28px;background:var(--accent);color:var(--card-bg);border-radius:12px;font-family:'Sen',sans-serif;font-size:15px;font-weight:600;text-decoration:none;transition:transform .35s ease-in-out}}
-.add-btn:hover{{transform:translateY(-1px)}}
-p{{font-family:'Sen',sans-serif;font-size:16px;color:var(--ink);opacity:.7;line-height:1.6;margin-bottom:28px}}
-</style></head>
+<style>{_CARD_CSS}</style>
+</head>
 <body style="{vars_css}">
-<div class="card" style="text-align:center">
-  <span class="logo animate-in s1">Nomi</span>
-  <div class="name-hero animate-in s2" style="margin-bottom:20px">{esc}</div>
-  <p class="animate-in s3">Your name has a story.<br>Be the first to tell it.</p>
-  <a class="add-btn animate-in s4" href="https://huggingface.co/spaces/nomi-stories/nomi-pronunciation-inbox">Add your name →</a>
+<div class="card wedge" style="text-align:center">
+  <span class="logo-wrap animate-in s1">
+    <span class="logo">Nomi</span>
+    <span class="tagline">How to say my name</span>
+  </span>
+  <div class="name-hero animate-in s2" style="margin-bottom:24px">{esc}</div>
+  <p class="not-found-lead animate-in s3">We couldn&rsquo;t find this name yet.</p>
+  <p class="not-found-sub animate-in s4">If someone shared a link with you, double-check the spelling.<br>We&rsquo;re still growing our collection of names and pronunciations.</p>
 </div>
 <div class="footer" style="margin-top:20px">
   <a href="https://nomistories.com">nomistories.com</a>
@@ -1241,12 +1258,19 @@ p{{font-family:'Sen',sans-serif;font-size:16px;color:var(--ink);opacity:.7;line-
 </body></html>"""
 
 
-def _generate_name_card_html(results: list, name_strip: str, base_url: str = "", note: Optional[str] = None) -> str:
+def _generate_name_card_html(
+    results: list,
+    name_strip: str,
+    base_url: str = "",
+    note: Optional[str] = None,
+    mode: str = "share",
+) -> str:
     if not results:
         return _not_found_html(name_strip)
 
+    wedge = mode != "full"
     primary = results[0]
-    others = results[1:]
+    others = results[1:] if not wedge else []
 
     ns = primary.get("name_strip", name_strip)
     accent = _pick_accent(ns)
@@ -1261,12 +1285,30 @@ def _generate_name_card_html(results: list, name_strip: str, base_url: str = "",
     cultural_ctx = html_mod.escape((primary.get("cultural_context") or "").strip())
     story        = primary.get("story") or {}
     story_src    = html_mod.escape((story.get("source") or "").strip()) if story else ""
-    story_preview = html_mod.escape((story.get("preview_text") or "").strip()[:120]) if story else ""
+    _story_preview_raw = (story.get("preview_text") or "").strip() if story else ""
+    story_preview = html_mod.escape(_story_preview_raw[:120]) if _story_preview_raw else ""
+    story_ellipsis = "\u2026" if len(_story_preview_raw) > 120 else ""
+    story_attr   = html_mod.escape((story.get("attribution") or "").strip()) if story else ""
 
     _og_name_raw = primary.get("name", name_strip)
-    _og_meaning_raw = primary.get("meaning", "").strip()[:100]
-    _og_text = f'My name is {_og_name_raw}. It means "{_og_meaning_raw}".'
-    og_desc = html_mod.escape(_og_text)
+    _og_meaning_raw = (primary.get("meaning", "") or "").strip()
+    if wedge:
+        og_title_raw = f"{_og_name_raw} \u2014 how to say my name"
+        if _og_meaning_raw:
+            og_desc_raw = _og_meaning_raw[:120] + ("\u2026" if len(_og_meaning_raw) > 120 else "")
+        else:
+            og_desc_raw = f"Learn how to pronounce {_og_name_raw}."
+    else:
+        og_title_raw = f"{_og_name_raw} \u2014 My name, my story"
+        og_desc_raw = (
+            f'My name is {_og_name_raw}. It means "{_og_meaning_raw[:100]}".'
+            if _og_meaning_raw
+            else f"My name is {_og_name_raw}."
+        )
+    og_title = html_mod.escape(og_title_raw)
+    og_desc = html_mod.escape(og_desc_raw)
+    page_tagline = "How to say my name" if wedge else "Every name has a story"
+    card_class = "card wedge" if wedge else "card"
 
     # Divider: subtle wave in accent at low opacity (section divider stroke)
     r, g, b = (int(accent[i : i + 2], 16) for i in (1, 3, 5))
@@ -1302,25 +1344,43 @@ def _generate_name_card_html(results: list, name_strip: str, base_url: str = "",
     phonetic_html = f'<div class="phonetic-chip animate-in s2">{phonetic}</div>' if phonetic else ""
     lang_html     = f'<div class="lang-tag animate-in s3">{language}</div>' if language else ""
 
-    # Cultural context block
+    # Cultural context block (full mode only)
     cultural_html = (
         f'<div class="cultural-ctx animate-in s4">'
         f'<div class="cultural-origin-label">Cultural origin</div>'
         f'<div class="cultural-ctx-text">{cultural_ctx}</div>'
         f'</div>'
-        if cultural_ctx else ""
+        if cultural_ctx and not wedge else ""
     )
 
-    # Story link block (video stories only)
-    story_html = (
-        f'<div class="story-link-row animate-in s4">'
+    watch_story_link = (
         f'<a class="story-link" href="{story_src}" target="_blank" rel="noopener">'
         f'<svg width="13" height="13" viewBox="0 0 13 13" fill="none">'
         f'<path d="M5 2.5L10.5 6.5L5 10.5V2.5Z" fill="currentColor"/>'
         f'</svg>'
-        f'Watch the story</a></div>'
+        f'Watch the story</a>'
         if story_src else ""
     )
+
+    if _story_preview_raw:
+        attr_html = (
+            f'<cite class="story-attribution">{story_attr}</cite>'
+            if story_attr else ""
+        )
+        story_html = (
+            f'<div class="story-preview animate-in s4">'
+            f'<div class="story-preview-label">From the story</div>'
+            f'<p class="story-preview-text">&ldquo;{story_preview}{story_ellipsis}&rdquo;</p>'
+            f'{attr_html}'
+            f'{watch_story_link}'
+            f'</div>'
+        )
+    elif story_src:
+        story_html = (
+            f'<div class="story-link-row animate-in s4">{watch_story_link}</div>'
+        )
+    else:
+        story_html = ""
 
     # Audio section
     if audio_url:
@@ -1347,11 +1407,18 @@ def _generate_name_card_html(results: list, name_strip: str, base_url: str = "",
             f'}}'
         )
     else:
-        audio_html = (
-            '<div class="no-audio animate-in s4">No audio yet — '
-            '<a href="https://huggingface.co/spaces/nomi-stories/nomi-pronunciation-uploader">'
-            'be the first to add it</a></div>'
-        )
+        if wedge:
+            audio_html = (
+                '<div class="no-audio animate-in s4">'
+                'Pronunciation audio isn&rsquo;t available for this name yet.'
+                '</div>'
+            )
+        else:
+            audio_html = (
+                '<div class="no-audio animate-in s4">No audio yet — '
+                '<a href="https://huggingface.co/spaces/nomi-stories/nomi-pronunciation-uploader">'
+                'be the first to add it</a></div>'
+            )
         audio_js = "function playAudio(){}"
 
     # Other language variants (max 2, compact)
@@ -1407,52 +1474,24 @@ def _generate_name_card_html(results: list, name_strip: str, base_url: str = "",
     teacher_body_json = json.dumps(_teacher_body)
     teacher_subj_json = json.dumps(f"How to say my name \u2014 {_tn}")
 
-    return f"""<!DOCTYPE html>
-<html lang="en"><head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>{display_name} — My name, my story</title>
+    pwa_head = ""
+    if not wedge:
+        pwa_head = f"""
 <link rel="manifest" href="{base_url}/manifest/{ns}">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="{display_name}">
-<link rel="apple-touch-icon" href="{base_url}/icon/{ns}">
-<meta name="theme-color" content="{accent}">
-<meta name="description" content="{og_desc}">
-<meta property="og:title" content="{display_name} — My name, my story">
-<meta property="og:description" content="{og_desc}">
-<meta property="og:image" content="{base_url}/card-image/{ns}">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
-<meta property="og:site_name" content="Nomi">
-<meta property="og:type" content="website">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="{display_name} — My name, my story">
-<meta name="twitter:description" content="{og_desc}">
-<meta name="twitter:image" content="{base_url}/card-image/{ns}">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;700;800&family=Sen:wght@400;500;600;700&display=swap" rel="stylesheet">
-<style>{_CARD_CSS}</style>
-<link rel="preload" as="image" href="{base_url}/card-image/{ns}">
-</head>
-<body style="{vars_css}">
-<img src="{base_url}/card-image/{ns}" alt="" style="position:absolute;width:0;height:0;opacity:0;pointer-events:none" aria-hidden="true">
-<div class="card">
-  <span class="logo-wrap animate-in s1">
-    <span class="logo">Nomi</span>
-    <span class="tagline">Every name has a story</span>
-  </span>
-  <div class="name-prelude animate-in s1">My name is</div>
-  <div class="name-hero animate-in s1"{name_hero_style}>{display_name}</div>
-  {brush_svg}
-  {audio_html}
-  {phonetic_html}
-  {lang_html}
-  <div class="meaning-label">It means</div>
-  <div class="meaning-text animate-in s4">{meaning}</div>
-  {cultural_html}
-  {note_display}
-  {story_html}
-  {others_html}
+<link rel="apple-touch-icon" href="{base_url}/icon/{ns}">"""
+
+    name_prelude_html = (
+        ""
+        if wedge
+        else '<div class="name-prelude animate-in s1">My name is</div>'
+    )
+
+    full_mode_html = ""
+    if not wedge:
+        full_mode_html = f"""
   <div class="share-row animate-in s5">
     <button class="btn btn-copy" onclick="saveImage()">
       <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
@@ -1481,20 +1520,23 @@ def _generate_name_card_html(results: list, name_strip: str, base_url: str = "",
       <path d="M1.5 5.5l5.5 3.5 5.5-3.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
     </svg>
     Send to my teacher or HR →
-  </a>
-</div>
+  </a>"""
+
+    cta_footer_html = ""
+    if not wedge:
+        cta_footer_html = """
 <div class="cta-footer animate-in s6">
   <div class="cta-label">Your name has a story too</div>
   <div class="name-input-wrap">
     <input class="name-input" type="text" placeholder="Find your name →" autocomplete="off" autocorrect="off" spellcheck="false" onkeydown="if(event.key==='Enter')lookupName(this.value)">
   </div>
-</div>
-<div class="footer">
-  <a href="https://nomistories.com">nomistories.com</a>
-</div>
-<div class="toast" id="toast">Copied!</div>
-<script>
-{audio_js}
+</div>"""
+
+    toast_html = "" if wedge else '<div class="toast" id="toast">Copied!</div>'
+
+    extra_script = ""
+    if not wedge:
+        extra_script = f"""
 function copyLink(){{
   const u=window.location.href;
   navigator.clipboard.writeText(u)
@@ -1538,10 +1580,10 @@ if('serviceWorker' in navigator){{navigator.serviceWorker.register('/sw.js');}}
   b.className='pwa-banner';
   const txt=document.createElement('div');
   txt.className='pwa-banner-text';
-  txt.innerHTML='<strong>Add to your home screen</strong><br>Tap Share \u2192 Add to Home Screen';
+  txt.innerHTML='<strong>Add to your home screen</strong><br>Tap Share \\u2192 Add to Home Screen';
   const btn=document.createElement('button');
   btn.className='pwa-dismiss';
-  btn.textContent='\u2715';
+  btn.textContent='\\u2715';
   btn.onclick=function(){{b.remove();sessionStorage.setItem('pwa-dismissed',1);}};
   b.appendChild(txt);b.appendChild(btn);
   document.body.appendChild(b);
@@ -1564,7 +1606,60 @@ function sendToTeacher(){{
 function showToast(m){{
   const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');
   setTimeout(()=>t.classList.remove('show'),2200);
-}}
+}}"""
+
+    card_url_escaped = html_mod.escape(f"{base_url}/card/{ns}")
+
+    return f"""<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{og_title}</title>{pwa_head}
+<meta name="theme-color" content="{accent}">
+<meta name="description" content="{og_desc}">
+<meta property="og:title" content="{og_title}">
+<meta property="og:description" content="{og_desc}">
+<meta property="og:url" content="{card_url_escaped}">
+<meta property="og:image" content="{base_url}/card-image/{ns}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:site_name" content="Nomi">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{og_title}">
+<meta name="twitter:description" content="{og_desc}">
+<meta name="twitter:image" content="{base_url}/card-image/{ns}">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;700;800&family=Sen:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>{_CARD_CSS}</style>
+<link rel="preload" as="image" href="{base_url}/card-image/{ns}">
+</head>
+<body style="{vars_css}">
+<img src="{base_url}/card-image/{ns}" alt="" style="position:absolute;width:0;height:0;opacity:0;pointer-events:none" aria-hidden="true">
+<div class="{card_class}">
+  <span class="logo-wrap animate-in s1">
+    <span class="logo">Nomi</span>
+    <span class="tagline">{page_tagline}</span>
+  </span>
+  {name_prelude_html}
+  <div class="name-hero animate-in s1"{name_hero_style}>{display_name}</div>
+  {brush_svg}
+  {audio_html}
+  {phonetic_html}
+  {lang_html}
+  <div class="meaning-label">It means</div>
+  <div class="meaning-text animate-in s4">{meaning}</div>
+  {cultural_html}
+  {note_display}
+  {story_html}
+  {others_html}
+  {full_mode_html}
+</div>{cta_footer_html}
+<div class="footer">
+  <a href="https://nomistories.com">nomistories.com</a>
+</div>
+{toast_html}
+<script>
+{audio_js}{extra_script}
 </script>
 </body></html>"""
 
@@ -1825,15 +1920,25 @@ async def name_card(
     name_strip: str,
     language: Optional[str] = Query(None, description="Filter by language"),
     note: Optional[str] = Query(None, description="Personal note shown on the card"),
+    mode: str = Query(
+        "share",
+        description="Card layout: share (Phase 0 wedge, default) or full (owner tools)",
+    ),
 ):
     """
-    Shareable HTML name card. Designed to be linked from email signatures,
-    LinkedIn bios, Slack profiles, or anywhere you want people to learn
-    how to say your name correctly.
+    Shareable HTML name card. Default ``mode=share`` is the Phase 0 wedge: name,
+    human audio, phonetic, meaning, optional story preview — no search or funnels.
+    Use ``mode=full`` for share buttons, teacher mailto, and name lookup footer.
     """
+    if mode not in ("share", "full"):
+        raise HTTPException(status_code=400, detail="mode must be 'share' or 'full'")
     results = _lookup_name_results(name_strip, language)
     base_url = str(request.base_url).rstrip("/")
-    return HTMLResponse(content=_generate_name_card_html(results, name_strip, base_url=base_url, note=note))
+    return HTMLResponse(
+        content=_generate_name_card_html(
+            results, name_strip, base_url=base_url, note=note, mode=mode
+        )
+    )
 
 
 @app.get("/card-image/{name_strip}")

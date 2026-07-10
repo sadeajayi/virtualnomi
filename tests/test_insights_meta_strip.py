@@ -7,8 +7,11 @@ from insights_service import (  # noqa: E402
     _clean_insight_output,
     _contains_contrast_pedagogy,
     _contains_meta_source_language,
+    _cultural_depth_adds_value,
     _strip_contrast_pedagogy_opening,
     _strip_meta_source_sentences,
+    build_about_the_name,
+    format_attribution,
 )
 
 
@@ -109,3 +112,35 @@ def test_direct_opening_passes_contrast_check():
     )
     assert not _contains_contrast_pedagogy(good)
     assert _strip_contrast_pedagogy_opening(good) == good
+
+
+def test_build_about_the_name_splits_meaning():
+    about = build_about_the_name(
+        "Wear wealth like a crown. Parents expect abundance to follow.",
+        additional_meaning="Common among Yoruba families.",
+    )
+    assert about["headline"] == "Wear wealth like a crown."
+    assert "Parents expect abundance" in about["body"]
+    assert "Common among Yoruba" in about["body"]
+
+
+def test_cultural_depth_rejects_restatement():
+    corpus = (
+        "Wear wealth like a crown. Parents expect abundance to follow. "
+        "Common among Yoruba families."
+    )
+    redundant = "Wear wealth like a crown and parents expect abundance to follow."
+    novel = (
+        "The ọlá root appears across hundreds of Yoruba names and always signals "
+        "honour earned in public, witnessed by others."
+    )
+    assert not _cultural_depth_adds_value(redundant, corpus)
+    assert _cultural_depth_adds_value(novel, corpus)
+
+
+def test_format_attribution_single_and_multiple():
+    assert format_attribution(["Yoruba_Praise_Names.pdf"]) == (
+        "Source: Yoruba_Praise_Names.pdf"
+    )
+    assert "Sources:" in format_attribution(["a.pdf", "b.pdf"])
+    assert format_attribution([]) == ""
