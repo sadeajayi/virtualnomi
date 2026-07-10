@@ -156,6 +156,12 @@ class NameCardData(BaseModel):
     phonetic_spelling: Optional[str] = None
     audio_url: Optional[str] = None
     pronunciation_by: Optional[str] = None
+    # Honor-me v2: verified only when human recording + contributor exist in dataset.
+    pronunciation_verified: bool = False
+    # Submitted preferred/short forms are not in the canonical dataset yet; reserved for
+    # future patient/student submissions. Demo portraits in v0-name-card-system set these locally.
+    submitted_preferred_form: Optional[str] = None
+    submitted_short_form: Optional[str] = None
     cultural_context: Optional[str] = None
     themes: Optional[List[str]] = None
     story: Optional[Dict[str, Any]] = None
@@ -1839,6 +1845,11 @@ def _lookup_name_results(name_strip: str, language: Optional[str]) -> list:
         additional = row.get("Additional meaning")
         if additional is not None and str(additional).strip().lower() in ("", "nan", "none"):
             additional = None
+        audio_url = metadata.get("audio_url") or None
+        pronunciation_by = metadata.get("pronunciation_by") or None
+        pronunciation_verified = bool(
+            audio_url and pronunciation_by and str(pronunciation_by).strip()
+        )
         results.append({
             "name": row.get("Name", ns),
             "name_strip": ns,
@@ -1846,8 +1857,11 @@ def _lookup_name_results(name_strip: str, language: Optional[str]) -> list:
             "meaning": meaning,
             "additional_meaning": str(additional).strip() if additional else None,
             "phonetic_spelling": metadata.get("phonetic_spelling") or None,
-            "audio_url": metadata.get("audio_url") or None,
-            "pronunciation_by": metadata.get("pronunciation_by") or None,
+            "audio_url": audio_url,
+            "pronunciation_by": pronunciation_by,
+            "pronunciation_verified": pronunciation_verified,
+            "submitted_preferred_form": None,
+            "submitted_short_form": None,
             "cultural_context": row.get("cultural_context") or None,
             "themes": row.get("themes") or None,
             "story": story if story else None,
