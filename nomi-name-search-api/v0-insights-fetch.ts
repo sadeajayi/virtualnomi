@@ -37,21 +37,11 @@ export interface NameLookupResponse {
   total: number;
 }
 
-export interface AboutTheName {
-  headline: string;
-  body: string;
-}
-
 export interface InsightsResponse {
   name: string;
   language: string;
   meaning: string;
-  /** Full griot paragraph (primary legacy field). */
   insight: string;
-  about_the_name: AboutTheName;
-  /** Mirrors `insight` for two-box UIs. */
-  cultural_depth: string | null;
-  attribution: string | null;
   rag_used: boolean;
   rag_excerpts?: string;
   rag_language_key?: string | null;
@@ -106,18 +96,11 @@ export async function fetchInsights(
   if (!res?.ok) return null;
   try {
     const data: InsightsResponse = await res.json();
-    const insight = (data.insight ?? data.cultural_depth ?? '').trim();
+    const insight = (data.insight ?? '').trim();
     if (!insight) return null;
-    const headline = (data.about_the_name?.headline ?? '').trim();
     return {
       ...data,
       insight,
-      about_the_name: {
-        headline: headline || (data.meaning ?? '').trim(),
-        body: (data.about_the_name?.body ?? '').trim(),
-      },
-      cultural_depth: (data.cultural_depth ?? insight).trim() || null,
-      attribution: (data.attribution ?? '').trim() || null,
       rag_used: Boolean(data.rag_used),
       rag_excerpts: data.rag_excerpts ?? '',
       attributions: data.attributions ?? [],

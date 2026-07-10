@@ -80,94 +80,6 @@ def gather_rag_context(
     return rag_text, attributions, bool(rag_text), rag.language_key
 
 
-def _first_sentence(text: str) -> str:
-    parts = _split_sentences(text.strip())
-    return parts[0] if parts else text.strip()
-
-
-def _rest_after_first_sentence(text: str) -> str:
-    parts = _split_sentences(text.strip())
-    if len(parts) <= 1:
-        return ""
-    return _join_sentences(parts[1:])
-
-
-def build_about_the_name(
-    meaning: str,
-    *,
-    additional_meaning: str = "",
-    cultural_context: str = "",
-) -> Dict[str, str]:
-    """
-    Dataset-only copy for know-me: headline (poetic gloss) + body (fuller context).
-    No RAG, no attribution, no model call.
-    """
-    meaning = (meaning or "").strip()
-    additional_meaning = _normalize_additional_meaning(additional_meaning)
-    cultural_context = (cultural_context or "").strip()
-
-    headline = _first_sentence(meaning) if meaning else ""
-    body_parts: List[str] = []
-
-    rest_meaning = _rest_after_first_sentence(meaning)
-    if rest_meaning:
-        body_parts.append(rest_meaning)
-    if additional_meaning:
-        body_parts.append(additional_meaning)
-    if cultural_context:
-        body_parts.append(cultural_context)
-
-    body = _join_sentences(body_parts)
-    if not body and meaning and headline != meaning:
-        body = meaning
-
-    return {"headline": headline, "body": body}
-
-
-def _normalize_for_overlap(text: str) -> set:
-    tokens = re.findall(r"[a-z0-9']+", text.lower())
-    stop = {
-        "a", "an", "the", "and", "or", "of", "to", "in", "for", "is", "it",
-        "this", "that", "with", "as", "at", "by", "from", "on", "be", "are",
-        "was", "were", "name", "names", "meaning", "means",
-    }
-    return {t for t in tokens if len(t) > 2 and t not in stop}
-
-
-def _cultural_depth_adds_value(cultural_depth: str, dataset_corpus: str) -> bool:
-    """True when RAG text is not mostly restating dataset meaning/about copy."""
-    depth = cultural_depth.strip()
-    if not depth or depth.upper() == "NONE":
-        return False
-
-    depth_tokens = _normalize_for_overlap(depth)
-    corpus_tokens = _normalize_for_overlap(dataset_corpus)
-    if not depth_tokens:
-        return False
-    if not corpus_tokens:
-        return True
-
-    overlap = len(depth_tokens & corpus_tokens) / len(depth_tokens)
-    if overlap >= 0.72:
-        return False
-
-    depth_lower = depth.lower()
-    corpus_lower = dataset_corpus.lower()
-    if len(depth) > 40 and depth_lower in corpus_lower:
-        return False
-
-    return True
-
-
-def format_attribution(attributions: List[str]) -> str:
-    papers = [p.strip() for p in attributions if p and str(p).strip()]
-    if not papers:
-        return ""
-    if len(papers) == 1:
-        return f"Source: {papers[0]}"
-    return "Sources: " + "; ".join(papers)
-
-
 def build_user_message(
     name: str,
     language: str,
@@ -341,14 +253,13 @@ def generate_insight_paragraph(
     lookup_name_fn: Optional[Callable[[str, Optional[str]], list]] = None,
 ) -> Dict:
     """
-    Full pipeline: dataset about-the-name + RAG + Claude griot paragraph.
+    Full pipeline: optional dataset lookup, RAG, Claude.
     `lookup_name_fn` should match `_lookup_name_results` signature when called from the API.
     """
     resolved_name = name
     resolved_meaning = (meaning or "").strip()
     resolved_language = (language or "").strip()
     resolved_additional_meaning = ""
-    resolved_cultural_context = ""
 
     if lookup_name_fn:
         matches = lookup_name_fn(name, language or None)
@@ -365,16 +276,9 @@ def generate_insight_paragraph(
             resolved_additional_meaning = _normalize_additional_meaning(
                 primary.get("additional_meaning")
             )
-            resolved_cultural_context = (primary.get("cultural_context") or "").strip()
 
     if not resolved_meaning:
         raise ValueError("Meaning is required (provide meaning= or a name in the dataset)")
-
-    about_the_name = build_about_the_name(
-        resolved_meaning,
-        additional_meaning=resolved_additional_meaning,
-        cultural_context=resolved_cultural_context,
-    )
 
     rag_excerpts, attributions, rag_used, rag_key = gather_rag_context(
         resolved_name, resolved_meaning, resolved_language
@@ -413,16 +317,11 @@ def generate_insight_paragraph(
     if not insight:
         raise RuntimeError("Claude returned an empty insight")
 
-    attribution = format_attribution(attributions) or None
-
     return {
         "name": resolved_name,
         "language": resolved_language,
         "meaning": resolved_meaning,
         "insight": insight,
-        "about_the_name": about_the_name,
-        "cultural_depth": insight,
-        "attribution": attribution,
         "rag_used": rag_used,
         "rag_excerpts": rag_excerpts,
         "rag_language_key": rag_key,

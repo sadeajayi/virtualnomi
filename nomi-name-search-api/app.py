@@ -172,19 +172,11 @@ class NameLookupResponse(BaseModel):
     total: int
 
 
-class AboutTheName(BaseModel):
-    headline: str
-    body: str
-
-
 class InsightsResponse(BaseModel):
     name: str
     language: str
     meaning: str
     insight: str
-    about_the_name: AboutTheName
-    cultural_depth: Optional[str] = None
-    attribution: Optional[str] = None
     rag_used: bool
     rag_excerpts: str = ""
     rag_language_key: Optional[str] = None
@@ -739,10 +731,9 @@ async def get_insights(
     meaning: Optional[str] = Query(None, description="Override meaning if not in dataset"),
 ):
     """
-    Cultural insight for a name using research-paper RAG (when indexed) and Claude.
-
-    `insight` is the full griot paragraph (legacy field). `cultural_depth` mirrors it
-    for two-box UIs. `about_the_name` is dataset-templated headline + body (no model).
+    Generate a 2–4 sentence cultural insight for a name using research-paper RAG
+    (when indexed for the language) and Claude (claude-sonnet-5 by default;
+    override with NOMI_INSIGHTS_MODEL).
     """
     try:
         from insights_service import generate_insight_paragraph
