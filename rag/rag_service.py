@@ -575,7 +575,7 @@ def get_rag_service_for_dataset_language(
         service = LanguageRAGService(
             rag_key, quiet=quiet, text_search_only=text_search_only
         )
-    except FileNotFoundError:
+    except (FileNotFoundError, json.JSONDecodeError, UnicodeDecodeError, OSError):
         return None
     _rag_instances[cache_key] = service
     return service
