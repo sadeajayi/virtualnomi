@@ -48,6 +48,7 @@ LANGUAGE_CONFIG: Dict[str, Dict] = {
             "Yoruba_ethnopragmatics_personal_names.pdf",
             "Yoruba_Ifa_Personal_Names.pdf",
             "Yoruba_Ilaje_names.pdf",
+            "Yoruba_Names_Gender_Markings.pdf",
         ],
         "morphemes": [
             "ọlá", "ola", "ọla", "olá",

@@ -7,12 +7,24 @@ from __future__ import annotations
 
 import json
 import re
+import unicodedata
 from pathlib import Path
 from typing import Dict, List, Optional, Set
 
 import numpy as np
 
 from language_config import dataset_language_to_rag_key, get_language_config
+
+# Hyphenated morpheme spellings in indexed text (Orie-style A-du-ke).
+_HYPHENATED_NAME_FORM = re.compile(r"(?<![a-z])[a-z]+(?:-[a-z]+){1,}(?![a-z])")
+# Letter runs after fold (keeps Hausa hooks ɓɗƙƴ that do not NFKD to ASCII).
+_LETTER_RUN = re.compile(r"[^\W\d_]+", re.UNICODE)
+
+# Folded keys → extra folded forms when OCR/appendix spelling diverges after
+# dehyphenation (Orie Gender Markings: A-din-ni → adinni vs Àdùnní → adunni).
+_NAME_MATCH_ALIASES: Dict[str, frozenset[str]] = {
+    "adunni": frozenset({"adinni"}),
+}
 
 TOP_K = 5
 TOP_K_DIVERSIFY = 20
@@ -179,23 +191,56 @@ class LanguageRAGService:
         return self._text_search(query, top_k, name=name, meaning=meaning)
 
     @staticmethod
+    def _fold_for_match(text: str) -> str:
+        """NFKD-fold: strip combining marks and lowercase for Unicode-robust compare."""
+        decomposed = unicodedata.normalize("NFKD", text or "")
+        return "".join(
+            c for c in decomposed if unicodedata.category(c) != "Mn"
+        ).lower()
+
+    @classmethod
+    def _name_match_keys(cls, name: str) -> Set[str]:
+        """Folded forms of a query name, including known OCR/appendix aliases."""
+        folded = cls._fold_for_match(name).strip()
+        if not folded:
+            return set()
+        keys = {folded, folded.replace("-", "")}
+        keys.update(_NAME_MATCH_ALIASES.get(folded, ()))
+        return {k for k in keys if k}
+
+    @classmethod
+    def _text_match_forms(cls, text: str) -> Set[str]:
+        """Folded letter-runs plus dehyphenated compounds (A-du-ke → aduke)."""
+        folded = cls._fold_for_match(text)
+        forms = set(_LETTER_RUN.findall(folded))
+        for compound in _HYPHENATED_NAME_FORM.findall(folded):
+            forms.add(compound.replace("-", ""))
+        return forms
+
+    @staticmethod
     def _text_tokens(text: str) -> Set[str]:
-        """Tokenize text; split slash/hyphen compounds so Cidawa/Dawa matches cidawa."""
-        lower = text.lower()
-        words = set(re.findall(r"[a-zà-ỹọẹṣáéíóúãêɓɗƙƴ]+", lower))
-        for part in re.split(r"[/\-]", lower):
+        """Tokenize text; fold diacritics; split slash/hyphen compounds."""
+        folded = LanguageRAGService._fold_for_match(text)
+        words = set(_LETTER_RUN.findall(folded))
+        for part in re.split(r"[/\-]", folded):
             part = part.strip()
             if len(part) >= 2:
-                words.update(re.findall(r"[a-zà-ỹọẹṣáéíóúãêɓɗƙƴ]+", part))
+                words.update(_LETTER_RUN.findall(part))
+        words.update(LanguageRAGService._text_match_forms(text))
         return words
 
-    def _name_appears_in_text(self, name: str, text: str) -> bool:
-        name_lower = (name or "").strip().lower()
-        if not name_lower:
+    @classmethod
+    def _name_appears_in_text(cls, name: str, text: str) -> bool:
+        keys = cls._name_match_keys(name)
+        if not keys:
             return False
-        if name_lower in text.lower():
+        text_folded = cls._fold_for_match(text)
+        if any(key in text_folded for key in keys):
             return True
-        return name_lower in self._text_tokens(text)
+        text_forms = cls._text_match_forms(text)
+        if keys & text_forms:
+            return True
+        return bool(keys & cls._text_tokens(text))
 
     def _meaning_content_tokens(self, meaning: str) -> Set[str]:
         tokens = self._text_tokens(meaning or "")
@@ -206,19 +251,19 @@ class LanguageRAGService:
         }
 
     def _has_name_definition_context(self, name: str, text: str) -> bool:
-        text_lower = text.lower()
-        name_lower = name.lower()
         if not self._name_appears_in_text(name, text):
             return False
-        if any(hint in text_lower for hint in _NAME_DEFINITION_HINTS):
+        text_folded = self._fold_for_match(text)
+        if any(hint in text_folded for hint in _NAME_DEFINITION_HINTS):
             return True
-        if re.search(
-            rf"{re.escape(name_lower)}.{{0,120}}(mean|translat|literal|gloss|signif|denot)",
-            text_lower,
-            re.DOTALL,
-        ):
-            return True
-        if re.search(r"name\s+literal\s+meaning", text_lower):
+        for key in self._name_match_keys(name):
+            if re.search(
+                rf"{re.escape(key)}.{{0,120}}(mean|translat|literal|gloss|signif|denot)",
+                text_folded,
+                re.DOTALL,
+            ):
+                return True
+        if re.search(r"name\s+literal\s+meaning", text_folded):
             return True
         return False
 
