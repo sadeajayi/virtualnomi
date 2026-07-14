@@ -51,6 +51,32 @@ def test_unrelated_name_does_not_match() -> None:
     assert not LanguageRAGService._name_appears_in_text("Olumide", text)
 
 
+def test_short_name_does_not_match_inside_unrelated_word() -> None:
+    text = "The origin of Yoruba naming carries social meaning."
+    assert not LanguageRAGService._name_appears_in_text("Ori", text)
+
+
+def test_text_search_does_not_boost_substring_only_name_hits() -> None:
+    svc = object.__new__(LanguageRAGService)
+    svc.chunks = [
+        {
+            "paper": "false-hit.pdf",
+            "text": "The origin of Yoruba naming carries social meaning.",
+        },
+        {
+            "paper": "actual-hit.pdf",
+            "text": "Ori means head and also carries spiritual significance.",
+        },
+    ]
+    svc.embeddings = None
+    svc.model = None
+    svc.query_suffix = "Yoruba personal names"
+
+    results = svc.search("Ori head", top_k=5, name="Ori", meaning="head")
+
+    assert [result["paper"] for result in results] == ["actual-hit.pdf"]
+
+
 def test_definition_context_uses_folded_name() -> None:
     text = "(43) àdùnní meaning ‘sweet to have’ (44) àríkẹ́"
     svc = object.__new__(LanguageRAGService)
