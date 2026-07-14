@@ -11,6 +11,7 @@ import sys
 import re as _re
 import html as html_mod
 import urllib.request as _urllib
+import unicodedata
 from pathlib import Path
 from typing import Optional, List, Dict, Any
 from fastapi import FastAPI, HTTPException, Query, Request
@@ -122,6 +123,23 @@ def display_meaning_for_result(language: str, name_strip: str, canonical_meaning
     lookup = get_paraphrase_lookup()
     key = (name_strip or "").strip().lower()
     return lookup.get(key, canonical_meaning)
+
+
+def _normalize_name_key(value: Any) -> str:
+    """Normalize stored/display names for exact lookup comparisons."""
+    text = str(value or "").strip().casefold()
+    decomposed = unicodedata.normalize("NFKD", text)
+    return "".join(ch for ch in decomposed if not unicodedata.combining(ch))
+
+
+def _row_matches_name_query(row: Dict[str, Any], query: str) -> bool:
+    needle = _normalize_name_key(query)
+    if not needle:
+        return False
+    return any(
+        _normalize_name_key(row.get(field)) == needle
+        for field in ("NameStrip", "Name")
+    )
 
 
 # Response models
@@ -238,15 +256,19 @@ def load_dataset_fallback():
     if ds is None:
         print("Loading dataset from parquet (metadata columns only)...")
         try:
-            ds = _read_parquet_rows(
+            rows = _read_parquet_rows(
                 NOMI_DATASET_REPO,
                 NOMI_DATASET_PARQUET,
                 columns=NOMI_DATASET_COLUMNS,
             )
+            if rows:
+                ds = rows
+            else:
+                print("[dataset] WARNING: parquet load returned no rows — will retry next request")
         except Exception as exc:
             print(f"Error loading dataset: {exc}")
-            ds = []
-    return ds
+            return []
+    return ds or []
 
 class SearchUnavailableError(Exception):
     """Semantic search backends (Pinecone / embedding model) could not be initialized."""
@@ -257,15 +279,19 @@ def _load_audio_column_rows() -> List[Dict[str, Any]]:
     global _audio_column_rows
     if _audio_column_rows is None:
         try:
-            _audio_column_rows = _read_parquet_rows(
+            rows = _read_parquet_rows(
                 NOMI_DATASET_REPO,
                 NOMI_DATASET_PARQUET,
                 columns=["NameStrip", "Language", "Audio Pronunciation"],
             )
+            if rows:
+                _audio_column_rows = rows
+            else:
+                print("[audio_column] parquet load returned no rows — will retry next request")
         except Exception as exc:
             print(f"[audio_column] failed to load: {exc}")
-            _audio_column_rows = []
-    return _audio_column_rows
+            return []
+    return _audio_column_rows or []
 
 
 def _load_audio_keys() -> set:
@@ -273,13 +299,17 @@ def _load_audio_keys() -> set:
     global _audio_keys_cache
     if _audio_keys_cache is not None:
         return _audio_keys_cache
-    _audio_keys_cache = set()
-    for row in _load_audio_column_rows():
+    rows = _load_audio_column_rows()
+    if _audio_column_rows is None:
+        return set()
+    audio_keys = set()
+    for row in rows:
         name_strip = str(row.get("NameStrip", "")).strip()
         language = str(row.get("Language", "")).strip()
         audio_val = row.get("Audio Pronunciation")
         if name_strip and language and isinstance(audio_val, dict) and audio_val.get("bytes"):
-            _audio_keys_cache.add((name_strip, language))
+            audio_keys.add((name_strip, language))
+    _audio_keys_cache = audio_keys
     return _audio_keys_cache
 
 
@@ -611,8 +641,8 @@ def query_name_db(query: str, lang_filter: str) -> List[Dict[str, Any]]:
         rows = dataset
     
     # 1) Direct name lookup (exact match, optional language family filter)
-    match = next((row for row in rows if row.get("NameStrip", "").strip().lower() == query.strip().lower()), None)
-    if match:
+    exact_matches = [row for row in rows if _row_matches_name_query(row, query)]
+    for match in exact_matches:
         name_strip = str(match.get("NameStrip", "")).strip()
         lang = str(match.get("Language", "")).strip()
         if lang_filter == "All" or _language_matches(lang_filter, lang):
@@ -632,6 +662,8 @@ def query_name_db(query: str, lang_filter: str) -> List[Dict[str, Any]]:
             }
             
             return [build_result_dict(name_data, metadata, story, 1.0)]
+    if exact_matches:
+        return []
     
     # 2) Semantic search — lazy-init Pinecone + embeddings only when needed
     ensure_search_components(query)
@@ -1823,14 +1855,13 @@ def _language_matches(lang_filter: Optional[str], dataset_language: str) -> bool
 
 
 def _lookup_name_results(name_strip: str, language: Optional[str]) -> list:
-    """Shared logic: find all dataset rows matching name_strip (case-insensitive)."""
+    """Shared logic: find all dataset rows matching NameStrip or display name."""
     load_dataset_fallback()
     load_stories_data()
     dataset_lookup = get_dataset_lookup()
-    needle = name_strip.lower().strip()
     results = []
     for (ns, lang), row in dataset_lookup.items():
-        if ns.lower() != needle:
+        if not _row_matches_name_query(row, name_strip):
             continue
         if language and not _language_matches(language, lang):
             continue
