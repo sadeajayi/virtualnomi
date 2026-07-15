@@ -12,9 +12,10 @@ Nomi-sourced exceptions (newer additions, not YorubaNames catalog lineage):
 
 Preserve existing academic Attribution (e.g. Olatunji et al.).
 
-Does NOT push unless --push is passed. Prefer:
+Does NOT push unless --push is passed. Prefer review with:
   python3 scripts/dataset_updates/update_yoruba_attributions.py --from-cache
-then review data/dataset_updates/yoruba_attribution_report.json and push when ready.
+then review data/dataset_updates/yoruba_attribution_report.json. To push, omit
+--from-cache / --parquet so the script downloads the current HF dataset first.
 """
 
 from __future__ import annotations
@@ -70,6 +71,20 @@ def _normalize_existing(attribution: str) -> str:
     return attribution.strip()
 
 
+def _validate_push_source(push: bool, from_cache: bool, parquet_path: str | None) -> None:
+    if push and (from_cache or parquet_path):
+        raise SystemExit(
+            "--push must load the current Hugging Face dataset directly. "
+            "Omit --from-cache / --parquet for push runs; use those flags only "
+            "for local report review."
+        )
+
+
+def _changed_attribution_count(report: dict) -> int:
+    counts = report["counts"]
+    return int(counts["set_to_yorubanames"]) + int(counts["set_to_nomi"])
+
+
 def find_cached_parquet() -> Path | None:
     """Prefer HF hub cache snapshot pointed at by refs/main."""
     hub = Path.home() / ".cache/huggingface/hub/datasets--nomi-stories--nomi-names"
@@ -86,7 +101,9 @@ def find_cached_parquet() -> Path | None:
     return max(parquets, key=lambda p: p.stat().st_mtime)
 
 
-def load_dataframe(from_cache: bool, parquet_path: str | None) -> pd.DataFrame:
+def load_dataframe(
+    from_cache: bool, parquet_path: str | None, *, force_download: bool = False
+) -> pd.DataFrame:
     if parquet_path:
         path = Path(parquet_path)
         print(f"Loading parquet from --parquet: {path}")
@@ -113,6 +130,7 @@ def load_dataframe(from_cache: bool, parquet_path: str | None) -> pd.DataFrame:
         filename=PARQUET_NAME,
         repo_type="dataset",
         token=token,
+        force_download=force_download,
     )
     print(f"Loading: {path}")
     return pd.read_parquet(path)
@@ -132,9 +150,11 @@ def apply_attributions(df: pd.DataFrame) -> tuple[pd.DataFrame, dict]:
     yoruba_mask = df["Language"] == "Yoruba"
     yoruba = df[yoruba_mask]
     report = {
+        "dataset_total": int(len(df)),
         "yoruba_total": int(yoruba_mask.sum()),
         "set_to_yorubanames": [],
         "set_to_nomi": [],
+        "already_nomi": [],
         "preserved": [],
         "already_yorubanames": [],
         "skipped_non_empty_other": [],
@@ -151,6 +171,8 @@ def apply_attributions(df: pd.DataFrame) -> tuple[pd.DataFrame, dict]:
                 report["set_to_nomi"].append(
                     {"NameStrip": name_strip, "previous": current}
                 )
+            else:
+                report["already_nomi"].append(name_strip)
             continue
 
         if current and _should_preserve(current):
@@ -192,6 +214,7 @@ def apply_attributions(df: pd.DataFrame) -> tuple[pd.DataFrame, dict]:
     report["counts"] = {
         "set_to_yorubanames": len(report["set_to_yorubanames"]),
         "set_to_nomi": len(report["set_to_nomi"]),
+        "already_nomi": len(report["already_nomi"]),
         "preserved": len(report["preserved"]),
         "already_yorubanames": len(report["already_yorubanames"]),
         "skipped_non_empty_other": len(report["skipped_non_empty_other"]),
@@ -226,15 +249,24 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    df = load_dataframe(args.from_cache, args.parquet)
+    _validate_push_source(args.push, args.from_cache, args.parquet)
+
+    df = load_dataframe(args.from_cache, args.parquet, force_download=args.push)
     print(f"Dataset rows: {len(df)}")
+    rows_before = len(df)
 
     df, report = apply_attributions(df)
     counts = report["counts"]
+    rows_after = len(df)
+    if rows_after != rows_before:
+        raise SystemExit(
+            f"Row count changed unexpectedly ({rows_before} -> {rows_after}). Aborting."
+        )
     print("\nSummary:")
     print(f"  Yoruba rows: {report['yoruba_total']}")
     print(f"  → YorubaNames.com: {counts['set_to_yorubanames']}")
     print(f"  → Nomi: {counts['set_to_nomi']}")
+    print(f"  Already Nomi: {counts['already_nomi']}")
     print(f"  Preserved (academic etc.): {counts['preserved']}")
     print(f"  Already YorubaNames.com: {counts['already_yorubanames']}")
     print(f"  Skipped other non-empty: {counts['skipped_non_empty_other']}")
@@ -258,13 +290,17 @@ def main() -> None:
     print(f"Wrote local parquet: {out_parquet}")
 
     if args.push:
+        if _changed_attribution_count(report) == 0:
+            print("No attribution changes detected; skipping Hugging Face push.")
+            return
+
         from datasets import Dataset
 
         token = os.getenv("HF_TOKEN") or HfFolder.get_token()
         if not token:
             raise ValueError("HF_TOKEN required for --push")
         print("Pushing to Hugging Face...")
-        Dataset.from_pandas(df).push_to_hub(
+        Dataset.from_pandas(df, preserve_index=False).push_to_hub(
             DATASET_REPO,
             token=token,
             commit_message=(

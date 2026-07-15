@@ -1,7 +1,13 @@
 {
+  "dataset_total": 6616,
   "yoruba_total": 6616,
   "set_to_yorubanames": [],
   "set_to_nomi": [],
+  "already_nomi": [
+    "Ajobi",
+    "Erukubami",
+    "Morohunkeji"
+  ],
   "preserved": [
     {
       "NameStrip": "Aina",
@@ -6662,6 +6668,7 @@
   "counts": {
     "set_to_yorubanames": 0,
     "set_to_nomi": 0,
+    "already_nomi": 3,
     "preserved": 13,
     "already_yorubanames": 6600,
     "skipped_non_empty_other": 0,
