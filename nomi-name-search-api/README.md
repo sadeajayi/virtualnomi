@@ -32,9 +32,48 @@ The API will be available at `http://localhost:8000`
 - `GET /name/{name_strip}` - Direct name lookup (card data)
 - `GET /card/{name_strip}` - **Phase 0 wedge** shareable HTML card (default `mode=share`)
 - `GET /insights?name={name_strip}&language={Lang}` - Griot cultural insight (RAG + Claude)
+- `GET /recorded-names?language={Lang}&limit=12` - Stable metadata-only list of names with stored human audio
 - `GET /languages` - Get available languages
 
 See `DEPLOYMENT.md` for deployment instructions (Railway, Render, Fly.io).
+
+### Insight source contract
+
+`/insights` returns structured `sources` in RAG retrieval order:
+
+```json
+{
+  "sources": [
+    {
+      "title": "The Sociolinguistics of Igbo Personal Names",
+      "author": "Linda Chinelo Nkamigbo",
+      "year": "2019",
+      "filename": "The_Sociolinguistics_of_Igbo_Personal_Na.pdf",
+      "excerpt": "The retrieved passage supporting the reading."
+    }
+  ]
+}
+```
+
+No page metadata is inferred. Unknown papers receive a humanized filename title
+and `title_is_fallback: true`. The legacy `attributions: string[]` field remains
+temporarily for existing clients and is deprecated in favor of `sources`.
+
+Successful insight responses are cached in-process for seven days by normalized
+name, language, meaning, additional meaning, model, prompt digest, and schema
+version. Failures are never cached. Render restarts clear this memory cache, so
+clients should also use their own response cache where appropriate.
+
+Insight generation is hard-gated on name-specific RAG evidence. If no indexed
+excerpt matches the queried name under the Unicode-fold and documented alias
+logic, `/insights` returns 404 and Claude is not called. Generic naming context
+and meaning similarity alone never produce a Reading.
+
+`/recorded-names` reads only canonical rows with recognizable persisted audio
+bytes. It never generates TTS or returns base64 audio; each item contains a
+relative `/audio/...` URL. `limit` is bounded to 1–100, `offset` supports stable
+pagination, results are alphabetical, and the response includes matching totals
+plus exact-language counts.
 
 ## Phase 0 wedge — shareable name cards
 

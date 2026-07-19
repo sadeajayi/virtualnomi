@@ -242,6 +242,11 @@ class LanguageRAGService:
             return True
         return bool(keys & cls._text_tokens(text))
 
+    @classmethod
+    def has_name_specific_evidence(cls, name: str, text: str) -> bool:
+        """Public hard-gate signal for name-grounded insight generation."""
+        return cls._name_appears_in_text(name, text)
+
     def _meaning_content_tokens(self, meaning: str) -> Set[str]:
         tokens = self._text_tokens(meaning or "")
         return {

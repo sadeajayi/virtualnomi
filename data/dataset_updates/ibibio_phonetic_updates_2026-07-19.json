@@ -1,0 +1,45 @@
+{
+  "dataset_repo": "nomi-stories/nomi-names",
+  "dataset_file": "data/train-00000-of-00001.parquet",
+  "source": {
+    "kind": "huggingface",
+    "revision": "19c6bbf12a3e94e9ce696307fc1f6131767c5332"
+  },
+  "manifest": "data/dataset_updates/ibibio_phonetics_2026-07-19.json",
+  "provenance": "Founder-provided learner spellings, 2026-07-19",
+  "uploaded": false,
+  "rows": [
+    {
+      "Name": "Abasi",
+      "NameStrip": "Abasi",
+      "Language": "Ibibio",
+      "before": "aa-baa-see",
+      "after": "aa-baa-see",
+      "changed": false
+    },
+    {
+      "Name": "Adiaha",
+      "NameStrip": "Adiaha",
+      "Language": "Ibibio",
+      "before": "ah-dee-aa-ha",
+      "after": "ah-dee-aa-ha",
+      "changed": false
+    },
+    {
+      "Name": "Èkaété",
+      "NameStrip": "Ekaete",
+      "Language": "Ibibio",
+      "before": "eh-kai-tay",
+      "after": "eh-kai-tay",
+      "changed": false
+    },
+    {
+      "Name": "Eno",
+      "NameStrip": "Eno",
+      "Language": "Ibibio",
+      "before": "eh-naw",
+      "after": "eh-naw",
+      "changed": false
+    }
+  ]
+}

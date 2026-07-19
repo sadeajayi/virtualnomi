@@ -1,0 +1,121 @@
+{
+  "dataset_repo": "nomi-stories/nomi-names",
+  "dataset_file": "data/train-00000-of-00001.parquet",
+  "source_revision": "da372cdb8299237ee646525af120491a3eee3d84",
+  "uploaded": true,
+  "recordings": [
+    {
+      "name": "Tèmítọ́pẹ́",
+      "name_strip": "Temitope",
+      "language": "Yoruba",
+      "phonetic_spelling": "tay-mi-taw-kpe",
+      "audio_source": "temitope.m4a",
+      "audio": {
+        "bytes": 528690,
+        "duration_seconds": 5.993,
+        "sample_rate": 44100,
+        "channels": 1,
+        "peak_amplitude": 21271
+      },
+      "meaning_preserved": true,
+      "attribution_preserved": true,
+      "internal_pronunciation_by": "Folasade Ajayi",
+      "public_attribution_approved": false,
+      "canonical_row_created": false
+    },
+    {
+      "name": "Morẹ́nikéjì",
+      "name_strip": "Morenikeji",
+      "language": "Yoruba",
+      "phonetic_spelling": "moh-reh-nee-kay-gee",
+      "audio_source": "Morenikeji.m4a",
+      "audio": {
+        "bytes": 483532,
+        "duration_seconds": 5.481,
+        "sample_rate": 44100,
+        "channels": 1,
+        "peak_amplitude": 17959
+      },
+      "meaning_preserved": true,
+      "attribution_preserved": true,
+      "internal_pronunciation_by": "Folasade Ajayi",
+      "public_attribution_approved": false,
+      "canonical_row_created": false
+    },
+    {
+      "name": "Fọ́lákẹ́mi",
+      "name_strip": "Folakemi",
+      "language": "Yoruba",
+      "phonetic_spelling": "fuh-laa-keh-mee",
+      "audio_source": "folakemi.m4a",
+      "audio": {
+        "bytes": 400740,
+        "duration_seconds": 4.543,
+        "sample_rate": 44100,
+        "channels": 1,
+        "peak_amplitude": 20013
+      },
+      "meaning_preserved": true,
+      "attribution_preserved": true,
+      "internal_pronunciation_by": "Folasade Ajayi",
+      "public_attribution_approved": false,
+      "canonical_row_created": false
+    },
+    {
+      "name": "Ògúnkọ̀yà",
+      "name_strip": "Ogunkoya",
+      "language": "Yoruba",
+      "phonetic_spelling": "oh-goon-kuh-yaa",
+      "audio_source": "ogunkoya.m4a",
+      "audio": {
+        "bytes": 483532,
+        "duration_seconds": 5.481,
+        "sample_rate": 44100,
+        "channels": 1,
+        "peak_amplitude": 20645
+      },
+      "meaning_preserved": true,
+      "attribution_preserved": true,
+      "internal_pronunciation_by": "Folasade Ajayi",
+      "public_attribution_approved": false,
+      "canonical_row_created": true
+    }
+  ],
+  "phonetic_only": [
+    {
+      "Name": "Abasi",
+      "NameStrip": "Abasi",
+      "Language": "Ibibio",
+      "before": "",
+      "after": "aa-baa-see",
+      "changed": true
+    },
+    {
+      "Name": "Adiaha",
+      "NameStrip": "Adiaha",
+      "Language": "Ibibio",
+      "before": "",
+      "after": "ah-dee-aa-ha",
+      "changed": true
+    },
+    {
+      "Name": "Èkaété",
+      "NameStrip": "Ekaete",
+      "Language": "Ibibio",
+      "before": "",
+      "after": "eh-kai-tay",
+      "changed": true
+    },
+    {
+      "Name": "Eno",
+      "NameStrip": "Eno",
+      "Language": "Ibibio",
+      "before": "",
+      "after": "eh-naw",
+      "changed": true
+    }
+  ],
+  "excluded": [],
+  "hf_commit_url": "https://huggingface.co/datasets/nomi-stories/nomi-names/commit/19c6bbf12a3e94e9ce696307fc1f6131767c5332",
+  "hf_revision": "19c6bbf12a3e94e9ce696307fc1f6131767c5332"
+}

@@ -7,8 +7,11 @@ from __future__ import annotations
 import os
 import re
 import sys
+import time
+import hashlib
+from copy import deepcopy
 from pathlib import Path
-from typing import Callable, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 _REPO_ROOT = Path(__file__).resolve().parent.parent
 _RAG_DIR = _REPO_ROOT / "rag"
@@ -25,10 +28,28 @@ try:
 except ImportError:
     anthropic = None  # type: ignore
 
+from source_metadata import build_structured_sources
+
 INSIGHTS_MODEL = os.environ.get("NOMI_INSIGHTS_MODEL", "claude-sonnet-5")
+INSIGHTS_CACHE_SCHEMA_VERSION = os.environ.get(
+    "NOMI_INSIGHTS_CACHE_VERSION", "v4-grounded-style"
+)
+INSIGHTS_CACHE_TTL_SECONDS = int(
+    os.environ.get("NOMI_INSIGHTS_CACHE_TTL_SECONDS", str(7 * 24 * 60 * 60))
+)
+INSIGHTS_CACHE_MAX_ENTRIES = int(os.environ.get("NOMI_INSIGHTS_CACHE_MAX_ENTRIES", "512"))
 _PROMPT_PATH = Path(__file__).resolve().parent / "prompts" / "nomi_insights_system_prompt.md"
 _system_prompt_cache: Optional[str] = None
 _PROMPT_MTIME: Optional[float] = None
+_insight_result_cache: Dict[Tuple[str, ...], Tuple[float, Dict[str, Any]]] = {}
+
+
+class NoGroundedInsightError(ValueError):
+    """No indexed excerpt explicitly matched the queried name."""
+
+
+class OffVoiceInsightError(RuntimeError):
+    """The model failed the deterministic Nomi voice contract after one retry."""
 
 
 def load_insights_system_prompt() -> str:
@@ -41,6 +62,61 @@ def load_insights_system_prompt() -> str:
     _system_prompt_cache = _PROMPT_PATH.read_text(encoding="utf-8")
     _PROMPT_MTIME = mtime
     return _system_prompt_cache
+
+
+def _normalized_cache_text(value: str, *, casefold: bool = False) -> str:
+    normalized = " ".join((value or "").split())
+    return normalized.casefold() if casefold else normalized
+
+
+def _insight_cache_key(
+    name: str,
+    language: str,
+    meaning: str,
+    additional_meaning: str,
+    system_prompt: str,
+) -> Tuple[str, ...]:
+    """Versioned key: name/language/meaning plus every prompt input that changes output."""
+    prompt_digest = hashlib.sha256(system_prompt.encode("utf-8")).hexdigest()
+    return (
+        INSIGHTS_CACHE_SCHEMA_VERSION,
+        INSIGHTS_MODEL,
+        prompt_digest,
+        _normalized_cache_text(name, casefold=True),
+        _normalized_cache_text(language, casefold=True),
+        _normalized_cache_text(meaning),
+        _normalized_cache_text(additional_meaning),
+    )
+
+
+def _get_cached_insight(key: Tuple[str, ...]) -> Optional[Dict[str, Any]]:
+    cached = _insight_result_cache.get(key)
+    if cached is None:
+        return None
+    stored_at, payload = cached
+    if time.monotonic() - stored_at >= INSIGHTS_CACHE_TTL_SECONDS:
+        _insight_result_cache.pop(key, None)
+        return None
+    if (
+        payload.get("grounded") is not True
+        or not payload.get("rag_used")
+        or not payload.get("sources")
+    ):
+        _insight_result_cache.pop(key, None)
+        return None
+    return deepcopy(payload)
+
+
+def _store_cached_insight(key: Tuple[str, ...], payload: Dict[str, Any]) -> None:
+    if len(_insight_result_cache) >= INSIGHTS_CACHE_MAX_ENTRIES:
+        oldest_key = min(_insight_result_cache, key=lambda item: _insight_result_cache[item][0])
+        _insight_result_cache.pop(oldest_key, None)
+    _insight_result_cache[key] = (time.monotonic(), deepcopy(payload))
+
+
+def _clear_insight_cache() -> None:
+    """Test/admin helper; production invalidation uses prompt digest or cache version."""
+    _insight_result_cache.clear()
 
 
 def _normalize_additional_meaning(value: Optional[str]) -> str:
@@ -69,13 +145,19 @@ def gather_rag_context(
     if rag is None:
         return "", [], False, None
 
-    excerpts = rag.get_insights_excerpts(name, meaning)
+    excerpts = [
+        item
+        for item in rag.get_insights_excerpts(name, meaning)
+        if rag.has_name_specific_evidence(name, item.get("excerpt", ""))
+    ]
 
     parts: List[str] = []
     for item in excerpts:
         parts.append(f"[{item['paper']}]: {item['excerpt'][:500]}")
 
-    attributions = sorted({item["paper"] for item in excerpts if item.get("paper")})
+    attributions = list(
+        dict.fromkeys(item["paper"] for item in excerpts if item.get("paper"))
+    )
     rag_text = "\n\n".join(parts).strip()
     return rag_text, attributions, bool(rag_text), rag.language_key
 
@@ -171,6 +253,30 @@ _CONTRAST_PEDAGOGY_PATTERNS: Tuple[re.Pattern[str], ...] = (
     re.compile(r"(?i)\bless\b[^.!?]{0,60}\bthan\b"),
 )
 
+_STYLE_PATTERNS: Tuple[Tuple[str, re.Pattern[str]], ...] = (
+    ("em dash", re.compile(r"[\u2014\u2e3a]")),
+    ("not X but Y", re.compile(r"(?i)\bnot\b[^.!?]{0,120}\bbut\b")),
+    ("not only X", re.compile(r"(?i)\bnot\s+only\b")),
+    (
+        "negative corrective parallelism",
+        re.compile(
+            r"(?i)\b(?:isn['’]t|is not|wasn['’]t|was not)\s+"
+            r"(?:just|merely|only)\b"
+        ),
+    ),
+    ("rather than", re.compile(r"(?i)\brather\s+than\b")),
+    ("less X than Y", re.compile(r"(?i)\bless\b[^.!?]{0,80}\bthan\b")),
+)
+
+
+def insight_style_violations(text: str) -> List[str]:
+    """Return deterministic whole-paragraph voice violations."""
+    return [
+        label
+        for label, pattern in _STYLE_PATTERNS
+        if pattern.search(text or "")
+    ]
+
 
 def _sentence_has_contrast_pedagogy(sentence: str) -> bool:
     return any(pattern.search(sentence) for pattern in _CONTRAST_PEDAGOGY_PATTERNS)
@@ -196,7 +302,6 @@ def _clean_insight_output(text: str) -> str:
     cleaned = re.sub(r"^(here is the insight:?\s*)", "", cleaned, flags=re.IGNORECASE)
     cleaned = re.sub(r"^#+\s*", "", cleaned)
     cleaned = _strip_meta_source_sentences(cleaned)
-    cleaned = _strip_contrast_pedagogy_opening(cleaned)
     return cleaned.strip()
 
 
@@ -231,8 +336,8 @@ _META_RETRY_NOTE = (
 )
 
 _CONTRAST_RETRY_NOTE = (
-    "Important: The first sentence must state the insight directly — no rather-than "
-    "or not-but constructions. Lead with what the name is or asks."
+    "Important: State every claim directly. Do not use negative contrast or "
+    "corrective parallelism."
 )
 
 
@@ -240,8 +345,12 @@ def _build_insight_retry_note(insight: str) -> str:
     notes: List[str] = []
     if not insight or _contains_meta_source_language(insight):
         notes.append(_META_RETRY_NOTE)
-    if _contains_contrast_pedagogy(insight):
-        notes.append(_CONTRAST_RETRY_NOTE)
+    violations = insight_style_violations(insight)
+    if violations:
+        notes.append(
+            f"{_CONTRAST_RETRY_NOTE} Also use no em dashes. "
+            f"Detected violations: {', '.join(violations)}."
+        )
     return "\n\n".join(notes)
 
 
@@ -280,9 +389,25 @@ def generate_insight_paragraph(
     if not resolved_meaning:
         raise ValueError("Meaning is required (provide meaning= or a name in the dataset)")
 
+    raw_prompt = load_insights_system_prompt()
+    cache_key = _insight_cache_key(
+        resolved_name,
+        resolved_language,
+        resolved_meaning,
+        resolved_additional_meaning,
+        raw_prompt,
+    )
+    cached = _get_cached_insight(cache_key)
+    if cached is not None:
+        return cached
+
     rag_excerpts, attributions, rag_used, rag_key = gather_rag_context(
         resolved_name, resolved_meaning, resolved_language
     )
+    if not rag_used or not rag_excerpts or not attributions:
+        raise NoGroundedInsightError(
+            f"No research-grounded reading is available for '{resolved_name}'"
+        )
 
     api_key = os.environ.get("ANTHROPIC_API_KEY")
     if not api_key:
@@ -290,7 +415,6 @@ def generate_insight_paragraph(
     if anthropic is None:
         raise RuntimeError("anthropic package is not installed")
 
-    raw_prompt = load_insights_system_prompt()
     role_idx = raw_prompt.find("## Role")
     system_prompt = raw_prompt[role_idx:] if role_idx >= 0 else raw_prompt
     user_message = build_user_message(
@@ -316,15 +440,26 @@ def generate_insight_paragraph(
         insight = _clean_insight_output(raw)
     if not insight:
         raise RuntimeError("Claude returned an empty insight")
+    final_violations = insight_style_violations(insight)
+    if final_violations:
+        raise OffVoiceInsightError(
+            "Generated Reading failed Nomi voice rules after one retry: "
+            + ", ".join(final_violations)
+        )
 
-    return {
+    payload = {
         "name": resolved_name,
         "language": resolved_language,
         "meaning": resolved_meaning,
         "insight": insight,
+        "grounded": True,
         "rag_used": rag_used,
         "rag_excerpts": rag_excerpts,
         "rag_language_key": rag_key,
+        "sources": build_structured_sources(rag_excerpts, attributions),
+        # Deprecated: retained temporarily for existing personal-card clients.
         "attributions": attributions,
         "model": INSIGHTS_MODEL,
     }
+    _store_cached_insight(cache_key, payload)
+    return payload

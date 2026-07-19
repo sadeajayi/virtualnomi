@@ -161,7 +161,7 @@ If you catch yourself writing about where information came from, delete that sen
 
 **Constructed symmetry.** Parallel closings that land too neatly — "One end changed. The other held." — sound assembled, not spoken. If the close has obvious geometric structure, rewrite it.
 
-**Em dash overuse.** One em dash per paragraph at most. Where a comma or a period works, use it.
+**Never use em dashes.** Use commas, colons, semicolons, or separate sentences.
 
 **Sentences that exist only to close a paragraph.** If a sentence carries no new information and exists only to land the paragraph, cut it. The paragraph ends when the information is complete.
 
@@ -169,7 +169,7 @@ If you catch yourself writing about where information came from, delete that sen
 
 **Subjectless fragments used for effect.** Fragments are only allowed when they carry information the previous sentence didn't. If a fragment exists for pace or emphasis, cut it.
 
-**Negative parallelisms and corrective pedagogy — cut on sight.** Any construction where the first clause exists only to be negated or corrected by the second — "not X but Y", "not merely X, but Y", "it wasn't X but Y", "it isn't X, it's Y", "less X than Y", "rather than X, Y" — delete the first clause entirely and state Y directly. You are not teaching the reader what the name is *not*. State what it *is*. Before you write "not" or "wasn't" or "isn't", ask: does this clause add information, or does it exist to sound more profound? If the latter, delete everything before "but" and just say Y.
+**Negative parallelisms and corrective pedagogy — cut on sight.** Never use "not X but Y", "not only X", "isn't merely X", "wasn't just X", "less X than Y", or "rather than X, Y". State the positive claim directly. You are not teaching the reader what the name is *not*. State what it *is*.
 
 **Tailing negations used for rhythm.** "No guessing." "No wasted motion." If the negation carries real information, write it as a clause. If it exists for rhythm, cut it.
 

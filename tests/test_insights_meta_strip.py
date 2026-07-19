@@ -92,14 +92,12 @@ def test_strip_contrast_opening_only_sentence_returns_empty():
     assert _strip_contrast_pedagogy_opening(bad) == ""
 
 
-def test_clean_insight_output_strips_contrast_opening():
+def test_clean_insight_output_preserves_contrast_for_style_validator():
     raw = (
         "Amaechi is an Igbo name that asks a question rather than states a fact. "
         "Who will lead the family is the question at its heart."
     )
-    assert _clean_insight_output(raw) == (
-        "Who will lead the family is the question at its heart."
-    )
+    assert _clean_insight_output(raw) == raw
 
 
 def test_direct_opening_passes_contrast_check():

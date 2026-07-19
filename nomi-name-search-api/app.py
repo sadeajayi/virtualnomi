@@ -11,12 +11,13 @@ import sys
 import re as _re
 import html as html_mod
 import urllib.request as _urllib
+from urllib.parse import quote
 from pathlib import Path
 from typing import Optional, List, Dict, Any
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, Response
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 try:
     from PIL import Image, ImageDraw, ImageFont
@@ -153,6 +154,7 @@ class NameCardData(BaseModel):
     name_strip: str
     language: str
     meaning: str
+    attribution: Optional[str] = None
     phonetic_spelling: Optional[str] = None
     audio_url: Optional[str] = None
     pronunciation_by: Optional[str] = None
@@ -172,16 +174,44 @@ class NameLookupResponse(BaseModel):
     total: int
 
 
+class InsightSource(BaseModel):
+    author: Optional[str] = None
+    year: Optional[str] = None
+    title: Optional[str] = None
+    filename: Optional[str] = None
+    excerpt: Optional[str] = None
+    title_is_fallback: bool = False
+
+
 class InsightsResponse(BaseModel):
     name: str
     language: str
     meaning: str
     insight: str
     rag_used: bool
+    grounded: bool = False
     rag_excerpts: str = ""
     rag_language_key: Optional[str] = None
-    attributions: List[str] = []
+    sources: List[InsightSource] = Field(default_factory=list)
+    # Deprecated: use ``sources``. Retained while personal-card clients migrate.
+    attributions: List[str] = Field(default_factory=list)
     model: Optional[str] = None
+
+
+class RecordedName(BaseModel):
+    name: str
+    name_strip: str
+    language: str
+    phonetic_spelling: Optional[str] = None
+    pronunciation_by: Optional[str] = None
+    audio_url: str
+
+
+class RecordedNamesResponse(BaseModel):
+    names: List[RecordedName]
+    total: int
+    language: Optional[str] = None
+    language_counts: Dict[str, int]
 
 
 def semantic_search_enabled() -> bool:
@@ -269,7 +299,7 @@ def _load_audio_column_rows() -> List[Dict[str, Any]]:
 
 
 def _load_audio_keys() -> set:
-    """Lazy set of (name_strip, language) pairs that have embedded audio."""
+    """Lazy set of names with non-empty, recognizable persisted audio bytes."""
     global _audio_keys_cache
     if _audio_keys_cache is not None:
         return _audio_keys_cache
@@ -278,9 +308,25 @@ def _load_audio_keys() -> set:
         name_strip = str(row.get("NameStrip", "")).strip()
         language = str(row.get("Language", "")).strip()
         audio_val = row.get("Audio Pronunciation")
-        if name_strip and language and isinstance(audio_val, dict) and audio_val.get("bytes"):
+        audio_bytes = audio_val.get("bytes") if isinstance(audio_val, dict) else None
+        if name_strip and language and _is_valid_audio_bytes(audio_bytes):
             _audio_keys_cache.add((name_strip, language))
     return _audio_keys_cache
+
+
+def _is_valid_audio_bytes(value: Any) -> bool:
+    """Reject empty/corrupt blobs; only persisted audio formats are accepted."""
+    if not isinstance(value, (bytes, bytearray, memoryview)):
+        return False
+    audio = bytes(value)
+    if len(audio) < 12:
+        return False
+    return (
+        (audio.startswith(b"RIFF") and audio[8:12] == b"WAVE")
+        or audio.startswith((b"ID3", b"OggS", b"fLaC", b"\x1aE\xdf\xa3"))
+        or (audio[0] == 0xFF and audio[1] & 0xE0 == 0xE0)
+        or audio[4:8] == b"ftyp"
+    )
 
 
 def _fetch_audio_bytes(name_strip: str, language: str) -> Optional[bytes]:
@@ -297,7 +343,7 @@ def _fetch_audio_bytes(name_strip: str, language: str) -> Optional[bytes]:
         audio_val = row.get("Audio Pronunciation")
         if isinstance(audio_val, dict):
             audio_bytes = audio_val.get("bytes")
-            if audio_bytes:
+            if _is_valid_audio_bytes(audio_bytes):
                 _audio_bytes_cache[key] = audio_bytes
                 return audio_bytes
         break
@@ -736,7 +782,10 @@ async def get_insights(
     override with NOMI_INSIGHTS_MODEL).
     """
     try:
-        from insights_service import generate_insight_paragraph
+        from insights_service import (
+            NoGroundedInsightError,
+            generate_insight_paragraph,
+        )
     except ImportError as exc:
         raise HTTPException(status_code=501, detail=f"Insights module unavailable: {exc}") from exc
 
@@ -747,6 +796,8 @@ async def get_insights(
             meaning or "",
             lookup_name_fn=_lookup_name_results,
         )
+    except NoGroundedInsightError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     except RuntimeError as exc:
@@ -1822,6 +1873,56 @@ def _language_matches(lang_filter: Optional[str], dataset_language: str) -> bool
     return False
 
 
+def _recorded_names_feed(
+    language: Optional[str],
+    limit: int,
+    offset: int = 0,
+    *,
+    dataset_lookup: Optional[Dict[tuple, Dict[str, Any]]] = None,
+    audio_keys: Optional[set] = None,
+) -> tuple:
+    """Return stable metadata-only rows backed by persisted human recording bytes."""
+    lookup = dataset_lookup if dataset_lookup is not None else get_dataset_lookup()
+    recorded_keys = audio_keys if audio_keys is not None else _load_audio_keys()
+    language_counts: Dict[str, int] = {}
+    matches: List[Dict[str, Any]] = []
+
+    for name_strip, dataset_language in recorded_keys:
+        row = lookup.get((name_strip, dataset_language))
+        if not row:
+            continue
+        language_counts[dataset_language] = language_counts.get(dataset_language, 0) + 1
+        if not _language_matches(language, dataset_language):
+            continue
+
+        phonetic = row.get("Phonetic spelling") or row.get("Phonetic Spelling") or None
+        pronunciation_by = row.get("pronunciation_by") or None
+        matches.append(
+            {
+                "name": row.get("Name") or name_strip,
+                "name_strip": name_strip,
+                "language": dataset_language,
+                "phonetic_spelling": str(phonetic).strip() if phonetic else None,
+                "pronunciation_by": (
+                    str(pronunciation_by).strip() if pronunciation_by else None
+                ),
+                "audio_url": (
+                    f"/audio/{quote(name_strip, safe='')}"
+                    f"?language={quote(dataset_language, safe='')}"
+                ),
+            }
+        )
+
+    matches.sort(
+        key=lambda item: (
+            item["name"].casefold(),
+            item["language"].casefold(),
+            item["name_strip"].casefold(),
+        )
+    )
+    return matches[offset : offset + limit], len(matches), dict(sorted(language_counts.items()))
+
+
 def _lookup_name_results(name_strip: str, language: Optional[str]) -> list:
     """Shared logic: find all dataset rows matching name_strip (case-insensitive)."""
     load_dataset_fallback()
@@ -1851,6 +1952,7 @@ def _lookup_name_results(name_strip: str, language: Optional[str]) -> list:
             "name_strip": ns,
             "language": lang,
             "meaning": meaning,
+            "attribution": row.get("Attribution") or None,
             "additional_meaning": str(additional).strip() if additional else None,
             "phonetic_spelling": metadata.get("phonetic_spelling") or None,
             "audio_url": audio_url,
@@ -1863,6 +1965,27 @@ def _lookup_name_results(name_strip: str, language: Optional[str]) -> list:
             "story": story if story else None,
         })
     return results
+
+
+@app.get("/recorded-names", response_model=RecordedNamesResponse)
+async def get_recorded_names(
+    language: Optional[str] = Query(None, description="Language or language family"),
+    limit: int = Query(12, ge=1, le=100, description="Maximum names to return"),
+    offset: int = Query(0, ge=0, description="Stable alphabetical result offset"),
+):
+    """
+    List names with real embedded ``Audio Pronunciation`` bytes.
+
+    The response contains metadata and relative audio URLs only; audio bytes remain
+    on ``/audio/{name_strip}``. Results are stable alphabetical, never TTS-generated.
+    """
+    names, total, counts = _recorded_names_feed(language, limit, offset)
+    return RecordedNamesResponse(
+        names=[RecordedName(**item) for item in names],
+        total=total,
+        language=language,
+        language_counts=counts,
+    )
 
 
 @app.get("/audio/{name_strip}")

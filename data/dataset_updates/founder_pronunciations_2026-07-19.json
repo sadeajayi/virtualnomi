@@ -1,0 +1,36 @@
+{
+  "provenance": "Founder-provided pronunciation recordings, 2026-07-19",
+  "internal_pronunciation_by": "Folasade Ajayi",
+  "public_attribution_approved": false,
+  "recordings": [
+    {
+      "name_strip": "Temitope",
+      "language": "Yoruba",
+      "phonetic_spelling": "tay-mi-taw-kpe",
+      "audio_filename": "temitope.m4a"
+    },
+    {
+      "name_strip": "Morenikeji",
+      "language": "Yoruba",
+      "phonetic_spelling": "moh-reh-nee-kay-gee",
+      "audio_filename": "Morenikeji.m4a"
+    },
+    {
+      "name_strip": "Folakemi",
+      "language": "Yoruba",
+      "phonetic_spelling": "fuh-laa-keh-mee",
+      "audio_filename": "folakemi.m4a"
+    },
+    {
+      "name_strip": "Ogunkoya",
+      "language": "Yoruba",
+      "phonetic_spelling": "oh-goon-kuh-yaa",
+      "audio_filename": "ogunkoya.m4a",
+      "new_canonical_record": {
+        "name": "Ògúnkọ̀yà",
+        "meaning": "Ògún denounces suffering.",
+        "attribution": "Nomi"
+      }
+    }
+  ]
+}
