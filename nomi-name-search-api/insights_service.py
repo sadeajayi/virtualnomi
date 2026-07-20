@@ -32,7 +32,7 @@ from source_metadata import build_structured_sources
 
 INSIGHTS_MODEL = os.environ.get("NOMI_INSIGHTS_MODEL", "claude-sonnet-5")
 INSIGHTS_CACHE_SCHEMA_VERSION = os.environ.get(
-    "NOMI_INSIGHTS_CACHE_VERSION", "v6-name-specific-gate"
+    "NOMI_INSIGHTS_CACHE_VERSION", "v7-pattern-relevance-gate"
 )
 INSIGHTS_CACHE_TTL_SECONDS = int(
     os.environ.get("NOMI_INSIGHTS_CACHE_TTL_SECONDS", str(7 * 24 * 60 * 60))
@@ -45,7 +45,7 @@ _insight_result_cache: Dict[Tuple[str, ...], Tuple[float, Dict[str, Any]]] = {}
 
 
 class NoGroundedInsightError(ValueError):
-    """No indexed excerpt explicitly matched the queried name."""
+    """No relevant research excerpts for this name's language/meaning/patterns."""
 
 
 class OffVoiceInsightError(RuntimeError):
@@ -143,6 +143,9 @@ def gather_rag_context(
 ) -> Tuple[str, List[str], bool, Optional[str]]:
     """
     Returns (rag_excerpts_text, attributions, rag_used, rag_language_key).
+
+    Fail closed unless RAG returns excerpts that pass the pattern-relevance
+    gate (exact name hit optional; meaning/morphology/pattern ties required).
     """
     if not get_rag_service_for_dataset_language:
         return "", [], False, None
@@ -156,7 +159,12 @@ def gather_rag_context(
     excerpts = [
         item
         for item in rag.get_insights_excerpts(name, meaning)
-        if rag.has_name_specific_evidence(name, item.get("excerpt", ""))
+        if rag.is_pattern_relevant_excerpt(
+            name,
+            meaning,
+            item.get("excerpt", ""),
+            score=float(item.get("relevance_score") or 0),
+        )
     ]
 
     parts: List[str] = []
@@ -178,7 +186,11 @@ def build_user_message(
     attributions: List[str],
     additional_meaning: str = "",
 ) -> str:
-    rag_block = rag_excerpts if rag_excerpts else "(none — stay within meaning and precise general knowledge)"
+    rag_block = (
+        rag_excerpts
+        if rag_excerpts
+        else "(none — do not invent research; this request should have been blocked)"
+    )
     lines = [
         f"Name: {name}",
         f"Language: {language}",
@@ -189,6 +201,12 @@ def build_user_message(
     lines.append(
         f"Background notes (internal — never mention in your paragraph): {rag_block}"
     )
+    if attributions:
+        lines.append(
+            "Note: Research illuminates patterns and relations for this name. "
+            "Only claim the notes discuss this exact personal name when that name "
+            "appears in the notes."
+        )
     return "\n".join(lines)
 
 

@@ -63,6 +63,8 @@ LANGUAGE_CONFIG: Dict[str, Dict] = {
             "tolu", "tólú",
             "fola", "fọlá",
             "sade", "ṣade",
+            "temi", "tẹmi",
+            "ope", "ọpẹ",
         ],
     },
     "igbo": {

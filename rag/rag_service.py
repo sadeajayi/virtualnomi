@@ -78,6 +78,84 @@ _GENERIC_THEME_WORDS = frozenset(
         "communal",
     }
 )
+# Single-token meaning overlaps that often hitchhike on acknowledgements / noise.
+_WEAK_SINGLE_OVERLAP_TOKENS = frozenset(
+    {
+        "thanks",
+        "thank",
+        "mine",
+        "found",
+        "have",
+        "worthy",
+        "people",
+        "person",
+        "given",
+        "great",
+        "good",
+        "love",
+        "life",
+        "world",
+        "house",
+        "family",
+    }
+)
+# Expand meaning cues so "thanks" ties to gratitude-name excerpts, etc.
+_RELATED_MEANING_GROUPS: tuple[frozenset[str], ...] = (
+    frozenset(
+        {
+            "thank",
+            "thanks",
+            "thankful",
+            "gratitude",
+            "grateful",
+            "appreciate",
+            "appreciative",
+            "modupe",
+            "opeyemi",
+        }
+    ),
+    frozenset({"crown", "royal", "royalty", "king", "ade"}),
+    frozenset({"honour", "honor", "dignity", "prestige"}),
+    frozenset(
+        {
+            "companion",
+            "oriki",
+            "attributive",
+            "abiso",
+            "praise",
+            "affection",
+            "endear",
+            "endearment",
+        }
+    ),
+)
+_NAMING_PATTERN_HINTS = (
+    "oriki",
+    "abiso",
+    "attributive",
+    "amutorunwa",
+    "construction",
+    "compound",
+    "schema",
+    "morpheme",
+    "theophoric",
+    "sentential",
+    "appreciative",
+    "gratitude",
+    "birth circumstance",
+)
+_ACKNOWLEDGEMENT_MARKERS = (
+    "thanks also to",
+    "special thanks to",
+    "i would like to thank",
+    "i am especially grateful",
+    "grateful to the late",
+    "for comments on an earlier",
+    "acknowledgement",
+    "acknowledgment",
+    "acknowledgments",
+    "acknowledgements",
+)
 _MEANING_STOPWORDS = frozenset(
     {
         "a",
@@ -112,6 +190,8 @@ _MEANING_STOPWORDS = frozenset(
         "being",
     }
 )
+# Minimum reranked similarity for score-only relevance (with non-generic evidence).
+INSIGHTS_RELEVANCE_MIN_SCORE = 0.15
 
 _rag_instances: Dict[str, "LanguageRAGService"] = {}
 
@@ -244,7 +324,7 @@ class LanguageRAGService:
 
     @classmethod
     def has_name_specific_evidence(cls, name: str, text: str) -> bool:
-        """Public hard-gate signal for name-grounded insight generation."""
+        """True when the queried name (or alias) appears in the excerpt."""
         return cls._name_appears_in_text(name, text)
 
     def _meaning_content_tokens(self, meaning: str) -> Set[str]:
@@ -254,6 +334,136 @@ class LanguageRAGService:
             for t in tokens
             if len(t) >= 4 and t not in _MEANING_STOPWORDS and t not in _GENERIC_THEME_WORDS
         }
+
+    def _expanded_meaning_tokens(self, meaning: str) -> Set[str]:
+        """Meaning content tokens plus related pattern cues (thanks↔gratitude, etc.)."""
+        base = self._meaning_content_tokens(meaning)
+        raw = self._text_tokens(meaning or "")
+        expanded = set(base)
+        for group in _RELATED_MEANING_GROUPS:
+            if base & group or raw & group:
+                expanded |= group
+        return expanded
+
+    def _meaning_overlap_tokens(self, meaning: str, text: str) -> Set[str]:
+        return self._expanded_meaning_tokens(meaning) & self._text_tokens(text)
+
+    def _has_naming_pattern_context(self, text: str) -> bool:
+        text_folded = self._fold_for_match(text)
+        return any(hint in text_folded for hint in _NAMING_PATTERN_HINTS)
+
+    def _morphemes_in_text(self, name: str, text: str) -> List[str]:
+        text_folded = self._fold_for_match(text)
+        text_tokens = self._text_tokens(text)
+        found: List[str] = []
+        for morpheme in self._extract_morphemes(name):
+            mf = self._fold_for_match(morpheme)
+            if len(mf) < 3:
+                continue
+            if mf in text_tokens:
+                found.append(morpheme)
+                continue
+            # Substring only with letter boundaries (avoid ope⊂people, ade⊂trade).
+            if re.search(rf"(?<![a-z]){re.escape(mf)}(?![a-z])", text_folded):
+                found.append(morpheme)
+        return found
+
+    def _is_acknowledgement_boilerplate(self, text: str) -> bool:
+        folded = self._fold_for_match(text)
+        return any(marker in folded for marker in _ACKNOWLEDGEMENT_MARKERS)
+
+    def is_pattern_relevant_excerpt(
+        self,
+        name: str,
+        meaning: str,
+        text: str,
+        *,
+        score: float = 0.0,
+    ) -> bool:
+        """
+        Relevance gate for insights: require a real tie to this name's
+        structure/meaning/pattern family. Exact name hits are sufficient but
+        not required. Pure boilerplate ("names are important") fails.
+        """
+        excerpt = (text or "").strip()
+        if not excerpt:
+            return False
+
+        # Prefer exact / alias name hits when present.
+        if self._name_appears_in_text(name, excerpt):
+            return True
+
+        # Author thank-yous must not satisfy gratitude-name queries.
+        if self._is_acknowledgement_boilerplate(excerpt):
+            return False
+
+        text_tokens = self._text_tokens(excerpt)
+        base_overlap = self._meaning_content_tokens(meaning) & text_tokens
+        meaning_overlap = self._expanded_meaning_tokens(meaning) & text_tokens
+        morph_hits = self._morphemes_in_text(name, excerpt)
+        pattern_family = self._is_pattern_family_chunk(excerpt)
+        naming_context = self._has_naming_pattern_context(excerpt)
+        structural_cue = bool(morph_hits or pattern_family or naming_context)
+        strong_overlap = meaning_overlap - _WEAK_SINGLE_OVERLAP_TOKENS
+
+        if pattern_family and meaning_overlap:
+            return True
+
+        if morph_hits:
+            if meaning_overlap or naming_context:
+                return True
+            text_folded = self._fold_for_match(excerpt)
+            if any(hint in text_folded for hint in _NAME_DEFINITION_HINTS):
+                return True
+
+        if len(strong_overlap) >= 2:
+            return True
+
+        if len(strong_overlap) == 1:
+            tok = next(iter(strong_overlap))
+            # Direct meaning content (e.g. crown, companion, honour) is enough.
+            if tok in base_overlap and len(tok) >= 5:
+                return True
+            # Related-pattern cues (gratitude, oriki) need a structural cue.
+            if structural_cue:
+                return True
+            return False
+
+        # Weak-only overlaps (mine, found, thanks) need morphology/pattern support.
+        if meaning_overlap and structural_cue:
+            return True
+
+        if (
+            score >= INSIGHTS_RELEVANCE_MIN_SCORE
+            and strong_overlap
+            and naming_context
+            and not self._is_generic_boilerplate(excerpt, meaning)
+        ):
+            return True
+
+        return False
+
+    def _is_generic_boilerplate(self, text: str, meaning: str) -> bool:
+        """True for tropes that do not tie to this name's meaning/structure."""
+        if self._meaning_overlap_tokens(meaning, text):
+            return False
+        text_tokens = self._text_tokens(text)
+        content = {
+            t
+            for t in text_tokens
+            if len(t) >= 4 and t not in _MEANING_STOPWORDS
+        }
+        if content and content <= _GENERIC_THEME_WORDS:
+            return True
+        folded = self._fold_for_match(text)
+        markers = (
+            "names are important",
+            "naming traditions often",
+            "cultural significance of names",
+            "names carry deep",
+            "deep meaning",
+        )
+        return any(marker in folded for marker in markers)
 
     def _has_name_definition_context(self, name: str, text: str) -> bool:
         if not self._name_appears_in_text(name, text):
@@ -284,6 +494,7 @@ class LanguageRAGService:
         text_tokens = self._text_tokens(text)
         score = base_sim
         name_present = self._name_appears_in_text(name, text)
+        meaning_overlap = self._meaning_overlap_tokens(meaning, text)
 
         if name_present:
             score += 0.55
@@ -294,11 +505,17 @@ class LanguageRAGService:
             generic_only = overlap_words and overlap_words <= (
                 _GENERIC_THEME_WORDS | set(self.query_suffix.lower().split())
             )
-            if generic_only or (base_sim > 0 and not name_present):
+            # Penalize boilerplate-only hits; do not blanket-penalize all
+            # non-name pattern/meaning excerpts (pattern-based insights).
+            if generic_only:
                 score -= 0.3
 
-        meaning_tokens = self._meaning_content_tokens(meaning)
-        if name_present and meaning_tokens & text_tokens:
+        if meaning_overlap:
+            score += 0.2 if name_present else 0.25
+            if len(meaning_overlap) >= 2:
+                score += 0.1
+
+        if self._morphemes_in_text(name, text):
             score += 0.2
 
         name_tokens = self._text_tokens(name)
@@ -310,7 +527,7 @@ class LanguageRAGService:
 
         if self._is_pattern_family_chunk(text):
             score += 0.2
-            if meaning_tokens & text_tokens:
+            if meaning_overlap:
                 score += 0.25
 
         return score
@@ -326,7 +543,8 @@ class LanguageRAGService:
 
     @staticmethod
     def _insights_query_expansions(name: str, meaning: str) -> List[str]:
-        """Add secondary search terms for rhetorical / sentential name families."""
+        """Add secondary search terms for rhetorical / pattern name families."""
+        del name  # reserved for future name-structure expansions
         meaning_lower = (meaning or "").strip().lower()
         if not meaning_lower:
             return []
@@ -337,6 +555,20 @@ class LanguageRAGService:
             )
         if "?" in meaning_lower or meaning_lower.startswith("who "):
             expansions.append("interrogative phrasal names rhetorical question")
+        if any(
+            cue in meaning_lower
+            for cue in ("thank", "gratitude", "grateful", "appreciate")
+        ):
+            expansions.append(
+                "appreciative gratitude names Modupe Opeyemi thank God"
+            )
+        if any(cue in meaning_lower for cue in ("crown", "honour", "honor")):
+            expansions.append("adé crown compound construction names")
+        if any(
+            cue in meaning_lower
+            for cue in ("companion", "found a friend", "found a companion")
+        ):
+            expansions.append("oríkì àbísọ attributive personal names")
         return expansions
 
     def _select_insights_excerpts(
@@ -471,11 +703,16 @@ class LanguageRAGService:
         return scored_chunks[:top_k]
 
     def _extract_morphemes(self, name: str) -> List[str]:
-        name_lower = name.lower()
-        found = []
+        name_folded = self._fold_for_match(name)
+        found: List[str] = []
+        seen: Set[str] = set()
         for morpheme in self.morphemes:
-            if morpheme.lower() in name_lower:
+            mf = self._fold_for_match(morpheme)
+            if len(mf) < 3 or mf in seen:
+                continue
+            if mf in name_folded:
                 found.append(morpheme)
+                seen.add(mf)
         return found
 
     def get_cultural_context(self, name: str, meaning: str) -> str:
@@ -564,12 +801,14 @@ class LanguageRAGService:
     ) -> List[Dict]:
         """Retrieve capped, per-paper-diversified excerpts for the insights endpoint."""
         del max_per_paper  # selection uses INSIGHTS_MAX_* constants
-        queries = [f"{name} {meaning}".strip()]
+        morphemes = self._extract_morphemes(name)
+        morph_part = " ".join(morphemes[:4])
+        primary = f"{name} {meaning} {morph_part}".strip()
+        queries = [primary]
         for expansion in self._insights_query_expansions(name, meaning):
             queries.append(f"{expansion} {meaning}".strip())
 
-        merged: List[Dict] = []
-        seen_keys: Set[str] = set()
+        merged_by_key: Dict[str, Dict] = {}
         for query in queries:
             for result in self.search(
                 query,
@@ -578,11 +817,13 @@ class LanguageRAGService:
                 meaning=meaning,
             ):
                 key = str(result.get("id") or result["text"][:120])
-                if key in seen_keys:
-                    continue
-                seen_keys.add(key)
-                merged.append(result)
+                prev = merged_by_key.get(key)
+                if prev is None or float(result.get("similarity") or 0) > float(
+                    prev.get("similarity") or 0
+                ):
+                    merged_by_key[key] = result
 
+        merged = list(merged_by_key.values())
         results = self._select_insights_excerpts(merged, top_k=top_k, name=name)
         return [
             {
