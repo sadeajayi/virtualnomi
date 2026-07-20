@@ -32,14 +32,14 @@ from source_metadata import build_structured_sources
 
 INSIGHTS_MODEL = os.environ.get("NOMI_INSIGHTS_MODEL", "claude-sonnet-5")
 INSIGHTS_CACHE_SCHEMA_VERSION = os.environ.get(
-    "NOMI_INSIGHTS_CACHE_VERSION", "v8-avoid-ai-writing"
+    "NOMI_INSIGHTS_CACHE_VERSION", "v9-post-gate-avoid-ai-writing"
 )
 INSIGHTS_CACHE_TTL_SECONDS = int(
     os.environ.get("NOMI_INSIGHTS_CACHE_TTL_SECONDS", str(7 * 24 * 60 * 60))
 )
 INSIGHTS_CACHE_MAX_ENTRIES = int(os.environ.get("NOMI_INSIGHTS_CACHE_MAX_ENTRIES", "512"))
 # Production voice: Cursor rules (e.g. avoid-ai-writing.mdc) do not apply on Render.
-# Actionable bans are folded into nomi_insights_system_prompt.md (AI voice section).
+# Keep the system prompt story-first; enforce high-signal bans in the post-generation gate.
 _PROMPT_PATH = Path(__file__).resolve().parent / "prompts" / "nomi_insights_system_prompt.md"
 _system_prompt_cache: Optional[str] = None
 _PROMPT_MTIME: Optional[float] = None
@@ -281,8 +281,12 @@ _CONTRAST_PEDAGOGY_PATTERNS: Tuple[re.Pattern[str], ...] = (
     re.compile(r"(?i)\bless\b[^.!?]{0,60}\bthan\b"),
 )
 
+# High-precision avoid-ai-writing Tier-1 / structural bans. Prefer precision over
+# coverage — legitimate cultural prose must not trip these.
 _STYLE_PATTERNS: Tuple[Tuple[str, re.Pattern[str]], ...] = (
     ("em dash", re.compile(r"[\u2014\u2e3a]")),
+    ("en dash as pause", re.compile(r"\u2013")),
+    ("double-hyphen dash", re.compile(r"(?<!\d)--(?!\d)")),
     ("not X but Y", re.compile(r"(?i)\bnot\b[^.!?]{0,120}\bbut\b")),
     ("not only X", re.compile(r"(?i)\bnot\s+only\b")),
     (
@@ -294,16 +298,57 @@ _STYLE_PATTERNS: Tuple[Tuple[str, re.Pattern[str]], ...] = (
     ),
     ("rather than", re.compile(r"(?i)\brather\s+than\b")),
     ("less X than Y", re.compile(r"(?i)\bless\b[^.!?]{0,80}\bthan\b")),
+    (
+        "hollow intensifier / hedge phrase",
+        re.compile(
+            r"(?i)\b(?:it(?:['’]s| is) worth noting(?: that)?|to be clear|"
+            r"quite frankly|to be honest|let['’]s be clear|"
+            r"could potentially|at its core)\b"
+        ),
+    ),
+    (
+        "significance inflation",
+        re.compile(
+            r"(?i)\b(?:testament to|stands as a testament|pivotal moment|"
+            r"watershed moment|marking a pivotal|game[- ]changer|"
+            r"game[- ]changing|cutting[- ]edge)\b"
+        ),
+    ),
+    (
+        "AI Tier-1 filler",
+        re.compile(
+            r"(?i)\b(?:delve(?:s|d|ing)?(?:\s+into)?|tapestry|paradigm|"
+            r"embark(?:s|ed|ing)?|beacon|seamless(?:ly)?|"
+            r"utili[sz]e(?:s|d|ing)?|nestled|deep dive|dive into|"
+            r"unpack(?:s|ed|ing)?|synerg(?:y|ies)|"
+            r"rich cultural heritage|deeply rooted)\b"
+        ),
+    ),
+    (
+        "brochure / transition AI-ism",
+        re.compile(
+            r"(?i)(?:(?:^|[.!?]\s+)(?:moreover|furthermore|additionally)\b|"
+            r"\b(?:in today['’]s|in an era where|at the end of the day|"
+            r"only time will tell|the future looks bright|"
+            r"here['’]s the thing|the catch\?|plot twist|"
+            r"let['’]s (?:explore|dive|break this down|take a look))\b)"
+        ),
+    ),
 )
 
 
 def insight_style_violations(text: str) -> List[str]:
-    """Return deterministic whole-paragraph voice violations."""
+    """Return deterministic whole-paragraph voice violations (avoid-ai-writing gate)."""
     return [
         label
         for label, pattern in _STYLE_PATTERNS
         if pattern.search(text or "")
     ]
+
+
+def avoid_ai_writing_gate(text: str) -> List[str]:
+    """Post-generation avoid-ai-writing check; alias of insight_style_violations."""
+    return insight_style_violations(text)
 
 
 def _sentence_has_contrast_pedagogy(sentence: str) -> bool:
@@ -363,9 +408,11 @@ _META_RETRY_NOTE = (
     "literature, or attributions. Write only as a griot about the name."
 )
 
-_CONTRAST_RETRY_NOTE = (
-    "Important: State every claim directly. Do not use negative contrast or "
-    "corrective parallelism."
+_AVOID_AI_RETRY_NOTE = (
+    "Important: Rewrite this Reading to remove the listed AI-writing patterns. "
+    "State every claim directly. Use no em dashes, en dashes as pauses, or "
+    "double-hyphen dashes. Do not use negative contrast or corrective parallelism. "
+    "Cut hollow intensifiers, significance-inflation phrases, and brochure filler."
 )
 
 
@@ -373,11 +420,10 @@ def _build_insight_retry_note(insight: str) -> str:
     notes: List[str] = []
     if not insight or _contains_meta_source_language(insight):
         notes.append(_META_RETRY_NOTE)
-    violations = insight_style_violations(insight)
+    violations = avoid_ai_writing_gate(insight)
     if violations:
         notes.append(
-            f"{_CONTRAST_RETRY_NOTE} Also use no em dashes. "
-            f"Detected violations: {', '.join(violations)}."
+            f"{_AVOID_AI_RETRY_NOTE} Detected violations: {', '.join(violations)}."
         )
     return "\n\n".join(notes)
 
@@ -468,10 +514,10 @@ def generate_insight_paragraph(
         insight = _clean_insight_output(raw)
     if not insight:
         raise RuntimeError("Claude returned an empty insight")
-    final_violations = insight_style_violations(insight)
+    final_violations = avoid_ai_writing_gate(insight)
     if final_violations:
         raise OffVoiceInsightError(
-            "Generated Reading failed Nomi voice rules after one retry: "
+            "Generated Reading failed avoid-ai-writing gate after one retry: "
             + ", ".join(final_violations)
         )
 
