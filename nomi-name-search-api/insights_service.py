@@ -32,12 +32,14 @@ from source_metadata import build_structured_sources
 
 INSIGHTS_MODEL = os.environ.get("NOMI_INSIGHTS_MODEL", "claude-sonnet-5")
 INSIGHTS_CACHE_SCHEMA_VERSION = os.environ.get(
-    "NOMI_INSIGHTS_CACHE_VERSION", "v7-pattern-relevance-gate"
+    "NOMI_INSIGHTS_CACHE_VERSION", "v8-avoid-ai-writing"
 )
 INSIGHTS_CACHE_TTL_SECONDS = int(
     os.environ.get("NOMI_INSIGHTS_CACHE_TTL_SECONDS", str(7 * 24 * 60 * 60))
 )
 INSIGHTS_CACHE_MAX_ENTRIES = int(os.environ.get("NOMI_INSIGHTS_CACHE_MAX_ENTRIES", "512"))
+# Production voice: Cursor rules (e.g. avoid-ai-writing.mdc) do not apply on Render.
+# Actionable bans are folded into nomi_insights_system_prompt.md (AI voice section).
 _PROMPT_PATH = Path(__file__).resolve().parent / "prompts" / "nomi_insights_system_prompt.md"
 _system_prompt_cache: Optional[str] = None
 _PROMPT_MTIME: Optional[float] = None
