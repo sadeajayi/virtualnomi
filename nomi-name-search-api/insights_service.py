@@ -32,7 +32,7 @@ from source_metadata import build_structured_sources
 
 INSIGHTS_MODEL = os.environ.get("NOMI_INSIGHTS_MODEL", "claude-sonnet-5")
 INSIGHTS_CACHE_SCHEMA_VERSION = os.environ.get(
-    "NOMI_INSIGHTS_CACHE_VERSION", "v4-grounded-style"
+    "NOMI_INSIGHTS_CACHE_VERSION", "v5-name-specific-gate"
 )
 INSIGHTS_CACHE_TTL_SECONDS = int(
     os.environ.get("NOMI_INSIGHTS_CACHE_TTL_SECONDS", str(7 * 24 * 60 * 60))

@@ -66,6 +66,52 @@ def test_generic_excerpt_without_name_hit_is_rejected(monkeypatch):
     )
 
 
+def test_morenikeji_generic_excerpts_fail_hard_gate_before_model(monkeypatch):
+    service._clear_insight_cache()
+    generic = _FakeRag(
+        [
+            {
+                "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+                "excerpt": "Reincarnate names combine a kinship term with other words.",
+            },
+            {
+                "paper": "Yoruba_Traditional_Names_and_the_Transmi.pdf",
+                "excerpt": "Some children are believed to travel between spirit and human worlds.",
+            },
+            {
+                "paper": "Endangerment_of_Yoruba_Individual_Names.pdf",
+                "excerpt": "Name formation may obey vowel harmony principles.",
+            },
+            {
+                "paper": "Yoruba Naming.pdf",
+                "excerpt": "Some African naming traditions reflect belief in reincarnation.",
+            },
+        ]
+    )
+    model_called = False
+
+    def model_call(*_args, **_kwargs):
+        nonlocal model_called
+        model_called = True
+        return "This unsupported paragraph must never be returned."
+
+    monkeypatch.setattr(service, "load_insights_system_prompt", lambda: "prompt")
+    monkeypatch.setattr(
+        service,
+        "get_rag_service_for_dataset_language",
+        lambda *_args, **_kwargs: generic,
+    )
+    monkeypatch.setattr(service, "_call_insights_model", model_call)
+
+    with pytest.raises(service.NoGroundedInsightError):
+        service.generate_insight_paragraph(
+            "Morẹ́nikéjì",
+            "Yoruba",
+            "I have found a companion.",
+        )
+    assert model_called is False
+
+
 def test_adunni_alias_hit_produces_grounded_context(monkeypatch):
     grounded = _FakeRag(
         [{
