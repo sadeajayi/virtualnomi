@@ -805,6 +805,18 @@ async def get_insights(
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Insight generation failed: {exc}") from exc
 
+    # Belt-and-suspenders: never serialize an ungrounded Reading from this endpoint.
+    if (
+        not payload.get("grounded")
+        or not payload.get("rag_used")
+        or not payload.get("sources")
+        or not str(payload.get("insight") or "").strip()
+    ):
+        raise HTTPException(
+            status_code=404,
+            detail=f"No research-grounded reading is available for '{name}'",
+        )
+
     return InsightsResponse(**payload)
 
 

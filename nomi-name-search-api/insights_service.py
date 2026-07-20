@@ -32,7 +32,7 @@ from source_metadata import build_structured_sources
 
 INSIGHTS_MODEL = os.environ.get("NOMI_INSIGHTS_MODEL", "claude-sonnet-5")
 INSIGHTS_CACHE_SCHEMA_VERSION = os.environ.get(
-    "NOMI_INSIGHTS_CACHE_VERSION", "v5-name-specific-gate"
+    "NOMI_INSIGHTS_CACHE_VERSION", "v6-name-specific-gate"
 )
 INSIGHTS_CACHE_TTL_SECONDS = int(
     os.environ.get("NOMI_INSIGHTS_CACHE_TTL_SECONDS", str(7 * 24 * 60 * 60))
@@ -108,6 +108,14 @@ def _get_cached_insight(key: Tuple[str, ...]) -> Optional[Dict[str, Any]]:
 
 
 def _store_cached_insight(key: Tuple[str, ...], payload: Dict[str, Any]) -> None:
+    # Never persist ungrounded or sources-less payloads (failures must not cache).
+    if (
+        payload.get("grounded") is not True
+        or not payload.get("rag_used")
+        or not payload.get("sources")
+        or not str(payload.get("insight") or "").strip()
+    ):
+        return
     if len(_insight_result_cache) >= INSIGHTS_CACHE_MAX_ENTRIES:
         oldest_key = min(_insight_result_cache, key=lambda item: _insight_result_cache[item][0])
         _insight_result_cache.pop(oldest_key, None)

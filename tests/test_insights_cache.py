@@ -94,3 +94,17 @@ def test_meaning_change_invalidates_cache_key(monkeypatch):
     service.generate_insight_paragraph("Adaeze", "Igbo", "A royal daughter")
 
     assert calls == 2
+
+
+def test_store_rejects_ungrounded_payload():
+    key = ("v-test", "model", "digest", "name", "lang", "meaning", "")
+    service._store_cached_insight(
+        key,
+        {
+            "insight": "Should never be served from cache.",
+            "grounded": False,
+            "rag_used": False,
+            "sources": [],
+        },
+    )
+    assert service._get_cached_insight(key) is None
