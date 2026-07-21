@@ -70,6 +70,91 @@ def test_akpofure_without_rag_never_calls_model(monkeypatch):
     assert model_called is False
 
 
+def test_ambiguous_lookup_requires_specific_language(monkeypatch):
+    service._clear_insight_cache()
+    rag_called = False
+
+    def rag_call(*_args, **_kwargs):
+        nonlocal rag_called
+        rag_called = True
+        return "Excerpt", ["Paper.pdf"], True, "igbo"
+
+    monkeypatch.setattr(service, "gather_rag_context", rag_call)
+
+    with pytest.raises(ValueError, match="matches multiple languages"):
+        service.generate_insight_paragraph(
+            "Ada",
+            "",
+            "",
+            lookup_name_fn=lambda *_args: [
+                {
+                    "name": "Ada",
+                    "language": "Igbo",
+                    "meaning": "First daughter",
+                },
+                {
+                    "name": "Ada",
+                    "language": "Yoruba",
+                    "meaning": "Royal crown",
+                },
+            ],
+        )
+
+    assert rag_called is False
+
+
+def test_lookup_prefers_exact_language_before_family_matches(monkeypatch):
+    service._clear_insight_cache()
+    seen = {}
+
+    monkeypatch.setattr(service, "load_insights_system_prompt", lambda: "prompt")
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "test-key")
+    monkeypatch.setattr(
+        service,
+        "anthropic",
+        type("AnthropicModule", (), {"Anthropic": lambda *args, **kwargs: object()}),
+    )
+    monkeypatch.setattr(
+        service,
+        "build_structured_sources",
+        lambda *_args, **_kwargs: [{"filename": "Hausa_Names.pdf"}],
+    )
+    monkeypatch.setattr(
+        service,
+        "_call_insights_model",
+        lambda *_args, **_kwargs: "Ada carries a grounded reading for this name.",
+    )
+
+    def rag_call(name, meaning, language):
+        seen["name"] = name
+        seen["meaning"] = meaning
+        seen["language"] = language
+        return "Grounded Hausa excerpt", ["Hausa_Names.pdf"], True, "hausa"
+
+    monkeypatch.setattr(service, "gather_rag_context", rag_call)
+
+    payload = service.generate_insight_paragraph(
+        "Ada",
+        "Hausa",
+        "",
+        lookup_name_fn=lambda *_args: [
+            {
+                "name": "Ada",
+                "language": "Hausa (Localised Islamic/Arabic)",
+                "meaning": "Adornment",
+            },
+            {
+                "name": "Ada",
+                "language": "Hausa",
+                "meaning": "Noble one",
+            },
+        ],
+    )
+
+    assert seen == {"name": "Ada", "meaning": "Noble one", "language": "Hausa"}
+    assert payload["meaning"] == "Noble one"
+
+
 def test_generic_boilerplate_without_meaning_tie_is_rejected(monkeypatch):
     generic = _FakeRag(
         [{
