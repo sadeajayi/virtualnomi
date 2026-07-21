@@ -1,0 +1,100 @@
+{
+  "updated_at": "2026-07-21T00:06:14.150650+00:00",
+  "new_meaning": "Wear wealth/honour like a crown",
+  "rows": [
+    {
+      "NameStrip": "Folasade",
+      "Language": "Yoruba",
+      "Name": "Fọláṣadé",
+      "before": {
+        "Name": "Fọláṣadé",
+        "NameStrip": "Folasade",
+        "Meaning": "Rule/lead with nobility. Assume royalty with (your) wealth.",
+        "Audio Pronunciation": {
+          "bytes": 344412
+        },
+        "Phonetic spelling": "fuh-laa-sha-day",
+        "Language": "Yoruba",
+        "Additional meaning": "",
+        "Attribution": "YorubaNames.com",
+        "Validation_Status": "",
+        "validated_by": "",
+        "pronunciation_by": "Folasade Ajayi",
+        "cultural_context": "",
+        "themes": "[]",
+        "transformation_status": "",
+        "source_notes": ""
+      },
+      "meaning_changed": true,
+      "after": {
+        "Name": "Fọláṣadé",
+        "NameStrip": "Folasade",
+        "Meaning": "Wear wealth/honour like a crown",
+        "Audio Pronunciation": {
+          "bytes": 344412
+        },
+        "Phonetic spelling": "fuh-laa-sha-day",
+        "Language": "Yoruba",
+        "Additional meaning": "",
+        "Attribution": "YorubaNames.com",
+        "Validation_Status": "",
+        "validated_by": "",
+        "pronunciation_by": "Folasade Ajayi",
+        "cultural_context": "",
+        "themes": "[]",
+        "transformation_status": "",
+        "source_notes": ""
+      }
+    },
+    {
+      "NameStrip": "Folashade",
+      "Language": "Yoruba",
+      "Name": "Fọláshadé",
+      "before": {
+        "Name": "Fọláshadé",
+        "NameStrip": "Folashade",
+        "Meaning": "Make royalty with nobility.",
+        "Audio Pronunciation": {
+          "bytes": 217014
+        },
+        "Phonetic spelling": "fuh-laa-sha-day",
+        "Language": "Yoruba",
+        "Additional meaning": "",
+        "Attribution": "YorubaNames.com",
+        "Validation_Status": "",
+        "validated_by": "",
+        "pronunciation_by": "Folasade Ajayi",
+        "cultural_context": "",
+        "themes": "[]",
+        "transformation_status": "",
+        "source_notes": ""
+      },
+      "meaning_changed": true,
+      "after": {
+        "Name": "Fọláshadé",
+        "NameStrip": "Folashade",
+        "Meaning": "Wear wealth/honour like a crown",
+        "Audio Pronunciation": {
+          "bytes": 217014
+        },
+        "Phonetic spelling": "fuh-laa-sha-day",
+        "Language": "Yoruba",
+        "Additional meaning": "",
+        "Attribution": "YorubaNames.com",
+        "Validation_Status": "",
+        "validated_by": "",
+        "pronunciation_by": "Folasade Ajayi",
+        "cultural_context": "",
+        "themes": "[]",
+        "transformation_status": "",
+        "source_notes": ""
+      }
+    }
+  ],
+  "updated_count": 2,
+  "already_current_count": 0,
+  "missing": [],
+  "hf_revision": "3e2482159cd37a88e5c8172253464153911c8010",
+  "hf_commit_message": "Update Folasade/Folashade meaning: Wear wealth/honour like a crown",
+  "live_api_note": "nomi-name-search-api caches parquet path + lookup in-process. After HF push, Render still served previous meanings until restart. No RENDER_API_KEY in this environment — restart nomi-name-search-api on Render, then re-check GET /name/Folasade?language=Yoruba and /name/Folashade?language=Yoruba."
+}
