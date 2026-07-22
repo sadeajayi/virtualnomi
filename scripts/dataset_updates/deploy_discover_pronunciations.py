@@ -21,7 +21,15 @@ from typing import Any, Callable
 import numpy as np
 import pandas as pd
 from datasets import Dataset
-from huggingface_hub import HfApi, HfFolder, hf_hub_download
+from huggingface_hub import HfApi, hf_hub_download
+
+try:
+    from huggingface_hub import get_token
+except ImportError:  # pragma: no cover - compatibility with older hub versions.
+    from huggingface_hub import HfFolder
+
+    def get_token() -> str | None:
+        return HfFolder.get_token()
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 if str(SCRIPT_DIR) not in sys.path:
@@ -251,7 +259,7 @@ def parse_args() -> argparse.Namespace:
 def main() -> None:
     args = parse_args()
     manifest = json.loads(args.manifest.read_text(encoding="utf-8"))
-    token = os.environ.get("HF_TOKEN") or HfFolder.get_token()
+    token = os.environ.get("HF_TOKEN") or get_token()
     source = args.source_parquet or Path(
         hf_hub_download(
             repo_id=DATASET_REPO,
