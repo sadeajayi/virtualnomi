@@ -9,6 +9,7 @@ import pytest
 
 from scripts.dataset_updates.deploy_discover_pronunciations import (
     apply_recordings,
+    _verify_push_source_is_current,
     validate_wav_audio,
 )
 
@@ -56,7 +57,7 @@ def _frame():
     )
 
 
-def test_audio_batch_preserves_canonical_evidence_and_sets_internal_credit(tmp_path):
+def test_audio_batch_preserves_canonical_evidence_without_public_credit(tmp_path):
     (tmp_path / "temitope.m4a").write_bytes(b"test source placeholder")
     before = _frame()
     updated, report = apply_recordings(
@@ -70,9 +71,28 @@ def test_audio_batch_preserves_canonical_evidence_and_sets_internal_credit(tmp_p
     assert row["Attribution"] == "YorubaNames.com"
     assert row["Validation_Status"] == ""
     assert row["Phonetic spelling"] == "tay-mi-taw-kpe"
-    assert row["pronunciation_by"] == "Folasade Ajayi"
+    assert row["pronunciation_by"] == ""
     assert row["Audio Pronunciation"]["bytes"][:4] == b"RIFF"
     assert report[0]["public_attribution_approved"] is False
+    assert report[0]["public_pronunciation_by"] is None
+
+
+def test_audio_batch_uses_public_credit_only_when_approved(tmp_path):
+    (tmp_path / "temitope.m4a").write_bytes(b"test source placeholder")
+    manifest = _manifest()
+    manifest["public_attribution_approved"] = True
+    manifest["public_pronunciation_by"] = "Nomi Team"
+
+    updated, report = apply_recordings(
+        _frame(),
+        manifest,
+        tmp_path,
+        audio_loader=lambda _path: _wav_bytes(),
+    )
+
+    assert updated.iloc[0]["pronunciation_by"] == "Nomi Team"
+    assert report[0]["public_attribution_approved"] is True
+    assert report[0]["public_pronunciation_by"] == "Nomi Team"
 
 
 def test_rejects_missing_or_duplicate_canonical_rows(tmp_path):
@@ -127,4 +147,10 @@ def test_adds_new_nomi_sourced_row_with_honest_safe_defaults(tmp_path):
     assert row["Attribution"] == "Nomi"
     assert row["Validation_Status"] == ""
     assert row["validated_by"] == ""
+    assert row["pronunciation_by"] == ""
     assert report[0]["canonical_row_created"] is True
+
+
+def test_push_rejects_unverifiable_source_revision():
+    with pytest.raises(SystemExit, match="freshly downloaded"):
+        _verify_push_source_is_current("local", token=None)
