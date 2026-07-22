@@ -17,6 +17,11 @@ def _lookup():
             "Phonetic spelling": "ah-deh-zeh",
             "pronunciation_by": "Chika",
         },
+        ("Temitope", "Yoruba"): {
+            "Name": "Tèmítọ́pẹ́",
+            "Phonetic spelling": "tay-mi-taw-kpe",
+            "pronunciation_by": "Folasade Ajayi",
+        },
         ("Babangida", "Hausa"): {
             "Name": "Babangida",
             "Phonetic spelling": "bah-bahn-gee-dah",
@@ -51,6 +56,29 @@ def test_recorded_feed_filters_to_audio_keys_and_orders_stably():
     }
     assert names[0]["audio_url"] == "/audio/Adaeze?language=Igbo"
     assert "Audio Pronunciation" not in names[0]
+
+
+def test_recorded_feed_hides_unapproved_internal_attribution():
+    names, total, _ = _recorded_names_feed(
+        "Yoruba",
+        10,
+        dataset_lookup=_lookup(),
+        audio_keys={("Temitope", "Yoruba")},
+    )
+
+    assert total == 1
+    assert names[0]["name_strip"] == "Temitope"
+    assert names[0]["pronunciation_by"] is None
+
+
+def test_name_metadata_hides_unapproved_internal_attribution(monkeypatch):
+    monkeypatch.setattr(api, "_load_audio_keys", lambda: {("Temitope", "Yoruba")})
+    monkeypatch.setattr(api, "get_dataset_lookup", lambda: _lookup())
+
+    metadata = api.get_name_metadata_from_dataset("Temitope", "Yoruba")
+
+    assert metadata["audio_url"] == "/audio/Temitope?language=Yoruba"
+    assert metadata["pronunciation_by"] == ""
 
 
 def test_recorded_feed_supports_language_families_and_bounded_results():

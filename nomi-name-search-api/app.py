@@ -93,6 +93,29 @@ _REPO_ROOT = Path(__file__).resolve().parent.parent
 _PARAPHRASE_FILE = _REPO_ROOT / "data" / "paraphrasing" / "yoruba_paraphrased_meanings.json"
 _PARAPHRASE_FILE_FALLBACK = Path(__file__).resolve().parent / "data" / "yoruba_paraphrased_meanings.json"
 
+_UNAPPROVED_PRONUNCIATION_ATTRIBUTIONS = {
+    ("temitope", "yoruba"): "folasade ajayi",
+    ("morenikeji", "yoruba"): "folasade ajayi",
+    ("folakemi", "yoruba"): "folasade ajayi",
+    ("ogunkoya", "yoruba"): "folasade ajayi",
+}
+
+
+def _public_pronunciation_by(
+    row: Dict[str, Any],
+    name_strip: str,
+    language: str,
+) -> str:
+    contributor = str(row.get("pronunciation_by") or "").strip()
+    if not contributor:
+        return ""
+    unapproved = _UNAPPROVED_PRONUNCIATION_ATTRIBUTIONS.get(
+        (str(name_strip).strip().casefold(), str(language).strip().casefold())
+    )
+    if unapproved and contributor.casefold() == unapproved:
+        return ""
+    return contributor
+
 
 def get_paraphrase_lookup() -> Dict[str, str]:
     """Load yoruba_paraphrased_meanings.json and return name_strip (lower) -> first variation."""
@@ -483,7 +506,7 @@ def get_name_metadata_from_dataset(name_strip: str, language: str) -> Dict[str, 
     return {
         "phonetic_spelling": phonetic_spelling,
         "pronunciation_url": audio_url,
-        "pronunciation_by": match.get("pronunciation_by", ""),
+        "pronunciation_by": _public_pronunciation_by(match, name_strip, language),
         "validated_by": match.get("Validated_By", ""),
         "validation_status": match.get("Validation_Status", ""),
         "audio_url": audio_url,
@@ -1908,7 +1931,9 @@ def _recorded_names_feed(
             continue
 
         phonetic = row.get("Phonetic spelling") or row.get("Phonetic Spelling") or None
-        pronunciation_by = row.get("pronunciation_by") or None
+        pronunciation_by = (
+            _public_pronunciation_by(row, name_strip, dataset_language) or None
+        )
         matches.append(
             {
                 "name": row.get("Name") or name_strip,
