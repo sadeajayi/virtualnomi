@@ -1,6 +1,5 @@
 from pathlib import Path
 
-import pandas as pd
 import pytest
 
 from scripts.dataset_updates import hf_dataset_uploads
@@ -23,7 +22,7 @@ def test_extracts_snapshot_revision_from_hf_download_path(tmp_path):
 def test_rejects_push_without_immutable_source_revision():
     with pytest.raises(ValueError, match="source_revision"):
         hf_dataset_uploads.push_dataframe_to_hub(
-            pd.DataFrame({"NameStrip": ["Adaora"]}),
+            {"NameStrip": ["Adaora"]},
             "nomi-stories/nomi-names",
             "data/train-00000-of-00001.parquet",
             token="hf_test",
@@ -38,7 +37,7 @@ def test_push_uses_parent_commit_guard(monkeypatch):
     class FakeDataset:
         @classmethod
         def from_pandas(cls, frame, preserve_index=False):
-            captured["frame"] = frame.copy()
+            captured["frame"] = frame
             captured["preserve_index"] = preserve_index
             return cls()
 
@@ -78,7 +77,7 @@ def test_push_uses_parent_commit_guard(monkeypatch):
     )
 
     result = hf_dataset_uploads.push_dataframe_to_hub(
-        pd.DataFrame({"NameStrip": ["Adaora"]}),
+        {"NameStrip": ["Adaora"]},
         "nomi-stories/nomi-names",
         "data/train-00000-of-00001.parquet",
         token="hf_test",
