@@ -19,9 +19,21 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
 import pandas as pd
-from datasets import Dataset
-from huggingface_hub import HfFolder, hf_hub_download
+from huggingface_hub import HfFolder
 from unidecode import unidecode
+
+try:
+    from .hf_dataset_uploads import (
+        LoadedParquet,
+        download_dataset_parquet,
+        push_dataframe_to_hub,
+    )
+except ImportError:
+    from hf_dataset_uploads import (
+        LoadedParquet,
+        download_dataset_parquet,
+        push_dataframe_to_hub,
+    )
 
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 PDF_PATH = REPO_ROOT / "Research papers" / "Semantic_Analysis_of_Igbo_Names.pdf"
@@ -264,14 +276,8 @@ def sample_audio_size(
     return 0
 
 
-def load_dataset_parquet(token: str) -> pd.DataFrame:
-    path = hf_hub_download(
-        repo_id=DATASET_REPO,
-        repo_type="dataset",
-        filename=PARQUET,
-        token=token,
-    )
-    return pd.read_parquet(path)
+def load_dataset_parquet(token: str) -> LoadedParquet:
+    return download_dataset_parquet(DATASET_REPO, PARQUET, token=token)
 
 
 def build_candidates_df(
@@ -328,7 +334,8 @@ def run(dry_run: bool) -> int:
     extracted = extract_candidates_from_pdf(PDF_PATH)
     print(f"Extracted {len(extracted)} candidate name(s) from PDF")
 
-    df = load_dataset_parquet(token)
+    loaded = load_dataset_parquet(token)
+    df = loaded.frame
     df["NameStrip"] = df["NameStrip"].astype(str).str.strip()
     df["Language"] = df["Language"].astype(str).str.strip()
 
@@ -404,10 +411,13 @@ def run(dry_run: bool) -> int:
     print(f"\nPost-check OK: rows={rows_after}, audio_rows={audio_after}")
     print(f"  Sample audio sizes unchanged: {samples_after}")
     print(f"\nPushing to Hugging Face: {commit_message[:200]}...")
-    Dataset.from_pandas(df_out).push_to_hub(
+    push_dataframe_to_hub(
+        df_out,
         DATASET_REPO,
+        PARQUET,
         token=token,
         commit_message=commit_message,
+        source_revision=loaded.revision,
     )
     print("HF push complete.")
     return len(to_add)

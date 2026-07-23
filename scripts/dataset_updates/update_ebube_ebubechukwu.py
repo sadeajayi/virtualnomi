@@ -20,8 +20,20 @@ import sys
 from typing import Any, Dict, Optional
 
 import pandas as pd
-from datasets import Dataset
-from huggingface_hub import HfFolder, hf_hub_download
+from huggingface_hub import HfFolder
+
+try:
+    from .hf_dataset_uploads import (
+        LoadedParquet,
+        download_dataset_parquet,
+        push_dataframe_to_hub,
+    )
+except ImportError:
+    from hf_dataset_uploads import (
+        LoadedParquet,
+        download_dataset_parquet,
+        push_dataframe_to_hub,
+    )
 
 DATASET_REPO = "nomi-stories/nomi-names"
 PARQUET = "data/train-00000-of-00001.parquet"
@@ -77,14 +89,8 @@ def row_snapshot(row: pd.Series, columns: list[str]) -> Dict[str, Any]:
     return out
 
 
-def load_dataset(token: Optional[str]) -> pd.DataFrame:
-    path = hf_hub_download(
-        repo_id=DATASET_REPO,
-        repo_type="dataset",
-        filename=PARQUET,
-        token=token,
-    )
-    return pd.read_parquet(path)
+def load_dataset(token: Optional[str]) -> LoadedParquet:
+    return download_dataset_parquet(DATASET_REPO, PARQUET, token=token)
 
 
 def build_new_row(df: pd.DataFrame, name_data: Dict[str, str]) -> Dict[str, Any]:
@@ -183,7 +189,8 @@ def run(dry_run: bool) -> int:
 
     if token:
         print("Downloading current dataset from Hugging Face...")
-        df = load_dataset(token)
+        loaded = load_dataset(token)
+        df = loaded.frame
     else:
         print("No HF_TOKEN — cannot load live dataset without --dry-run preview only.")
         print("Set HF_TOKEN or huggingface-cli login, then re-run without --dry-run.")
@@ -223,10 +230,13 @@ def run(dry_run: bool) -> int:
     commit_message = "Update Igbo names: " + ", ".join(parts)
 
     print(f"\nPushing to Hugging Face: {commit_message}")
-    Dataset.from_pandas(df_out, preserve_index=False).push_to_hub(
+    push_dataframe_to_hub(
+        df_out,
         DATASET_REPO,
+        PARQUET,
         token=token,
         commit_message=commit_message,
+        source_revision=loaded.revision,
     )
     print("✅ HF push complete.")
     return 0
