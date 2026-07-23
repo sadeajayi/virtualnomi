@@ -5,9 +5,10 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Any, Optional
+from typing import TYPE_CHECKING, Any, Optional
 
-import pandas as pd
+if TYPE_CHECKING:
+    import pandas as pd
 
 
 @dataclass(frozen=True)
@@ -52,6 +53,8 @@ def download_dataset_parquet(
     token: Optional[str],
 ) -> LoadedParquet:
     """Download and read a dataset parquet, preserving its source revision."""
+
+    import pandas as pd
 
     _dataset, _operation_add, _api, hf_hub_download = _require_hf_deps()
     path = Path(
