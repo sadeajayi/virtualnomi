@@ -6,13 +6,17 @@ meaning, phonetic text, and a published story.
 
 import os
 
-import pandas as pd
-from datasets import Dataset
-from huggingface_hub import HfFolder, hf_hub_download
+from huggingface_hub import HfFolder
+
+try:
+    from .hf_dataset_uploads import download_dataset_parquet, push_dataframe_to_hub
+except ImportError:
+    from hf_dataset_uploads import download_dataset_parquet, push_dataframe_to_hub
 
 
 HF_TOKEN = os.getenv("HF_TOKEN") or HfFolder.get_token()
 DATASET_REPO = "nomi-stories/nomi-names"
+PARQUET = "data/train-00000-of-00001.parquet"
 NAME_STRIP = "Ebube"
 LANGUAGE = "Igbo"
 PHONETIC_SPELLING = "ay-boo-bay"
@@ -24,13 +28,8 @@ def main() -> None:
             "HF_TOKEN not set. Run: export HF_TOKEN=... or huggingface-cli login"
         )
 
-    parquet_path = hf_hub_download(
-        repo_id=DATASET_REPO,
-        repo_type="dataset",
-        filename="data/train-00000-of-00001.parquet",
-        token=HF_TOKEN,
-    )
-    df = pd.read_parquet(parquet_path)
+    loaded = download_dataset_parquet(DATASET_REPO, PARQUET, token=HF_TOKEN)
+    df = loaded.frame
 
     if "Phonetic spelling" not in df.columns:
         df["Phonetic spelling"] = ""
@@ -49,11 +48,13 @@ def main() -> None:
 
     df.loc[mask, "Phonetic spelling"] = PHONETIC_SPELLING
 
-    updated_dataset = Dataset.from_pandas(df, preserve_index=False)
-    updated_dataset.push_to_hub(
+    push_dataframe_to_hub(
+        df,
         DATASET_REPO,
+        PARQUET,
         token=HF_TOKEN,
         commit_message="Add phonetic spelling for Ebube demo story",
+        source_revision=loaded.revision,
     )
 
     print(f"Updated {NAME_STRIP} ({LANGUAGE}) phonetic spelling to {PHONETIC_SPELLING}")
