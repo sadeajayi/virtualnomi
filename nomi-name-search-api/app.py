@@ -953,6 +953,18 @@ def _wrap_text(draw: Any, text: str, font: Any, max_px: int) -> list:
     return lines
 
 
+def _json_for_inline_script(value: Any) -> str:
+    """Serialize a value for inline <script> use without allowing tag breakout."""
+    return (
+        json.dumps(value)
+        .replace("<", "\\u003C")
+        .replace(">", "\\u003E")
+        .replace("&", "\\u0026")
+        .replace("\u2028", "\\u2028")
+        .replace("\u2029", "\\u2029")
+    )
+
+
 def _generate_og_image(results: list, name_strip: str) -> bytes:
     """
     Render a 1200×630 PNG for og:image meta tag.
@@ -1449,7 +1461,7 @@ def _generate_name_card_html(
 
     # Audio section
     if audio_url:
-        safe_audio = html_mod.escape(audio_url)
+        audio_url_js = _json_for_inline_script(audio_url)
         by_note = f'<div class="audio-sub">Pronunciation by {pron_by}</div>' if pron_by else ""
         audio_html = (
             f'<div class="audio-row animate-in s4">'
@@ -1462,7 +1474,7 @@ def _generate_name_card_html(
             f'{by_note}</div></div>'
         )
         audio_js = (
-            f'const _aud=new Audio("{safe_audio}");let _pl=false;\n'
+            f'const _aud=new Audio({audio_url_js});let _pl=false;\n'
             f'function playAudio(){{\n'
             f'  const btn=document.getElementById("play-btn");\n'
             f'  const lbl=document.getElementById("audio-label");\n'
@@ -1503,24 +1515,37 @@ def _generate_name_card_html(
             )
         others_html = items
 
-    display_name_js = display_name.replace("'", "\\'")
-    phonetic_js     = phonetic.replace("'", "\\'")
+    display_name_raw = primary.get("name", name_strip)
+    phonetic_raw     = primary.get("phonetic_spelling", "") or ""
     meaning_raw     = primary.get("meaning", "")
-    meaning_js      = meaning_raw[:100].replace("'", "\\'").replace('"', '\\"').replace('\n', ' ')
     note_safe       = html_mod.escape((note or "").strip())
-    note_js         = note_safe.replace("'", "\\'")
     note_display    = f'<div class="personal-note animate-in s4">{note_safe}</div>' if note_safe else ""
-    note_input_html = ""  # textarea removed — owner adds note via /share/ flow
-    if meaning_js and phonetic_js:
-        share_text_js = f'My name is {display_name_js}. It means "{meaning_js}". ({phonetic_js})'
-    elif meaning_js:
-        share_text_js = f'My name is {display_name_js}. It means "{meaning_js}".'
-    elif phonetic_js:
-        share_text_js = f'My name is {display_name_js} ({phonetic_js})'
+    meaning_share = meaning_raw[:100].replace("\n", " ").strip()
+    if meaning_share and phonetic_raw:
+        share_text = f'My name is {display_name_raw}. It means "{meaning_share}". ({phonetic_raw})'
+    elif meaning_share:
+        share_text = f'My name is {display_name_raw}. It means "{meaning_share}".'
+    elif phonetic_raw:
+        share_text = f"My name is {display_name_raw} ({phonetic_raw})"
     else:
-        share_text_js = f'My name is {display_name_js}'
+        share_text = f"My name is {display_name_raw}"
 
-    # Teacher / HR mailto — body built in Python so json.dumps handles all escaping
+    ns_path = quote(str(ns), safe="")
+    card_image_url = f"{base_url}/card-image/{ns_path}"
+    card_url = f"{base_url}/card/{ns_path}"
+    file_name = f"{ns}-nomi.png"
+    share_title = f"{display_name_raw} \u2014 Nomi"
+    card_base_prefix = f"{base_url}/card/"
+    card_image_url_js = _json_for_inline_script(card_image_url)
+    file_name_js = _json_for_inline_script(file_name)
+    share_title_js = _json_for_inline_script(share_title)
+    share_text_js = _json_for_inline_script(share_text)
+    card_base_prefix_js = _json_for_inline_script(card_base_prefix)
+    manifest_url_escaped = html_mod.escape(f"{base_url}/manifest/{ns_path}")
+    icon_url_escaped = html_mod.escape(f"{base_url}/icon/{ns_path}")
+    share_url_escaped = html_mod.escape(f"{base_url}/share/{ns_path}")
+
+    # Teacher / HR mailto values are emitted as JSON literals in inline JS.
     _tn = primary.get("name", name_strip)
     _ti = f"My name is {_tn}"
     if primary.get("phonetic_spelling"):
@@ -1533,20 +1558,20 @@ def _generate_name_card_html(
     _teacher_body = (
         f"Hi,\n\n{_ti}\n\n"
         f"I\u2019ve put together a short name card so you can hear how I say it:\n"
-        f"{base_url}/card/{ns}\n\n"
+        f"{card_url}\n\n"
         f"Thank you for taking the time to learn my name.\n\n\u2014 {_tn}"
     )
-    teacher_body_json = json.dumps(_teacher_body)
-    teacher_subj_json = json.dumps(f"How to say my name \u2014 {_tn}")
+    teacher_body_json = _json_for_inline_script(_teacher_body)
+    teacher_subj_json = _json_for_inline_script(f"How to say my name \u2014 {_tn}")
 
     pwa_head = ""
     if not wedge:
         pwa_head = f"""
-<link rel="manifest" href="{base_url}/manifest/{ns}">
+<link rel="manifest" href="{manifest_url_escaped}">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="{display_name}">
-<link rel="apple-touch-icon" href="{base_url}/icon/{ns}">"""
+<link rel="apple-touch-icon" href="{icon_url_escaped}">"""
 
     name_prelude_html = (
         ""
@@ -1573,7 +1598,7 @@ def _generate_name_card_html(
       Share as image
     </button>
   </div>
-  <a class="btn-share-link animate-in s6" href="{base_url}/share/{ns}">
+  <a class="btn-share-link animate-in s6" href="{share_url_escaped}">
     <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true">
       <path d="M2 10.5h9M7.5 2L11 2M11 2v3.5M11 2L6 7.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
     </svg>
@@ -1610,29 +1635,29 @@ function copyLink(){{
 }}
 let _imgBlob=null;
 (async function(){{
-  try{{const r=await fetch('{base_url}/card-image/{ns}');if(r.ok)_imgBlob=await r.blob();}}catch(e){{}}
+  try{{const r=await fetch({card_image_url_js});if(r.ok)_imgBlob=await r.blob();}}catch(e){{}}
 }})();
 function saveImage(){{
   try{{
     if(_imgBlob){{
-      const file=new File([_imgBlob],'{ns}-nomi.png',{{type:'image/png'}});
+      const file=new File([_imgBlob],{file_name_js},{{type:'image/png'}});
       if(navigator.canShare&&navigator.canShare({{files:[file]}})){{
-        navigator.share({{files:[file],title:'{display_name_js} — Nomi'}}).catch(()=>{{}});
+        navigator.share({{files:[file],title:{share_title_js}}}).catch(()=>{{}});
         return;
       }}
       const url=URL.createObjectURL(_imgBlob);
       const a=document.createElement('a');
-      a.href=url;a.download='{ns}-nomi.png';
+      a.href=url;a.download={file_name_js};
       document.body.appendChild(a);a.click();
       document.body.removeChild(a);URL.revokeObjectURL(url);
       showToast('Image saved!');
-    }}else{{window.open('{base_url}/card-image/{ns}','_blank');}}
-  }}catch(e){{window.open('{base_url}/card-image/{ns}','_blank');}}
+    }}else{{window.open({card_image_url_js},'_blank');}}
+  }}catch(e){{window.open({card_image_url_js},'_blank');}}
 }}
 function shareCard(){{
   try{{
     if(navigator.share){{
-      navigator.share({{title:'{display_name_js} — Nomi',text:'{share_text_js}',url:window.location.href}}).then(()=>showToast('Your story is out there.')).catch((e)=>{{if(e&&e.name!=='AbortError')copyLink();}});
+      navigator.share({{title:{share_title_js},text:{share_text_js},url:window.location.href}}).then(()=>showToast('Your story is out there.')).catch((e)=>{{if(e&&e.name!=='AbortError')copyLink();}});
     }}else{{copyLink();}}
   }}catch(e){{copyLink();}}
 }}
@@ -1661,7 +1686,7 @@ function updateNote(v){{
 }}
 function lookupName(v){{
   const n=v.trim().toLowerCase().replace(/[^\\p{{L}}-]/gu,'');
-  if(n)window.location.href='{base_url}/card/'+encodeURIComponent(n);
+  if(n)window.location.href={card_base_prefix_js}+encodeURIComponent(n);
 }}
 function sendToTeacher(){{
   const s={teacher_subj_json};
@@ -1673,7 +1698,8 @@ function showToast(m){{
   setTimeout(()=>t.classList.remove('show'),2200);
 }}"""
 
-    card_url_escaped = html_mod.escape(f"{base_url}/card/{ns}")
+    card_url_escaped = html_mod.escape(card_url)
+    card_image_url_escaped = html_mod.escape(card_image_url)
 
     return f"""<!DOCTYPE html>
 <html lang="en"><head>
@@ -1684,7 +1710,7 @@ function showToast(m){{
 <meta property="og:title" content="{og_title}">
 <meta property="og:description" content="{og_desc}">
 <meta property="og:url" content="{card_url_escaped}">
-<meta property="og:image" content="{base_url}/card-image/{ns}">
+<meta property="og:image" content="{card_image_url_escaped}">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:site_name" content="Nomi">
@@ -1692,14 +1718,14 @@ function showToast(m){{
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="{og_title}">
 <meta name="twitter:description" content="{og_desc}">
-<meta name="twitter:image" content="{base_url}/card-image/{ns}">
+<meta name="twitter:image" content="{card_image_url_escaped}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;700;800&family=Sen:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>{_CARD_CSS}</style>
-<link rel="preload" as="image" href="{base_url}/card-image/{ns}">
+<link rel="preload" as="image" href="{card_image_url_escaped}">
 </head>
 <body style="{vars_css}">
-<img src="{base_url}/card-image/{ns}" alt="" style="position:absolute;width:0;height:0;opacity:0;pointer-events:none" aria-hidden="true">
+<img src="{card_image_url_escaped}" alt="" style="position:absolute;width:0;height:0;opacity:0;pointer-events:none" aria-hidden="true">
 <div class="{card_class}">
   <span class="logo-wrap animate-in s1">
     <span class="logo">Nomi</span>
@@ -1748,7 +1774,10 @@ def _generate_share_page_html(results: list, name_strip: str, base_url: str) -> 
     language        = html_mod.escape(primary.get("language", ""))
     meaning_raw     = (primary.get("meaning") or "").strip()
     meaning_snippet = html_mod.escape(meaning_raw[:70] + ("\u2026" if len(meaning_raw) > 70 else ""))
-    card_url        = html_mod.escape(f"{base_url}/card/{ns}")
+    ns_path         = quote(str(ns), safe="")
+    card_url_raw    = f"{base_url}/card/{ns_path}"
+    card_url        = html_mod.escape(card_url_raw)
+    card_url_js     = _json_for_inline_script(card_url_raw)
 
     phonetic_html = f'<span class="phonetic-chip">{phonetic}</span>' if phonetic else ""
     lang_html     = f'<span class="lang-tag">{language}</span>' if language else ""
@@ -1831,7 +1860,7 @@ def _generate_share_page_html(results: list, name_strip: str, base_url: str) -> 
 </div>
 <div class="toast" id="toast">Copied!</div>
 <script>
-const _base='{card_url}';
+const _base={card_url_js};
 function updateLink(v){{
   const u=v.trim()?_base+'?note='+encodeURIComponent(v.trim()):_base;
   document.getElementById('link-display').textContent=u;
