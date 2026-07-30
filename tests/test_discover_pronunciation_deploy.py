@@ -87,6 +87,48 @@ def test_rejects_missing_or_duplicate_canonical_rows(tmp_path):
         )
 
 
+def test_rejects_existing_audio_or_pronunciation_credit(tmp_path):
+    (tmp_path / "temitope.m4a").write_bytes(b"test source placeholder")
+    frame = _frame()
+    frame.at[0, "Audio Pronunciation"] = {"bytes": _wav_bytes()}
+
+    with pytest.raises(ValueError, match="Refusing to overwrite existing pronunciation"):
+        apply_recordings(
+            frame,
+            _manifest(),
+            tmp_path,
+            audio_loader=lambda _path: _wav_bytes(),
+        )
+
+    frame = _frame()
+    frame.at[0, "pronunciation_by"] = "Community Contributor"
+
+    with pytest.raises(ValueError, match="Refusing to overwrite existing pronunciation"):
+        apply_recordings(
+            frame,
+            _manifest(),
+            tmp_path,
+            audio_loader=lambda _path: _wav_bytes(),
+        )
+
+
+def test_rejects_manifest_audio_paths_outside_audio_dir(tmp_path):
+    audio_dir = tmp_path / "audio"
+    audio_dir.mkdir()
+    outside = tmp_path / "outside.wav"
+    outside.write_bytes(b"test source placeholder")
+    manifest = _manifest()
+    manifest["recordings"][0]["audio_filename"] = "../outside.wav"
+
+    with pytest.raises(ValueError, match="within audio-dir"):
+        apply_recordings(
+            _frame(),
+            manifest,
+            audio_dir,
+            audio_loader=lambda _path: _wav_bytes(),
+        )
+
+
 def test_rejects_silent_wav():
     buffer = io.BytesIO()
     with wave.open(buffer, "wb") as audio:
