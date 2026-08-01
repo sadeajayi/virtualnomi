@@ -89,6 +89,31 @@ def test_audio_validation_rejects_empty_or_unknown_blobs():
     assert not api._is_valid_audio_bytes(b"not really audio bytes")
 
 
+def test_fetch_audio_bytes_skips_invalid_first_duplicate_row():
+    good_audio = b"RIFF\x00\x00\x00\x00WAVEdata"
+    api._audio_column_rows = [
+        {
+            "NameStrip": "Dup",
+            "Language": "Igbo",
+            "Audio Pronunciation": {"bytes": b"not really audio bytes"},
+        },
+        {
+            "NameStrip": "Dup",
+            "Language": "Igbo",
+            "Audio Pronunciation": {"bytes": good_audio},
+        },
+    ]
+    api._audio_keys_cache = None
+    api._audio_bytes_cache = {}
+    try:
+        assert ("Dup", "Igbo") in api._load_audio_keys()
+        assert api._fetch_audio_bytes("Dup", "Igbo") == good_audio
+    finally:
+        api._audio_column_rows = None
+        api._audio_keys_cache = None
+        api._audio_bytes_cache = {}
+
+
 def test_recorded_names_endpoint_returns_minimal_contract(monkeypatch):
     monkeypatch.setattr(
         api,

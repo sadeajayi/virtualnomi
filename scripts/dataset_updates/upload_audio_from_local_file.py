@@ -10,8 +10,10 @@ Usage (from repo root):
   python scripts/dataset_updates/upload_audio_from_local_file.py \\
     --name-strip Folasade --language Yoruba \\
     --audio-file "/path/to/recording.m4a" \\
-    --pronunciation-by "Folasade Ajayi" \\
-    --dry-run
+    --pronunciation-by "Folasade Ajayi"
+
+Add --push to publish after previewing the planned update. Use --force only when
+intentionally replacing an existing pronunciation slot.
 """
 
 from __future__ import annotations
@@ -26,9 +28,17 @@ from typing import Optional
 
 import pandas as pd
 from datasets import Dataset
-from huggingface_hub import HfFolder, hf_hub_download
+from huggingface_hub import HfApi, hf_hub_download
 
-HF_TOKEN = os.getenv("HF_TOKEN") or HfFolder.get_token()
+try:
+    from huggingface_hub import get_token as _hf_get_token
+except ImportError:  # huggingface-hub<0.20
+    from huggingface_hub import HfFolder
+
+    def _hf_get_token() -> Optional[str]:
+        return HfFolder.get_token()
+
+HF_TOKEN = os.getenv("HF_TOKEN") or _hf_get_token()
 MAIN_REPO = "nomi-stories/nomi-names"
 PARQUET = "data/train-00000-of-00001.parquet"
 WAV_SUFFIXES = {".wav"}
@@ -80,6 +90,87 @@ def _load_wav_bytes(audio_path: Path) -> bytes:
         Path(out_path).unlink(missing_ok=True)
 
 
+def _audio_byte_count(value: object) -> int:
+    audio_bytes = value.get("bytes") if isinstance(value, dict) else value
+    if isinstance(audio_bytes, memoryview):
+        audio_bytes = audio_bytes.tobytes()
+    if isinstance(audio_bytes, (bytes, bytearray)):
+        return len(audio_bytes)
+    return 0
+
+
+def _nonempty_text(value: object) -> bool:
+    if value is None:
+        return False
+    try:
+        if pd.isna(value):
+            return False
+    except (TypeError, ValueError):
+        pass
+    text = str(value).strip()
+    return bool(text and text.lower() not in {"nan", "none"})
+
+
+def _assert_pronunciation_slot_empty(df: pd.DataFrame, mask: pd.Series) -> None:
+    existing_audio = []
+    if "Audio Pronunciation" in df.columns:
+        existing_audio = [
+            idx
+            for idx, value in df.loc[mask, "Audio Pronunciation"].items()
+            if _audio_byte_count(value) > 0
+        ]
+
+    existing_credit = []
+    if "pronunciation_by" in df.columns:
+        existing_credit = [
+            idx
+            for idx, value in df.loc[mask, "pronunciation_by"].items()
+            if _nonempty_text(value)
+        ]
+
+    if existing_audio or existing_credit:
+        details = []
+        if existing_audio:
+            details.append(f"audio bytes on row(s) {existing_audio}")
+        if existing_credit:
+            details.append(f"pronunciation_by on row(s) {existing_credit}")
+        raise RuntimeError(
+            "Refusing to overwrite an existing pronunciation slot ("
+            + "; ".join(details)
+            + "). Re-run with --force only after confirming replacement is intended."
+        )
+
+
+def _source_revision_from_download(path: str) -> str:
+    parts = Path(path).parts
+    if "snapshots" in parts:
+        idx = parts.index("snapshots")
+        if idx + 1 < len(parts):
+            return parts[idx + 1]
+    raise RuntimeError(
+        "Could not determine Hugging Face source revision from cached parquet path; "
+        "refusing to push without a parent revision guard."
+    )
+
+
+def _current_dataset_revision() -> str:
+    info = HfApi(token=HF_TOKEN).dataset_info(MAIN_REPO)
+    revision = getattr(info, "sha", None)
+    if not revision:
+        raise RuntimeError("Could not determine current Hugging Face dataset revision")
+    return str(revision)
+
+
+def _assert_source_revision_current(source_revision: str) -> None:
+    current_revision = _current_dataset_revision()
+    if source_revision != current_revision:
+        raise RuntimeError(
+            "Refusing to push stale parquet snapshot: downloaded "
+            f"{source_revision}, but current dataset revision is {current_revision}. "
+            "Re-download the dataset and retry."
+        )
+
+
 def upload_audio(
     name_strip: str,
     language: str,
@@ -87,6 +178,8 @@ def upload_audio(
     pronunciation_by: Optional[str] = None,
     commit_message: Optional[str] = None,
     dry_run: bool = False,
+    push: bool = False,
+    force: bool = False,
 ) -> int:
     if not HF_TOKEN:
         raise SystemExit("HF_TOKEN not set. Run: export HF_TOKEN=... or huggingface-cli login")
@@ -111,6 +204,9 @@ def upload_audio(
         raise SystemExit(f"No row found for NameStrip={name_strip!r} Language={language!r}")
 
     row_count = int(mask.sum())
+    if not force:
+        _assert_pronunciation_slot_empty(df, mask)
+
     print(
         f"✅ Found {row_count} row(s) for {name_strip} ({language}); "
         f"embedding {len(audio_bytes)} WAV bytes from {audio_path.name}"
@@ -122,10 +218,13 @@ def upload_audio(
         df.loc[mask, "pronunciation_by"] = pronunciation_by.strip()
         print(f"   pronunciation_by -> {pronunciation_by.strip()!r}")
 
-    df.loc[mask, "Audio Pronunciation"] = [{"bytes": audio_bytes} for _ in range(row_count)]
+    df.loc[mask, "Audio Pronunciation"] = pd.Series(
+        [{"bytes": audio_bytes} for _ in range(row_count)],
+        index=df.index[mask],
+    )
 
-    if dry_run:
-        print("Dry run: no push to Hugging Face.")
+    if dry_run or not push:
+        print("Preview only: no push to Hugging Face. Re-run with --push to publish.")
         return len(audio_bytes)
 
     msg = commit_message or (
@@ -133,6 +232,9 @@ def upload_audio(
     )
     if pronunciation_by:
         msg += f" ({pronunciation_by.strip()})"
+
+    source_revision = _source_revision_from_download(parquet_path)
+    _assert_source_revision_current(source_revision)
 
     print(f"\n💾 Pushing to Hugging Face: {msg}")
     Dataset.from_pandas(df).push_to_hub(MAIN_REPO, token=HF_TOKEN, commit_message=msg)
@@ -151,7 +253,21 @@ def main() -> None:
         help="Contributor for pronunciation_by column (optional)",
     )
     parser.add_argument("--commit-message", default="", help="Override HF commit message")
-    parser.add_argument("--dry-run", action="store_true", help="Prepare update without pushing")
+    parser.add_argument(
+        "--push",
+        action="store_true",
+        help="Publish the update to Hugging Face after safety checks",
+    )
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Allow replacing an existing audio/pronunciation_by slot",
+    )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Deprecated alias for the default preview-only mode",
+    )
     args = parser.parse_args()
 
     size = upload_audio(
@@ -161,6 +277,8 @@ def main() -> None:
         pronunciation_by=args.pronunciation_by or None,
         commit_message=args.commit_message or None,
         dry_run=args.dry_run,
+        push=args.push,
+        force=args.force,
     )
     print(f"Audio byte size: {size}")
 
