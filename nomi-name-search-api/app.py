@@ -346,7 +346,6 @@ def _fetch_audio_bytes(name_strip: str, language: str) -> Optional[bytes]:
             if _is_valid_audio_bytes(audio_bytes):
                 _audio_bytes_cache[key] = audio_bytes
                 return audio_bytes
-        break
     return None
 
 
