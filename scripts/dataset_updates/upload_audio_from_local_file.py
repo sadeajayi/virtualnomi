@@ -28,9 +28,17 @@ from typing import Optional
 
 import pandas as pd
 from datasets import Dataset
-from huggingface_hub import HfApi, HfFolder, hf_hub_download
+from huggingface_hub import HfApi, hf_hub_download
 
-HF_TOKEN = os.getenv("HF_TOKEN") or HfFolder.get_token()
+try:
+    from huggingface_hub import get_token as _hf_get_token
+except ImportError:  # huggingface-hub<0.20
+    from huggingface_hub import HfFolder
+
+    def _hf_get_token() -> Optional[str]:
+        return HfFolder.get_token()
+
+HF_TOKEN = os.getenv("HF_TOKEN") or _hf_get_token()
 MAIN_REPO = "nomi-stories/nomi-names"
 PARQUET = "data/train-00000-of-00001.parquet"
 WAV_SUFFIXES = {".wav"}
