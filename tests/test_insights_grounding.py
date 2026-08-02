@@ -91,6 +91,31 @@ def test_generic_boilerplate_without_meaning_tie_is_rejected(monkeypatch):
     )
 
 
+def test_acknowledgement_name_hits_do_not_ground_insights(monkeypatch):
+    acknowledgements = _FakeRag(
+        [{
+            "paper": "Yoruba_Names_Gender_Markings.pdf",
+            "excerpt": (
+                "I would like to thank Victoria Bricker, Laura Downing, and "
+                "the anonymous reviewers for comments on an earlier draft. "
+                "Thanks also to James Welch for discussion."
+            ),
+            "relevance_score": 1.0,
+        }]
+    )
+    monkeypatch.setattr(
+        service,
+        "get_rag_service_for_dataset_language",
+        lambda *_args, **_kwargs: acknowledgements,
+    )
+    assert service.gather_rag_context("Victoria", "victory", "Yoruba") == (
+        "",
+        [],
+        False,
+        "yoruba",
+    )
+
+
 def test_morenikeji_generic_excerpts_fail_relevance_gate_before_model(monkeypatch):
     service._clear_insight_cache()
     generic = _FakeRag(

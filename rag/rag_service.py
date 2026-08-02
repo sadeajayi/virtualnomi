@@ -389,13 +389,13 @@ class LanguageRAGService:
         if not excerpt:
             return False
 
-        # Prefer exact / alias name hits when present.
-        if self._name_appears_in_text(name, excerpt):
-            return True
-
         # Author thank-yous must not satisfy gratitude-name queries.
         if self._is_acknowledgement_boilerplate(excerpt):
             return False
+
+        # Prefer exact / alias name hits when present.
+        if self._name_appears_in_text(name, excerpt):
+            return True
 
         text_tokens = self._text_tokens(excerpt)
         base_overlap = self._meaning_content_tokens(meaning) & text_tokens
