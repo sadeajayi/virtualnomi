@@ -784,6 +784,7 @@ async def get_insights(
     try:
         from insights_service import (
             NoGroundedInsightError,
+            OffVoiceInsightError,
             generate_insight_paragraph,
         )
     except ImportError as exc:
@@ -798,6 +799,8 @@ async def get_insights(
         )
     except NoGroundedInsightError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except OffVoiceInsightError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     except RuntimeError as exc:
