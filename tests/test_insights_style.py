@@ -2,9 +2,11 @@ import sys
 from pathlib import Path
 
 import pytest
+from fastapi.testclient import TestClient
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "nomi-name-search-api"))
 
+import app as api  # noqa: E402
 import insights_service as service  # noqa: E402
 
 
@@ -52,7 +54,7 @@ def _prepare(monkeypatch, outputs):
         ("It is worth noting that Adunni marks delight.", "hollow intensifier / hedge phrase"),
         ("This naming is a testament to family joy.", "significance inflation"),
         ("Researchers delve into the ọlá root here.", "AI Tier-1 filler"),
-        ("Moreover, Adunni marks belonging.", "brochure / transition AI-ism"),
+        ("In today's world, Adunni marks belonging.", "brochure AI-ism"),
         ("This name carries a rich cultural heritage of welcome.", "AI Tier-1 filler"),
     ],
 )
@@ -68,6 +70,20 @@ def test_compliant_cultural_prose_passes_gate():
         "Adunni carries a family's delight in having this child among them. "
         "Parents give this Yoruba name when the birth itself feels like a gift."
     )
+    assert service.avoid_ai_writing_gate(text) == []
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "Adunni marks less a formal title than a family's delight in arrival.",
+        (
+            "Folasade belongs with Yoruba crown names. Moreover, parents place honour "
+            "on the child as something the household can see."
+        ),
+    ],
+)
+def test_common_comparative_and_connective_phrasing_pass_gate(text):
     assert service.avoid_ai_writing_gate(text) == []
 
 
@@ -122,3 +138,17 @@ def test_compliant_output_returns_without_retry(monkeypatch):
     )
     service.generate_insight_paragraph("Adunni", "Yoruba", "Sweet to have")
     assert len(calls) == 1
+
+
+def test_insights_endpoint_maps_voice_contract_failure_to_422(monkeypatch):
+    def fail_voice_contract(*_args, **_kwargs):
+        raise service.OffVoiceInsightError("Generated Reading failed avoid-ai-writing gate")
+
+    monkeypatch.setattr(service, "generate_insight_paragraph", fail_voice_contract)
+
+    response = TestClient(api.app).get(
+        "/insights?name=Adunni&language=Yoruba&meaning=Sweet%20to%20have"
+    )
+
+    assert response.status_code == 422
+    assert "avoid-ai-writing" in response.json()["detail"]

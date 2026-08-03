@@ -297,7 +297,6 @@ _STYLE_PATTERNS: Tuple[Tuple[str, re.Pattern[str]], ...] = (
         ),
     ),
     ("rather than", re.compile(r"(?i)\brather\s+than\b")),
-    ("less X than Y", re.compile(r"(?i)\bless\b[^.!?]{0,80}\bthan\b")),
     (
         "hollow intensifier / hedge phrase",
         re.compile(
@@ -325,13 +324,12 @@ _STYLE_PATTERNS: Tuple[Tuple[str, re.Pattern[str]], ...] = (
         ),
     ),
     (
-        "brochure / transition AI-ism",
+        "brochure AI-ism",
         re.compile(
-            r"(?i)(?:(?:^|[.!?]\s+)(?:moreover|furthermore|additionally)\b|"
-            r"\b(?:in today['’]s|in an era where|at the end of the day|"
+            r"(?i)\b(?:in today['’]s|in an era where|at the end of the day|"
             r"only time will tell|the future looks bright|"
             r"here['’]s the thing|the catch\?|plot twist|"
-            r"let['’]s (?:explore|dive|break this down|take a look))\b)"
+            r"let['’]s (?:explore|dive|break this down|take a look))\b"
         ),
     ),
 )
