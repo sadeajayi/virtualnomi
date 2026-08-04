@@ -4,20 +4,25 @@
 import os
 import pandas as pd
 from datasets import Dataset
-from huggingface_hub import hf_hub_download, HfFolder
+from huggingface_hub import hf_hub_download
 
-HF_TOKEN = os.getenv("HF_TOKEN") or HfFolder.get_token()
+from scripts.dataset_updates.hf_auth import get_hf_token
+from scripts.dataset_updates.safety import require_unique_canonical_row
+
+HF_TOKEN = os.getenv("HF_TOKEN") or get_hf_token()
 DATASET_REPO = "nomi-stories/nomi-names"
 
 NAME_STRIP = "Morenikeji"
 LANGUAGE = "Yoruba"
 NEW_MEANING = "I have found a companion."
 
-if not HF_TOKEN:
-    raise SystemExit("HF_TOKEN not set. Run: export HF_TOKEN=... or huggingface-cli login")
-
 
 def main():
+    if not HF_TOKEN:
+        raise SystemExit(
+            "HF_TOKEN not set. Run: export HF_TOKEN=... or huggingface-cli login"
+        )
+
     print("Downloading current dataset...")
     path = hf_hub_download(
         repo_id=DATASET_REPO,
@@ -29,12 +34,15 @@ def main():
     df["NameStrip"] = df["NameStrip"].astype(str).str.strip()
     df["Language"] = df["Language"].astype(str).str.strip()
 
-    mask = (df["NameStrip"] == NAME_STRIP) & (df["Language"] == LANGUAGE)
-    if not mask.any():
-        raise SystemExit(f"Not found: {NAME_STRIP} ({LANGUAGE})")
-
-    old = df.loc[mask, "Meaning"].iloc[0]
-    df.loc[mask, "Meaning"] = NEW_MEANING
+    index = require_unique_canonical_row(
+        df,
+        NAME_STRIP,
+        LANGUAGE,
+        case_insensitive_name=False,
+        case_insensitive_language=False,
+    )
+    old = df.at[index, "Meaning"]
+    df.at[index, "Meaning"] = NEW_MEANING
     print(f'✅ Updated {NAME_STRIP}: "{old}" → "{NEW_MEANING}"')
 
     print("Pushing to Hugging Face...")

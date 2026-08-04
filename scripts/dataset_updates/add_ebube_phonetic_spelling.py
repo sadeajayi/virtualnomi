@@ -8,10 +8,13 @@ import os
 
 import pandas as pd
 from datasets import Dataset
-from huggingface_hub import HfFolder, hf_hub_download
+from huggingface_hub import hf_hub_download
+
+from scripts.dataset_updates.hf_auth import get_hf_token
+from scripts.dataset_updates.safety import require_unique_canonical_row
 
 
-HF_TOKEN = os.getenv("HF_TOKEN") or HfFolder.get_token()
+HF_TOKEN = os.getenv("HF_TOKEN") or get_hf_token()
 DATASET_REPO = "nomi-stories/nomi-names"
 NAME_STRIP = "Ebube"
 LANGUAGE = "Igbo"
@@ -35,19 +38,19 @@ def main() -> None:
     if "Phonetic spelling" not in df.columns:
         df["Phonetic spelling"] = ""
 
-    mask = (
-        df["NameStrip"].astype(str).str.strip().str.lower() == NAME_STRIP.lower()
-    ) & (df["Language"].astype(str).str.strip() == LANGUAGE)
-
-    if not mask.any():
-        raise SystemExit(f"Could not find {NAME_STRIP} ({LANGUAGE}) in {DATASET_REPO}")
-
-    current = str(df.loc[mask, "Phonetic spelling"].iloc[0] or "").strip()
+    index = require_unique_canonical_row(
+        df,
+        NAME_STRIP,
+        LANGUAGE,
+        case_insensitive_name=True,
+        case_insensitive_language=False,
+    )
+    current = str(df.at[index, "Phonetic spelling"] or "").strip()
     if current == PHONETIC_SPELLING:
         print(f"{NAME_STRIP} already has phonetic spelling: {PHONETIC_SPELLING}")
         return
 
-    df.loc[mask, "Phonetic spelling"] = PHONETIC_SPELLING
+    df.at[index, "Phonetic spelling"] = PHONETIC_SPELLING
 
     updated_dataset = Dataset.from_pandas(df, preserve_index=False)
     updated_dataset.push_to_hub(
