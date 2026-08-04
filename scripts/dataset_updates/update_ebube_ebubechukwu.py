@@ -23,6 +23,11 @@ import pandas as pd
 from datasets import Dataset
 from huggingface_hub import HfFolder, hf_hub_download
 
+from scripts.dataset_updates.safety import (
+    canonical_row_mask,
+    require_unique_canonical_row,
+)
+
 DATASET_REPO = "nomi-stories/nomi-names"
 PARQUET = "data/train-00000-of-00001.parquet"
 LANGUAGE = "Igbo"
@@ -132,12 +137,14 @@ def apply_updates(df: pd.DataFrame) -> tuple[pd.DataFrame, dict]:
         "ebubechukwu_already_present": False,
     }
 
-    ebube_mask = (df["NameStrip"] == EBUBE_NAME_STRIP) & (df["Language"] == LANGUAGE)
-    if not ebube_mask.any():
-        raise SystemExit(f"Not found: {EBUBE_NAME_STRIP} ({LANGUAGE})")
-
+    ebube_idx = require_unique_canonical_row(
+        df,
+        EBUBE_NAME_STRIP,
+        LANGUAGE,
+        case_insensitive_name=False,
+        case_insensitive_language=False,
+    )
     report["ebube_found"] = True
-    ebube_idx = df.index[ebube_mask][0]
     report["ebube_before"] = row_snapshot(df.loc[ebube_idx], list(df.columns))
 
     old_meaning = str(df.loc[ebube_idx, "Meaning"] or "").strip()
@@ -152,10 +159,20 @@ def apply_updates(df: pd.DataFrame) -> tuple[pd.DataFrame, dict]:
 
     report["ebube_after"] = row_snapshot(df.loc[ebube_idx], list(df.columns))
 
-    chukwu_mask = (
-        df["NameStrip"].str.lower() == EBUBECHUKWU_ROW["NameStrip"].lower()
-    ) & (df["Language"] == LANGUAGE)
-    if chukwu_mask.any():
+    chukwu_mask = canonical_row_mask(
+        df,
+        EBUBECHUKWU_ROW["NameStrip"],
+        LANGUAGE,
+        case_insensitive_name=True,
+        case_insensitive_language=False,
+    )
+    chukwu_count = int(chukwu_mask.sum())
+    if chukwu_count > 1:
+        raise ValueError(
+            f"Expected at most one canonical row for "
+            f"{EBUBECHUKWU_ROW['NameStrip']} ({LANGUAGE}); found {chukwu_count}"
+        )
+    if chukwu_count == 1:
         report["ebubechukwu_already_present"] = True
         print(f"⏭️  {EBUBECHUKWU_ROW['NameStrip']} ({LANGUAGE}) already in dataset")
     else:
