@@ -5,11 +5,12 @@ import os
 
 import pandas as pd
 from datasets import Dataset
-from huggingface_hub import HfFolder, hf_hub_download
+from huggingface_hub import hf_hub_download
 
+from scripts.dataset_updates.hf_auth import get_hf_token
 from scripts.dataset_updates.safety import require_unique_canonical_row
 
-HF_TOKEN = os.getenv("HF_TOKEN") or HfFolder.get_token()
+HF_TOKEN = os.getenv("HF_TOKEN") or get_hf_token()
 DATASET_REPO = "nomi-stories/nomi-names"
 NAME_STRIP = "Adaora"
 LANGUAGE = "Igbo"
