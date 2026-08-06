@@ -147,6 +147,10 @@ MEANING_OVERRIDES: Dict[str, str] = {
     "Chekwubechukwu": "Trust in God",
 }
 
+SOURCE_PRIORITY = {
+    "manual_structural": 2,
+}
+
 
 def ascii_name_strip(name: str) -> str:
     """ASCII NameStrip from extracted surface form."""
@@ -192,7 +196,16 @@ def _add_candidate(
     key = ascii_name_strip(name)
     if not key:
         return
-    if key not in store or len(meaning) > len(store[key][0]):
+    existing = store.get(key)
+    if existing is None:
+        store[key] = (meaning, name, source)
+        return
+
+    existing_priority = SOURCE_PRIORITY.get(existing[2], 0)
+    new_priority = SOURCE_PRIORITY.get(source, 0)
+    if new_priority > existing_priority or (
+        new_priority == existing_priority and len(meaning) > len(existing[0])
+    ):
         store[key] = (meaning, name, source)
 
 
