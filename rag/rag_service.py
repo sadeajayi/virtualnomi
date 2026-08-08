@@ -578,9 +578,16 @@ class LanguageRAGService:
         name: str,
     ) -> List[Dict]:
         """Pick diversified excerpts; allow a second chunk per paper for pattern lists."""
-        results.sort(
+        name_grounded_results = [
+            result
+            for result in results
+            if self._name_appears_in_text(name, result["text"])
+        ]
+        if not name_grounded_results:
+            return []
+
+        name_grounded_results.sort(
             key=lambda r: (
-                0 if self._name_appears_in_text(name, r["text"]) else 1,
                 -r.get("similarity", 0),
             )
         )
@@ -591,7 +598,7 @@ class LanguageRAGService:
         def chunk_key(result: Dict) -> str:
             return str(result.get("id") or result["text"][:120])
 
-        for result in results:
+        for result in name_grounded_results:
             if len(chosen) >= top_k:
                 break
             paper = result.get("paper") or "unknown"
@@ -604,7 +611,7 @@ class LanguageRAGService:
             chosen_keys.add(key)
             per_paper[paper] = per_paper.get(paper, 0) + 1
 
-        for result in results:
+        for result in name_grounded_results:
             if len(chosen) >= top_k:
                 break
             paper = result.get("paper") or "unknown"

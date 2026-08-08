@@ -55,3 +55,51 @@ def test_definition_context_uses_folded_name() -> None:
     text = "(43) àdùnní meaning ‘sweet to have’ (44) àríkẹ́"
     svc = object.__new__(LanguageRAGService)
     assert LanguageRAGService._has_name_definition_context(svc, "Adunni", text)
+
+
+def test_select_insights_excerpts_returns_empty_without_name_grounding() -> None:
+    svc = object.__new__(LanguageRAGService)
+    results = [
+        {
+            "id": "generic-come-back",
+            "paper": "Yoruba Naming.pdf",
+            "text": "Babatunde means father has come back.",
+            "similarity": 0.9,
+        },
+        {
+            "id": "generic-joy",
+            "paper": "Yoruba_ethnopragmatics_personal_names.pdf",
+            "text": "Ayomideji means my joy has doubled.",
+            "similarity": 0.8,
+        },
+    ]
+
+    assert svc._select_insights_excerpts(results, top_k=3, name="Olumide") == []
+
+
+def test_select_insights_excerpts_filters_name_absent_fillers() -> None:
+    svc = object.__new__(LanguageRAGService)
+    results = [
+        {
+            "id": "generic-high-score",
+            "paper": "Yoruba Naming.pdf",
+            "text": "Babatunde means father has come back.",
+            "similarity": 0.95,
+        },
+        {
+            "id": "grounded-low-score",
+            "paper": "Olumide paper.pdf",
+            "text": "Olumide is glossed as my lord has come.",
+            "similarity": 0.2,
+        },
+        {
+            "id": "other-generic",
+            "paper": "Yoruba Names.pdf",
+            "text": "Names can record family belief and birth circumstances.",
+            "similarity": 0.7,
+        },
+    ]
+
+    chosen = svc._select_insights_excerpts(results, top_k=3, name="Olumide")
+
+    assert [item["id"] for item in chosen] == ["grounded-low-score"]
