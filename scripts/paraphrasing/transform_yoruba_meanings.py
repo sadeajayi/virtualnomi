@@ -8,6 +8,7 @@ import argparse
 import os
 import sys
 import json
+import tempfile
 import time
 from typing import List, Dict, Optional, Tuple, TYPE_CHECKING
 from pathlib import Path
@@ -64,6 +65,56 @@ RAG_PREVIEW_MAX_CHARS = 350  # Store this many chars of RAG context per result f
 # Default: Try Claude first, fallback to GPT-4, then GPT-3.5
 PREFERRED_MODEL = os.environ.get("PARAPHRASE_MODEL", "auto")  # "auto", "claude", "gpt4", "gpt35"
 PARAPHRASE_CLAUDE_MODEL = os.environ.get("PARAPHRASE_CLAUDE_MODEL", "claude-sonnet-5")
+
+
+class ExistingParaphrasesError(RuntimeError):
+    """Raised when the existing paraphrase output is unsafe to reuse or overwrite."""
+
+
+def parse_args(argv: Optional[List[str]] = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Paraphrase Yoruba name meanings.")
+    parser.add_argument(
+        "--rephrase-all",
+        action="store_true",
+        help="Re-run for all names from the identification file (ignore existing JSON; overwrite output).",
+    )
+    parser.add_argument(
+        "--name",
+        type=str,
+        metavar="NAME",
+        help="Process only this Yoruba NameStrip (case-insensitive), e.g. Folasade.",
+    )
+    parser.add_argument(
+        "--rephrase",
+        action="store_true",
+        help="With --name: regenerate even if this name is already in the output JSON.",
+    )
+    args = parser.parse_args(argv)
+    if args.rephrase_all and args.name:
+        parser.error(
+            "--rephrase-all cannot be combined with --name; use --name NAME --rephrase "
+            "to regenerate one existing entry."
+        )
+    return args
+
+
+def determine_processing_limit(total_names: int, rephrase_all: bool, single_name: Optional[str]) -> int:
+    """Choose how many names to process without allowing partial destructive rewrites."""
+    if rephrase_all or single_name:
+        return total_names
+
+    try:
+        limit_input = input(
+            f"How many names to process? (Enter number or 'all' for {total_names}): "
+        ).strip()
+        if limit_input.lower() == 'all':
+            limit = total_names
+        else:
+            limit = int(limit_input)
+        return min(limit, total_names)
+    except (ValueError, KeyboardInterrupt, EOFError):
+        print("\n❌ Invalid input, cancelled, or no stdin available")
+        return 0
 
 def get_llm_client():
     """Initialize and return the best available LLM client"""
@@ -318,16 +369,54 @@ def load_existing_paraphrases() -> Tuple[List[Dict], set]:
     """Load existing yoruba_paraphrased_meanings.json if present. Returns (list of existing results, set of name_strip lower)."""
     existing_results = []
     existing_names = set()
-    if not os.path.exists(OUTPUT_FILE):
+    output_path = Path(OUTPUT_FILE)
+    if not output_path.exists():
         return existing_results, existing_names
     try:
-        with open(OUTPUT_FILE, "r", encoding="utf-8") as f:
+        with output_path.open("r", encoding="utf-8") as f:
             data = json.load(f)
         existing_results = data.get("results", [])
+        if not isinstance(existing_results, list):
+            raise ExistingParaphrasesError(
+                f"Existing output file '{OUTPUT_FILE}' has a malformed 'results' field; refusing to overwrite."
+            )
         existing_names = {str(r.get("name", "")).strip().lower() for r in existing_results if r.get("name")}
-    except Exception:
-        pass
+    except json.JSONDecodeError as exc:
+        raise ExistingParaphrasesError(
+            f"Existing output file '{OUTPUT_FILE}' is not valid JSON; refusing to overwrite it. "
+            "Restore it from backup, fix the JSON, or move it aside before rerunning."
+        ) from exc
+    except OSError as exc:
+        raise ExistingParaphrasesError(
+            f"Could not read existing output file '{OUTPUT_FILE}'; refusing to overwrite it."
+        ) from exc
     return existing_results, existing_names
+
+
+def save_paraphrases(output_file: str, output_data: Dict) -> None:
+    """Atomically write paraphrase output so interrupted saves do not leave truncated JSON."""
+    output_path = Path(output_file)
+    tmp_name = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            "w",
+            encoding="utf-8",
+            dir=str(output_path.parent),
+            prefix=f".{output_path.name}.",
+            suffix=".tmp",
+            delete=False,
+        ) as tmp:
+            tmp_name = tmp.name
+            json.dump(output_data, tmp, indent=2, ensure_ascii=False)
+            tmp.write("\n")
+        os.replace(tmp_name, output_path)
+    except Exception:
+        if tmp_name:
+            try:
+                Path(tmp_name).unlink(missing_ok=True)
+            except OSError:
+                pass
+        raise
 
 
 def load_names_to_transform(name_filter: Optional[str] = None) -> List[Dict]:
@@ -407,24 +496,7 @@ def process_batch(client, model_type: str, batch: List[Dict], results: List[Dict
 
 def main():
     """Main paraphrasing pipeline"""
-    parser = argparse.ArgumentParser(description="Paraphrase Yoruba name meanings.")
-    parser.add_argument(
-        "--rephrase-all",
-        action="store_true",
-        help="Re-run for all names from the identification file (ignore existing JSON; overwrite output).",
-    )
-    parser.add_argument(
-        "--name",
-        type=str,
-        metavar="NAME",
-        help="Process only this Yoruba NameStrip (case-insensitive), e.g. Folasade.",
-    )
-    parser.add_argument(
-        "--rephrase",
-        action="store_true",
-        help="With --name: regenerate even if this name is already in the output JSON.",
-    )
-    args = parser.parse_args()
+    args = parse_args()
     rephrase_all = args.rephrase_all
     single_name = (args.name or "").strip() or None
     rephrase_single = args.rephrase
@@ -484,7 +556,11 @@ def main():
         existing_names = set()
         print(f"   📌 Re-phrase all: processing all {len(names_to_process)} names (output will be overwritten)\n")
     else:
-        existing_results, existing_names = load_existing_paraphrases()
+        try:
+            existing_results, existing_names = load_existing_paraphrases()
+        except ExistingParaphrasesError as e:
+            print(f"❌ {e}")
+            return
         if single_name:
             key = single_name.lower()
             if key in existing_names and not rephrase_single:
@@ -509,25 +585,15 @@ def main():
             print("✅ Nothing left to process. All names from the identification file are already paraphrased.")
         return
 
-    # Ask user how many to process (batch mode only)
+    # Ask user how many to process in resumable batch mode only.
     print(f"📊 Remaining names to process: {len(names_to_process)}")
     print(f"   • High priority: {sum(1 for n in names_to_process if n.get('priority') == 'high')}")
     print(f"   • Medium priority: {sum(1 for n in names_to_process if n.get('priority') == 'medium')}")
     print()
     
-    if single_name:
-        limit = len(names_to_process)
-    else:
-        try:
-            limit_input = input(f"How many names to process? (Enter number or 'all' for {len(names_to_process)}): ").strip()
-            if limit_input.lower() == 'all':
-                limit = len(names_to_process)
-            else:
-                limit = int(limit_input)
-            limit = min(limit, len(names_to_process))
-        except (ValueError, KeyboardInterrupt):
-            print("\n❌ Invalid input or cancelled")
-            return
+    limit = determine_processing_limit(len(names_to_process), rephrase_all, single_name)
+    if limit <= 0:
+        return
     
     names_to_process = names_to_process[:limit]
     
@@ -546,7 +612,8 @@ def main():
         process_batch(client, model_type, batch, results, rag_service)
         print()
     
-    # Merge with existing results (resume: keep existing, add new). With --rephrase-all, only this run's results.
+    # Merge with existing results (resume: keep existing, add new). With --rephrase-all,
+    # this is a full destructive run, so only this run's complete queue is saved.
     if rephrase_all:
         merged_results = results
     else:
@@ -580,8 +647,11 @@ def main():
         "results": merged_results
     }
     
-    with open(OUTPUT_FILE, 'w', encoding='utf-8') as f:
-        json.dump(output_data, f, indent=2, ensure_ascii=False)
+    try:
+        save_paraphrases(OUTPUT_FILE, output_data)
+    except OSError as e:
+        print(f"❌ Error saving results: {e}")
+        return
     
     print(f"✅ Results saved to {OUTPUT_FILE} ({len(merged_results)} names total, +{len(results)} this run)")
     if rag_used:
