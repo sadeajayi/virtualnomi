@@ -324,10 +324,65 @@ def load_existing_paraphrases() -> Tuple[List[Dict], set]:
         with open(OUTPUT_FILE, "r", encoding="utf-8") as f:
             data = json.load(f)
         existing_results = data.get("results", [])
-        existing_names = {str(r.get("name", "")).strip().lower() for r in existing_results if r.get("name")}
+        existing_names = {
+            _result_name_key(r)
+            for r in existing_results
+            if _result_name_key(r) and _has_successful_variations(r)
+        }
     except Exception:
         pass
     return existing_results, existing_names
+
+
+def _result_name_key(result: Dict) -> str:
+    return str(result.get("name", "")).strip().lower()
+
+
+def _has_successful_variations(result: Dict) -> bool:
+    variations = result.get("variations")
+    if not isinstance(variations, list):
+        return False
+    return any(str(variation).strip() for variation in variations)
+
+
+def merge_paraphrase_results(existing_results: List[Dict], new_results: List[Dict]) -> List[Dict]:
+    """
+    Merge a resumable run without letting failed retries erase prior good output.
+
+    Failed entries are kept for audit when no successful entry exists yet, but they
+    never count as completed work and never replace a successful paraphrase.
+    """
+    successful_existing_names = {
+        _result_name_key(result)
+        for result in existing_results
+        if _result_name_key(result) and _has_successful_variations(result)
+    }
+    new_names = {_result_name_key(result) for result in new_results if _result_name_key(result)}
+    successful_new_names = {
+        _result_name_key(result)
+        for result in new_results
+        if _result_name_key(result) and _has_successful_variations(result)
+    }
+
+    merged_results = []
+    for result in existing_results:
+        key = _result_name_key(result)
+        if not key:
+            merged_results.append(result)
+            continue
+        if key in successful_new_names:
+            continue
+        if key in new_names and key not in successful_existing_names:
+            continue
+        merged_results.append(result)
+
+    for result in new_results:
+        key = _result_name_key(result)
+        if key in successful_existing_names and not _has_successful_variations(result):
+            continue
+        merged_results.append(result)
+
+    return merged_results
 
 
 def load_names_to_transform(name_filter: Optional[str] = None) -> List[Dict]:
@@ -550,9 +605,7 @@ def main():
     if rephrase_all:
         merged_results = results
     else:
-        new_names_lower = {r.get("name", "").strip().lower() for r in results if r.get("name")}
-        merged_results = [r for r in existing_results if r.get("name", "").strip().lower() not in new_names_lower]
-        merged_results.extend(results)
+        merged_results = merge_paraphrase_results(existing_results, results)
 
     # Save results
     print(f"💾 Saving results to {OUTPUT_FILE}...")
