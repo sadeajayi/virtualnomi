@@ -89,6 +89,80 @@ def test_audio_validation_rejects_empty_or_unknown_blobs():
     assert not api._is_valid_audio_bytes(b"not really audio bytes")
 
 
+def test_audio_endpoint_prefers_exact_language_over_family_match(monkeypatch):
+    wav = b"RIFF\x10\x00\x00\x00WAVEdata"
+    localised_mp3 = b"ID3\x04\x00\x00\x00\x00\x00\x12payload"
+
+    monkeypatch.setattr(
+        api,
+        "_load_audio_keys",
+        lambda: [
+            ("Shared", "Hausa (Localised Islamic/Arabic)"),
+            ("Shared", "Hausa"),
+        ],
+    )
+    monkeypatch.setattr(
+        api,
+        "_fetch_audio_bytes",
+        lambda _name, language: {
+            "Hausa": wav,
+            "Hausa (Localised Islamic/Arabic)": localised_mp3,
+        }[language],
+    )
+
+    response = TestClient(api.app).get("/audio/Shared?language=Hausa")
+
+    assert response.status_code == 200
+    assert response.content == wav
+    assert response.headers["content-type"] == "audio/wav"
+
+
+def test_audio_endpoint_rejects_ambiguous_family_match(monkeypatch):
+    monkeypatch.setattr(
+        api,
+        "_load_audio_keys",
+        lambda: {
+            ("Shared", "Hausa (Localised Islamic/Arabic)"),
+            ("Shared", "Hausa (Traditional)"),
+        },
+    )
+
+    response = TestClient(api.app).get("/audio/Shared?language=Hausa")
+
+    assert response.status_code == 409
+    assert "Pass an exact language" in response.json()["detail"]
+
+
+def test_audio_endpoint_rejects_ambiguous_missing_language(monkeypatch):
+    monkeypatch.setattr(
+        api,
+        "_load_audio_keys",
+        lambda: {
+            ("Shared", "Igbo"),
+            ("Shared", "Yoruba"),
+        },
+    )
+
+    response = TestClient(api.app).get("/audio/Shared")
+
+    assert response.status_code == 409
+    assert "Igbo" in response.json()["detail"]
+    assert "Yoruba" in response.json()["detail"]
+
+
+def test_audio_endpoint_serves_mp3_with_matching_media_type(monkeypatch):
+    mp3 = b"ID3\x04\x00\x00\x00\x00\x00\x12payload"
+
+    monkeypatch.setattr(api, "_load_audio_keys", lambda: {("Adaeze", "Igbo")})
+    monkeypatch.setattr(api, "_fetch_audio_bytes", lambda *_args: mp3)
+
+    response = TestClient(api.app).get("/audio/Adaeze?language=Igbo")
+
+    assert response.status_code == 200
+    assert response.content == mp3
+    assert response.headers["content-type"] == "audio/mpeg"
+
+
 def test_recorded_names_endpoint_returns_minimal_contract(monkeypatch):
     monkeypatch.setattr(
         api,
