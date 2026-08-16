@@ -329,6 +329,26 @@ def _is_valid_audio_bytes(value: Any) -> bool:
     )
 
 
+def _audio_media_type(value: bytes) -> str:
+    """Return the HTTP content type for a persisted audio blob."""
+    audio = bytes(value)
+    if audio.startswith(b"RIFF") and audio[8:12] == b"WAVE":
+        return "audio/wav"
+    if audio.startswith(b"ID3") or (
+        len(audio) >= 2 and audio[0] == 0xFF and audio[1] & 0xE0 == 0xE0
+    ):
+        return "audio/mpeg"
+    if audio.startswith(b"OggS"):
+        return "audio/ogg"
+    if audio.startswith(b"fLaC"):
+        return "audio/flac"
+    if audio.startswith(b"\x1aE\xdf\xa3"):
+        return "audio/webm"
+    if audio[4:8] == b"ftyp":
+        return "audio/mp4"
+    return "application/octet-stream"
+
+
 def _fetch_audio_bytes(name_strip: str, language: str) -> Optional[bytes]:
     key = (name_strip.strip(), language.strip())
     if key in _audio_bytes_cache:
@@ -1885,6 +1905,31 @@ def _language_matches(lang_filter: Optional[str], dataset_language: str) -> bool
     return False
 
 
+def _audio_language_candidates(
+    name_strip: str,
+    language: Optional[str],
+    audio_keys: Optional[set] = None,
+) -> List[str]:
+    """Find recorded languages for a name; exact language beats family labels."""
+    recorded_keys = audio_keys if audio_keys is not None else _load_audio_keys()
+    needle = name_strip.strip().casefold()
+    matches = sorted(
+        {
+            str(lang).strip()
+            for ns, lang in recorded_keys
+            if str(ns).strip().casefold() == needle and str(lang).strip()
+        },
+        key=str.casefold,
+    )
+    if not language:
+        return matches
+
+    exact = [lang for lang in matches if lang.casefold() == language.strip().casefold()]
+    if exact:
+        return exact
+    return [lang for lang in matches if _language_matches(language, lang)]
+
+
 def _recorded_names_feed(
     language: Optional[str],
     limit: int,
@@ -2008,20 +2053,23 @@ async def get_audio(
     """Serve embedded audio bytes for a name directly from the dataset parquet."""
     audio_keys = _load_audio_keys()
     needle = name_strip.strip()
-    row_lang = None
-    for (ns, lang) in audio_keys:
-        if ns.lower() != needle.lower():
-            continue
-        if language and not _language_matches(language, lang):
-            continue
-        row_lang = lang
-        break
-    if row_lang is None:
+    candidate_languages = _audio_language_candidates(needle, language, audio_keys)
+    if not candidate_languages:
         raise HTTPException(status_code=404, detail="No audio for this name")
+    if len(candidate_languages) > 1:
+        options = ", ".join(candidate_languages)
+        raise HTTPException(
+            status_code=409,
+            detail=(
+                "Multiple audio recordings match this name. "
+                f"Pass an exact language: {options}"
+            ),
+        )
+    row_lang = candidate_languages[0]
     audio_bytes = _fetch_audio_bytes(needle, row_lang)
     if not audio_bytes:
         raise HTTPException(status_code=404, detail="No audio for this name")
-    return Response(content=audio_bytes, media_type="audio/wav")
+    return Response(content=audio_bytes, media_type=_audio_media_type(audio_bytes))
 
 
 @app.get("/name/{name_strip}", response_model=NameLookupResponse)
