@@ -218,6 +218,7 @@ class LanguageRAGService:
         self.model = None
         self.chunks: List[Dict] = []
         self.embeddings = None
+        self.index_revision = ""
 
         if not self.index_file.exists():
             raise FileNotFoundError(
@@ -237,6 +238,7 @@ class LanguageRAGService:
         self._log(f"📥 Loading {self.language_key} index from {self.index_file}...")
         with open(self.index_file, encoding="utf-8") as fh:
             self.index_data = json.load(fh)
+        self.index_revision = self._current_index_revision()
         self.chunks = self.index_data.get("chunks", [])
         if self.chunks and "embedding" in self.chunks[0]:
             self.embeddings = np.array([chunk["embedding"] for chunk in self.chunks])
@@ -246,6 +248,10 @@ class LanguageRAGService:
         self._log(
             f"✅ {len(self.chunks)} chunks from {meta.get('total_papers', '?')} papers"
         )
+
+    def _current_index_revision(self) -> str:
+        stat = self.index_file.stat()
+        return f"{stat.st_mtime_ns}:{stat.st_size}"
 
     def _load_model(self) -> None:
         if self.embeddings is None:
@@ -860,8 +866,15 @@ def get_rag_service_for_dataset_language(
     if not rag_key:
         return None
     cache_key = f"{rag_key}:text" if text_search_only else rag_key
-    if cache_key in _rag_instances:
-        return _rag_instances[cache_key]
+    cached = _rag_instances.get(cache_key)
+    if cached is not None:
+        try:
+            if cached.index_revision == cached._current_index_revision():
+                return cached
+        except FileNotFoundError:
+            _rag_instances.pop(cache_key, None)
+            return None
+        _rag_instances.pop(cache_key, None)
     try:
         service = LanguageRAGService(
             rag_key, quiet=quiet, text_search_only=text_search_only

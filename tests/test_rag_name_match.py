@@ -10,6 +10,7 @@ import pytest
 RAG_DIR = Path(__file__).resolve().parents[1] / "rag"
 sys.path.insert(0, str(RAG_DIR))
 
+import rag_service  # noqa: E402
 from rag_service import LanguageRAGService  # noqa: E402
 
 
@@ -55,3 +56,45 @@ def test_definition_context_uses_folded_name() -> None:
     text = "(43) àdùnní meaning ‘sweet to have’ (44) àríkẹ́"
     svc = object.__new__(LanguageRAGService)
     assert LanguageRAGService._has_name_definition_context(svc, "Adunni", text)
+
+
+def test_cached_rag_service_reloads_when_index_revision_changes(monkeypatch, tmp_path) -> None:
+    index_path = tmp_path / "language_index.json"
+    index_path.write_text("{}", encoding="utf-8")
+    created_revisions = []
+
+    class FakeRAGService:
+        def __init__(self, language_key, quiet=False, text_search_only=False):
+            self.language_key = language_key
+            self.quiet = quiet
+            self.text_search_only = text_search_only
+            self.index_file = index_path
+            self.index_revision = self._current_index_revision()
+            created_revisions.append(self.index_revision)
+
+        def _current_index_revision(self) -> str:
+            stat = self.index_file.stat()
+            return f"{stat.st_mtime_ns}:{stat.st_size}"
+
+    monkeypatch.setattr(
+        rag_service, "dataset_language_to_rag_key", lambda _language: "fake"
+    )
+    monkeypatch.setattr(rag_service, "LanguageRAGService", FakeRAGService)
+    rag_service._rag_instances.clear()
+
+    first = rag_service.get_rag_service_for_dataset_language(
+        "Fake", quiet=True, text_search_only=True
+    )
+    second = rag_service.get_rag_service_for_dataset_language(
+        "Fake", quiet=True, text_search_only=True
+    )
+    index_path.write_text('{"changed": true}', encoding="utf-8")
+    third = rag_service.get_rag_service_for_dataset_language(
+        "Fake", quiet=True, text_search_only=True
+    )
+
+    assert first is second
+    assert third is not first
+    assert len(created_revisions) == 2
+
+    rag_service._rag_instances.clear()

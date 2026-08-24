@@ -27,6 +27,11 @@ def _prepare(monkeypatch, model_call):
     monkeypatch.setattr(service, "load_insights_system_prompt", lambda: "prompt-v2")
     monkeypatch.setattr(
         service,
+        "_rag_index_cache_token",
+        lambda language: f"rag:{language.strip().casefold()}:test-index",
+    )
+    monkeypatch.setattr(
+        service,
         "gather_rag_context",
         lambda *_: (
             "[Semantic_Analysis_of_Igbo_Names.pdf]: Supporting excerpt.",
@@ -96,8 +101,32 @@ def test_meaning_change_invalidates_cache_key(monkeypatch):
     assert calls == 2
 
 
+def test_rag_index_revision_change_invalidates_cache_key(monkeypatch):
+    calls = 0
+    token = {"value": "igbo:revision-1"}
+
+    def model_call(*_args, **_kwargs):
+        nonlocal calls
+        calls += 1
+        return f"Insight generation {calls} contains enough useful words to remain valid."
+
+    _prepare(monkeypatch, model_call)
+    monkeypatch.setattr(service, "_rag_index_cache_token", lambda _language: token["value"])
+
+    first = service.generate_insight_paragraph(
+        "Adaeze", "Igbo", "Daughter of a king"
+    )
+    token["value"] = "igbo:revision-2"
+    second = service.generate_insight_paragraph(
+        "Adaeze", "Igbo", "Daughter of a king"
+    )
+
+    assert calls == 2
+    assert first["insight"] != second["insight"]
+
+
 def test_store_rejects_ungrounded_payload():
-    key = ("v-test", "model", "digest", "name", "lang", "meaning", "")
+    key = ("v-test", "model", "digest", "rag-index", "name", "lang", "meaning", "")
     service._store_cached_insight(
         key,
         {
