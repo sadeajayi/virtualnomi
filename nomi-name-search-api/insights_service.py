@@ -77,6 +77,7 @@ def _insight_cache_key(
     meaning: str,
     additional_meaning: str,
     system_prompt: str,
+    rag_index_token: str,
 ) -> Tuple[str, ...]:
     """Versioned key: name/language/meaning plus every prompt input that changes output."""
     prompt_digest = hashlib.sha256(system_prompt.encode("utf-8")).hexdigest()
@@ -84,11 +85,26 @@ def _insight_cache_key(
         INSIGHTS_CACHE_SCHEMA_VERSION,
         INSIGHTS_MODEL,
         prompt_digest,
+        _normalized_cache_text(rag_index_token),
         _normalized_cache_text(name, casefold=True),
         _normalized_cache_text(language, casefold=True),
         _normalized_cache_text(meaning),
         _normalized_cache_text(additional_meaning),
     )
+
+
+def _rag_index_cache_token(language: str) -> str:
+    """Cache discriminator for the retrieval index that grounds an insight."""
+    if not get_rag_service_for_dataset_language:
+        return "rag:none"
+
+    rag = get_rag_service_for_dataset_language(
+        language, quiet=True, text_search_only=True
+    )
+    if rag is None:
+        return "rag:none"
+    revision = getattr(rag, "index_revision", "unknown")
+    return f"{rag.language_key}:{revision}"
 
 
 def _get_cached_insight(key: Tuple[str, ...]) -> Optional[Dict[str, Any]]:
@@ -470,6 +486,7 @@ def generate_insight_paragraph(
         resolved_meaning,
         resolved_additional_meaning,
         raw_prompt,
+        _rag_index_cache_token(resolved_language),
     )
     cached = _get_cached_insight(cache_key)
     if cached is not None:
