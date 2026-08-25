@@ -422,7 +422,6 @@ def initialize_components():
 def _build_lookup_from_rows(rows):
     """Build (name_strip, language) -> row dict from an iterable of row dicts."""
     lookup = {}
-    audio_keys = _load_audio_keys()
     for i, row in enumerate(rows):
         if i == 0:
             print(f"[dataset_lookup] first row keys: {list(row.keys())[:10]}")
@@ -430,7 +429,10 @@ def _build_lookup_from_rows(rows):
         language = str(row.get("Language", "")).strip()
         if name_strip and language:
             key = (name_strip, language)
-            if key not in lookup or key in audio_keys:
+            # Audio is tracked per key from a separate column read, so it cannot
+            # identify which duplicate metadata row is canonical. Keep parquet
+            # order stable instead of letting later duplicates overwrite fields.
+            if key not in lookup:
                 lookup[key] = row
     print(f"[dataset_lookup] built {len(lookup)} entries")
     if lookup:

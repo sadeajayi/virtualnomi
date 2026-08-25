@@ -53,6 +53,30 @@ def test_recorded_feed_filters_to_audio_keys_and_orders_stably():
     assert "Audio Pronunciation" not in names[0]
 
 
+def test_dataset_lookup_does_not_let_audio_key_overwrite_duplicate_metadata(monkeypatch):
+    canonical = {
+        "Name": "Adaeze",
+        "NameStrip": "Adaeze",
+        "Language": "Igbo",
+        "Meaning": "canonical meaning",
+        "Phonetic spelling": "ah-deh-zeh",
+        "pronunciation_by": "Chika",
+    }
+    stale_duplicate = {
+        "Name": "Adaeze",
+        "NameStrip": "Adaeze",
+        "Language": "Igbo",
+        "Meaning": "stale meaning",
+        "Phonetic spelling": "",
+        "pronunciation_by": "",
+    }
+    monkeypatch.setattr(api, "_load_audio_keys", lambda: {("Adaeze", "Igbo")})
+
+    lookup = api._build_lookup_from_rows([canonical, stale_duplicate])
+
+    assert lookup[("Adaeze", "Igbo")] == canonical
+
+
 def test_recorded_feed_supports_language_families_and_bounded_results():
     names, total, _ = _recorded_names_feed(
         "Hausa",
