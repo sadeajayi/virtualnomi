@@ -6,7 +6,7 @@ Default (inherited catalog):
   Attribution = "YorubaNames.com"
 
 Nomi-sourced exceptions (newer additions, not YorubaNames catalog lineage):
-  Ajobi, Morohunkeji — added via add_missing_story_names.py
+  Ajobi, Morenikeji — added via add_missing_story_names.py
   Erukubami — newer HF-only row (not in AllNames0618 / local catalog);
               treated as Nomi-sourced; weaker documentary trail than the two above
 
@@ -25,7 +25,6 @@ import os
 from pathlib import Path
 
 import pandas as pd
-from huggingface_hub import HfFolder, hf_hub_download
 
 _REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 _OUT_DIR = _REPO_ROOT / "data" / "dataset_updates"
@@ -38,7 +37,7 @@ NOMI_ATTRIBUTION = "Nomi"
 # Exact NameStrip values as stored on HF (Unicode-sensitive).
 NOMI_SOURCED_NAMESTRIPS = {
     "Ajobi",
-    "Morohunkeji",
+    "Morenikeji",
     "Erukubami",
 }
 
@@ -101,6 +100,8 @@ def load_dataframe(from_cache: bool, parquet_path: str | None) -> pd.DataFrame:
             )
         print(f"Loading from HF cache: {cached}")
         return pd.read_parquet(cached)
+
+    from huggingface_hub import HfFolder, hf_hub_download
 
     token = os.getenv("HF_TOKEN") or HfFolder.get_token()
     if not token:
@@ -259,6 +260,7 @@ def main() -> None:
 
     if args.push:
         from datasets import Dataset
+        from huggingface_hub import HfFolder
 
         token = os.getenv("HF_TOKEN") or HfFolder.get_token()
         if not token:
