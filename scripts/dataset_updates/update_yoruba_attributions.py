@@ -25,7 +25,14 @@ import os
 from pathlib import Path
 
 import pandas as pd
-from huggingface_hub import HfFolder, hf_hub_download
+from huggingface_hub import hf_hub_download
+
+try:
+    from huggingface_hub import get_token
+except ImportError:  # huggingface_hub<0.20 compatibility
+    from huggingface_hub import HfFolder
+
+    get_token = HfFolder.get_token
 
 _REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 _OUT_DIR = _REPO_ROOT / "data" / "dataset_updates"
@@ -102,7 +109,7 @@ def load_dataframe(from_cache: bool, parquet_path: str | None) -> pd.DataFrame:
         print(f"Loading from HF cache: {cached}")
         return pd.read_parquet(cached)
 
-    token = os.getenv("HF_TOKEN") or HfFolder.get_token()
+    token = os.getenv("HF_TOKEN") or get_token()
     if not token:
         raise ValueError(
             "HF_TOKEN / huggingface login required unless --from-cache or --parquet is set."
@@ -260,7 +267,7 @@ def main() -> None:
     if args.push:
         from datasets import Dataset
 
-        token = os.getenv("HF_TOKEN") or HfFolder.get_token()
+        token = os.getenv("HF_TOKEN") or get_token()
         if not token:
             raise ValueError("HF_TOKEN required for --push")
         print("Pushing to Hugging Face...")
