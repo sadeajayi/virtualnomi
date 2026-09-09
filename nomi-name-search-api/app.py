@@ -126,6 +126,13 @@ def display_meaning_for_result(language: str, name_strip: str, canonical_meaning
 
 
 # Response models
+class SyllableGuide(BaseModel):
+    script: Optional[str] = None
+    say: str
+    anchor: Optional[str] = None
+    stress: Optional[bool] = None
+
+
 class NameResult(BaseModel):
     name: str
     name_strip: str
@@ -141,6 +148,7 @@ class NameResult(BaseModel):
     story: Optional[Dict[str, Any]] = None
     score: float
     audio_url: Optional[str] = None
+    syllables: Optional[List[SyllableGuide]] = None
 
 class SearchResponse(BaseModel):
     query: str
@@ -158,6 +166,7 @@ class NameCardData(BaseModel):
     phonetic_spelling: Optional[str] = None
     audio_url: Optional[str] = None
     pronunciation_by: Optional[str] = None
+    syllables: Optional[List[SyllableGuide]] = None
     # Honor-me v2: verified only when human recording + contributor exist in dataset.
     pronunciation_verified: bool = False
     # Submitted preferred/short forms are not in the canonical dataset yet; reserved for
@@ -212,6 +221,15 @@ class RecordedNamesResponse(BaseModel):
     total: int
     language: Optional[str] = None
     language_counts: Dict[str, int]
+
+
+class SyllableGuideResponse(BaseModel):
+    name: str
+    name_strip: str
+    language: str
+    phonetic: str
+    source: str
+    syllables: List[SyllableGuide]
 
 
 def semantic_search_enabled() -> bool:
@@ -466,6 +484,15 @@ def get_dataset_lookup():
 
     return lookup
 
+def _syllables_for_name(name_strip: str, language: str) -> Optional[List[Dict[str, Any]]]:
+    """Return published or previously generated syllable guides when we have them."""
+    try:
+        from syllable_store import get_published_syllables
+    except ImportError:
+        return None
+    return get_published_syllables(name_strip, language)
+
+
 def get_name_metadata_from_dataset(name_strip: str, language: str) -> Dict[str, Any]:
     """Get metadata for a name from the dataset"""
     dataset_lookup = get_dataset_lookup()
@@ -487,6 +514,7 @@ def get_name_metadata_from_dataset(name_strip: str, language: str) -> Dict[str, 
         "validated_by": match.get("Validated_By", ""),
         "validation_status": match.get("Validation_Status", ""),
         "audio_url": audio_url,
+        "syllables": _syllables_for_name(name_strip, language),
     }
 
 def load_stories_data():
@@ -645,6 +673,7 @@ def build_result_dict(name_data: Dict, metadata: Dict, story: Dict, score: float
         "story": story,
         "score": score,
         "audio_url": metadata.get("audio_url", ""),
+        "syllables": metadata.get("syllables") or _syllables_for_name(name_strip, lang),
     }
 
 def query_name_db(query: str, lang_filter: str) -> List[Dict[str, Any]]:
@@ -1975,6 +2004,7 @@ def _lookup_name_results(name_strip: str, language: Optional[str]) -> list:
             "cultural_context": row.get("cultural_context") or None,
             "themes": row.get("themes") or None,
             "story": story if story else None,
+            "syllables": metadata.get("syllables") or None,
         })
     return results
 
@@ -2022,6 +2052,62 @@ async def get_audio(
     if not audio_bytes:
         raise HTTPException(status_code=404, detail="No audio for this name")
     return Response(content=audio_bytes, media_type="audio/wav")
+
+
+@app.get("/syllable-guide", response_model=SyllableGuideResponse)
+async def get_syllable_guide(
+    name: str = Query(..., description="Display name or NameStrip"),
+    language: Optional[str] = Query(None, description="Dataset language"),
+):
+    """
+    Learner syllable guide (anchors + stress) for Discover rehearsal.
+
+    Returns published pipeline approvals when we have them. Otherwise expands the
+    published hyphenated phonetic into Folasade-style English sound maps.
+    """
+    try:
+        from syllable_service import (
+            SyllableGuideConfigError,
+            SyllableGuideError,
+            resolve_syllable_guide,
+        )
+    except ImportError as exc:
+        raise HTTPException(status_code=501, detail=f"Syllable guide unavailable: {exc}") from exc
+
+    results = _lookup_name_results(name, language)
+    if not results:
+        raise HTTPException(status_code=404, detail=f"Name '{name}' not found in dataset")
+    card = results[0]
+    phonetic = (card.get("phonetic_spelling") or "").strip()
+    if not phonetic:
+        raise HTTPException(status_code=404, detail="No phonetic spelling is available for this name")
+
+    try:
+        payload = resolve_syllable_guide(
+            name=card.get("name") or name,
+            name_strip=card.get("name_strip") or name,
+            language=card.get("language") or language or "",
+            phonetic=phonetic,
+            generate=True,
+        )
+    except SyllableGuideConfigError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    except SyllableGuideError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Syllable guide failed: {exc}") from exc
+
+    if not payload or not payload.get("syllables"):
+        raise HTTPException(status_code=404, detail="No syllable guide is available for this name")
+
+    return SyllableGuideResponse(
+        name=card.get("name") or name,
+        name_strip=card.get("name_strip") or name,
+        language=card.get("language") or language or "",
+        phonetic=payload.get("phonetic") or phonetic,
+        source=payload.get("source") or "generated",
+        syllables=[SyllableGuide(**beat) for beat in payload["syllables"]],
+    )
 
 
 @app.get("/name/{name_strip}", response_model=NameLookupResponse)
