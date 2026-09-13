@@ -2009,6 +2009,42 @@ def _lookup_name_results(name_strip: str, language: Optional[str]) -> list:
     return results
 
 
+def _select_syllable_guide_card(
+    results: List[Dict[str, Any]], requested_language: Optional[str]
+) -> Dict[str, Any]:
+    """Pick one pronunciation row without collapsing language variants by family."""
+    if len(results) == 1:
+        return results[0]
+
+    if requested_language:
+        needle = requested_language.strip().casefold()
+        exact_matches = [
+            row
+            for row in results
+            if str(row.get("language") or "").strip().casefold() == needle
+        ]
+        if len(exact_matches) == 1:
+            return exact_matches[0]
+
+    available_languages = sorted(
+        {
+            str(row.get("language") or "").strip()
+            for row in results
+            if str(row.get("language") or "").strip()
+        }
+    )
+    raise HTTPException(
+        status_code=409,
+        detail={
+            "message": (
+                "Multiple language variants match this name. "
+                "Request an exact dataset language."
+            ),
+            "available_languages": available_languages,
+        },
+    )
+
+
 @app.get("/recorded-names", response_model=RecordedNamesResponse)
 async def get_recorded_names(
     language: Optional[str] = Query(None, description="Language or language family"),
@@ -2077,7 +2113,7 @@ async def get_syllable_guide(
     results = _lookup_name_results(name, language)
     if not results:
         raise HTTPException(status_code=404, detail=f"Name '{name}' not found in dataset")
-    card = results[0]
+    card = _select_syllable_guide_card(results, language)
     phonetic = (card.get("phonetic_spelling") or "").strip()
     if not phonetic:
         raise HTTPException(status_code=404, detail="No phonetic spelling is available for this name")

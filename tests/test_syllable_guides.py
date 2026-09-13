@@ -134,6 +134,87 @@ def test_syllable_guide_endpoint_returns_published(monkeypatch):
     assert "cheering" in body["syllables"][2]["anchor"]
 
 
+def test_syllable_guide_endpoint_rejects_ambiguous_language_matches(monkeypatch):
+    from fastapi.testclient import TestClient
+
+    import app as api
+
+    monkeypatch.setattr(
+        api,
+        "_lookup_name_results",
+        lambda *_: [
+            {
+                "name": "Amina",
+                "name_strip": "Amina",
+                "language": "Hausa",
+                "meaning": "Trustworthy",
+                "phonetic_spelling": "ah-MEE-nah",
+            },
+            {
+                "name": "Amina",
+                "name_strip": "Amina",
+                "language": "Hausa (Localised Islamic/Arabic)",
+                "meaning": "Faithful",
+                "phonetic_spelling": "AH-mi-nah",
+            },
+        ],
+    )
+    monkeypatch.setattr(
+        "syllable_service.resolve_syllable_guide",
+        lambda **_: (_ for _ in ()).throw(AssertionError("should not generate")),
+    )
+    response = TestClient(api.app).get("/syllable-guide?name=Amina")
+    assert response.status_code == 409
+    assert response.json()["detail"]["available_languages"] == [
+        "Hausa",
+        "Hausa (Localised Islamic/Arabic)",
+    ]
+
+
+def test_syllable_guide_endpoint_uses_exact_language_match(monkeypatch):
+    from fastapi.testclient import TestClient
+
+    import app as api
+
+    monkeypatch.setattr(
+        api,
+        "_lookup_name_results",
+        lambda *_: [
+            {
+                "name": "Amina",
+                "name_strip": "Amina",
+                "language": "Hausa",
+                "meaning": "Trustworthy",
+                "phonetic_spelling": "ah-MEE-nah",
+            },
+            {
+                "name": "Amina",
+                "name_strip": "Amina",
+                "language": "Hausa (Localised Islamic/Arabic)",
+                "meaning": "Faithful",
+                "phonetic_spelling": "AH-mi-nah",
+            },
+        ],
+    )
+    monkeypatch.setattr(
+        "syllable_service.resolve_syllable_guide",
+        lambda **kwargs: {
+            "source": "generated",
+            "phonetic": kwargs["phonetic"],
+            "syllables": [
+                {"say": "ah", "anchor": 'the "ah" in father', "stress": False},
+                {"say": "mee", "anchor": 'the "me" in meet', "stress": True},
+                {"say": "nah", "anchor": 'the "na" in nada', "stress": False},
+            ],
+        },
+    )
+    response = TestClient(api.app).get("/syllable-guide?name=Amina&language=Hausa")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["language"] == "Hausa"
+    assert body["phonetic"] == "ah-MEE-nah"
+
+
 def test_name_lookup_includes_published_syllables(monkeypatch):
     from fastapi.testclient import TestClient
 
