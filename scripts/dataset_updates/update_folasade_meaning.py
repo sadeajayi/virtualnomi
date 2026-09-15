@@ -15,13 +15,14 @@ import argparse
 import json
 import os
 import sys
+import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 import pandas as pd
-from datasets import Dataset
 from huggingface_hub import HfApi, HfFolder, hf_hub_download
+from huggingface_hub.utils import HfHubHTTPError
 
 DATASET_REPO = "nomi-stories/nomi-names"
 PARQUET = "data/train-00000-of-00001.parquet"
@@ -95,14 +96,58 @@ def row_snapshot(row: pd.Series, columns: List[str]) -> Dict[str, Any]:
     return out
 
 
-def load_df(token: Optional[str]) -> pd.DataFrame:
-    path = hf_hub_download(
-        repo_id=DATASET_REPO,
-        repo_type="dataset",
-        filename=PARQUET,
-        token=token,
+def snapshot_revision(path: Path) -> str:
+    """Return the immutable HF snapshot revision for a downloaded cache path."""
+    parts = path.resolve().parts
+    if "snapshots" not in parts:
+        raise SystemExit(f"Could not determine HF snapshot revision from {path}")
+    index = parts.index("snapshots")
+    if index + 1 >= len(parts) or not parts[index + 1]:
+        raise SystemExit(f"Could not determine HF snapshot revision from {path}")
+    return parts[index + 1]
+
+
+def load_df(token: Optional[str]) -> tuple[pd.DataFrame, str]:
+    path = Path(
+        hf_hub_download(
+            repo_id=DATASET_REPO,
+            repo_type="dataset",
+            filename=PARQUET,
+            token=token,
+        )
     )
-    return pd.read_parquet(path)
+    return pd.read_parquet(path), snapshot_revision(path)
+
+
+def push_dataset_update(
+    df: pd.DataFrame,
+    *,
+    token: str,
+    commit_message: str,
+    parent_revision: str,
+) -> Any:
+    """Upload the full parquet only if the remote head still matches our source."""
+    api = HfApi(token=token)
+    with tempfile.NamedTemporaryFile(suffix=".parquet") as tmp:
+        df.to_parquet(tmp.name, index=False)
+        try:
+            return api.upload_file(
+                path_or_fileobj=tmp.name,
+                path_in_repo=PARQUET,
+                repo_id=DATASET_REPO,
+                repo_type="dataset",
+                token=token,
+                commit_message=commit_message,
+                parent_commit=parent_revision,
+            )
+        except HfHubHTTPError as exc:
+            status_code = getattr(getattr(exc, "response", None), "status_code", None)
+            if status_code == 412:
+                raise SystemExit(
+                    "Hugging Face dataset changed after this script downloaded it; "
+                    "rerun the update from the latest dataset revision."
+                ) from exc
+            raise
 
 
 def apply_updates(df: pd.DataFrame) -> tuple[pd.DataFrame, dict]:
@@ -195,10 +240,11 @@ def run(*, dry_run: bool, push: bool) -> int:
         raise SystemExit("HF_TOKEN not set. Run: export HF_TOKEN=... or huggingface-cli login")
 
     print("Downloading current dataset from Hugging Face...")
-    df = load_df(token)
-    print(f"Loaded {len(df)} rows")
+    df, source_revision = load_df(token)
+    print(f"Loaded {len(df)} rows from revision {source_revision}")
 
     df_out, report = apply_updates(df)
+    report["source_revision"] = source_revision
     write_report(report)
 
     if report["updated_count"] == 0:
@@ -213,15 +259,16 @@ def run(*, dry_run: bool, push: bool) -> int:
         "Update Folasade/Folashade meaning: Wear wealth/honour like a crown"
     )
     print(f"Pushing to Hugging Face: {commit_message}")
-    Dataset.from_pandas(df_out, preserve_index=False).push_to_hub(
-        DATASET_REPO,
+    commit = push_dataset_update(
+        df_out,
         token=token,
         commit_message=commit_message,
+        parent_revision=source_revision,
     )
 
     api = HfApi(token=token)
     info = api.dataset_info(DATASET_REPO)
-    report["hf_revision"] = info.sha
+    report["hf_revision"] = getattr(commit, "oid", None) or info.sha
     report["hf_commit_message"] = commit_message
     write_report(report)
     print(f"✅ HF push complete. revision={info.sha}")
