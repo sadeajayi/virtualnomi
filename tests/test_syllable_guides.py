@@ -44,6 +44,15 @@ def test_published_lookup_returns_anchors_and_stress():
     assert "cheering" in syllables[2]["anchor"]
 
 
+def test_unreadable_guide_file_is_ignored(tmp_path, monkeypatch):
+    bad_guides = tmp_path / "bad_syllable_guides.jsonl"
+    bad_guides.write_bytes(b"\xff\xfe\xfa")
+    monkeypatch.setattr(store, "GUIDE_PATHS", (bad_guides,))
+    store.reset_syllable_store()
+
+    assert store.get_published_syllables("Amarachi", "Igbo") is None
+
+
 def test_generated_guides_are_remembered_for_later_lookup():
     generated = [
         {"say": "tay", "anchor": 'the "tay" in stay, without the s', "stress": False},
@@ -106,6 +115,48 @@ def test_resolve_generates_when_unpublished(monkeypatch):
     assert payload["source"] == "generated"
     assert [beat["say"] for beat in payload["syllables"]] == ["tay", "mi", "taw", "kpe"]
     assert store.get_published_syllables("Temitope", "Yoruba") == beats
+
+
+def test_resolve_regenerates_when_published_beats_do_not_match_phonetic(tmp_path, monkeypatch):
+    stale_guides = tmp_path / "stale_syllable_guides.jsonl"
+    stale_guides.write_text(
+        json.dumps(
+            {
+                "name_strip": "Temitope",
+                "language": "Yoruba",
+                "syllables": [
+                    {"say": "tay", "anchor": 'the "tay" in stay', "stress": True},
+                    {"say": "mi", "anchor": "the word me", "stress": False},
+                ],
+            }
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(store, "GUIDE_PATHS", (stale_guides,))
+    store.reset_syllable_store()
+
+    generated = [
+        {"say": "tay", "anchor": 'the "tay" in stay', "stress": False},
+        {"say": "mi", "anchor": "the word me", "stress": False},
+        {"say": "taw", "anchor": 'the "taw" in talk', "stress": True},
+        {"say": "kpe", "anchor": "kpe — one sound", "stress": False},
+    ]
+    monkeypatch.setattr(
+        "syllable_service.generate_syllable_guide",
+        lambda **_: generated,
+    )
+
+    payload = resolve_syllable_guide(
+        name="Temitope",
+        name_strip="Temitope",
+        language="Yoruba",
+        phonetic="tay-mi-taw-kpe",
+        generate=True,
+    )
+
+    assert payload["source"] == "generated"
+    assert [beat["say"] for beat in payload["syllables"]] == ["tay", "mi", "taw", "kpe"]
 
 
 def test_syllable_guide_endpoint_returns_published(monkeypatch):
