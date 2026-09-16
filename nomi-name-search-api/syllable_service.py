@@ -171,7 +171,13 @@ def resolve_syllable_guide(
 ) -> Optional[Dict[str, Any]]:
     published = get_published_syllables(name_strip, language)
     if published:
-        return {"syllables": published, "source": "published", "phonetic": phonetic}
+        try:
+            aligned = apply_published_phonetic(published, phonetic)
+        except SyllableGuideError:
+            if not generate:
+                return None
+        else:
+            return {"syllables": aligned, "source": "published", "phonetic": phonetic}
 
     if not generate:
         return None

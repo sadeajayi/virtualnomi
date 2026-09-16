@@ -484,13 +484,27 @@ def get_dataset_lookup():
 
     return lookup
 
-def _syllables_for_name(name_strip: str, language: str) -> Optional[List[Dict[str, Any]]]:
+def _syllables_for_name(
+    name_strip: str,
+    language: str,
+    phonetic: Optional[str] = None,
+) -> Optional[List[Dict[str, Any]]]:
     """Return published or previously generated syllable guides when we have them."""
     try:
         from syllable_store import get_published_syllables
     except ImportError:
         return None
-    return get_published_syllables(name_strip, language)
+
+    syllables = get_published_syllables(name_strip, language)
+    if not syllables or not phonetic:
+        return syllables
+
+    try:
+        from syllable_service import SyllableGuideError, apply_published_phonetic
+
+        return apply_published_phonetic(syllables, phonetic)
+    except (ImportError, SyllableGuideError):
+        return None
 
 
 def get_name_metadata_from_dataset(name_strip: str, language: str) -> Dict[str, Any]:
@@ -514,7 +528,7 @@ def get_name_metadata_from_dataset(name_strip: str, language: str) -> Dict[str, 
         "validated_by": match.get("Validated_By", ""),
         "validation_status": match.get("Validation_Status", ""),
         "audio_url": audio_url,
-        "syllables": _syllables_for_name(name_strip, language),
+        "syllables": _syllables_for_name(name_strip, language, phonetic_spelling),
     }
 
 def load_stories_data():
@@ -673,7 +687,8 @@ def build_result_dict(name_data: Dict, metadata: Dict, story: Dict, score: float
         "story": story,
         "score": score,
         "audio_url": metadata.get("audio_url", ""),
-        "syllables": metadata.get("syllables") or _syllables_for_name(name_strip, lang),
+        "syllables": metadata.get("syllables")
+        or _syllables_for_name(name_strip, lang, metadata.get("phonetic_spelling", "")),
     }
 
 def query_name_db(query: str, lang_filter: str) -> List[Dict[str, Any]]:

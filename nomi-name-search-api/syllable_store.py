@@ -80,7 +80,15 @@ def normalize_syllables(raw: Any) -> List[Dict[str, Any]]:
 def _read_jsonl(path: Path) -> Iterable[Dict[str, Any]]:
     if not path.exists():
         return
-    for line in path.read_text(encoding="utf-8").splitlines():
+    try:
+        lines = path.read_text(encoding="utf-8").splitlines()
+    except (OSError, UnicodeError) as exc:
+        # Syllable guide files are an optional overlay; bad guide data must not
+        # take down core name lookup/search responses.
+        print(f"[syllable_store] WARNING: skipping unreadable guide file {path}: {exc}")
+        return
+
+    for line in lines:
         stripped = line.strip()
         if not stripped:
             continue
