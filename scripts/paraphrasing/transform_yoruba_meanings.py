@@ -155,6 +155,39 @@ Only return the JSON array, no additional text."""
     
     return prompt
 
+
+def _extract_json_payload(response_text: str) -> str:
+    """Return the raw JSON payload, allowing fenced JSON from provider responses."""
+    text = response_text.strip()
+    if "```json" in text:
+        return text.split("```json", 1)[1].split("```", 1)[0].strip()
+    if "```" in text:
+        return text.split("```", 1)[1].split("```", 1)[0].strip()
+    return text
+
+
+def parse_variations_response(response_text: str, name: str) -> List[str]:
+    """Parse provider output; malformed non-JSON must not count as success."""
+    payload = _extract_json_payload(response_text)
+    try:
+        parsed = json.loads(payload)
+    except json.JSONDecodeError as exc:
+        print(f"⚠️  JSON parse error for {name}: {exc}")
+        return []
+
+    if isinstance(parsed, str):
+        parsed = [parsed]
+    if not isinstance(parsed, list):
+        return []
+
+    variations = [
+        item.strip()
+        for item in parsed
+        if isinstance(item, str) and item.strip()
+    ]
+    return variations[:MAX_VARIATIONS]
+
+
 def paraphrase_with_claude(client, name: str, meaning: str, cultural_context: str = "") -> List[str]:
     """Generate paraphrases using Claude"""
     
@@ -190,26 +223,7 @@ def paraphrase_with_claude(client, name: str, meaning: str, cultural_context: st
     
     try:
         response_text = message.content[0].text.strip()
-        
-        # Try to parse JSON from response
-        # Sometimes Claude adds markdown formatting
-        if "```json" in response_text:
-            response_text = response_text.split("```json")[1].split("```")[0].strip()
-        elif "```" in response_text:
-            response_text = response_text.split("```")[1].split("```")[0].strip()
-        
-        variations = json.loads(response_text)
-        
-        if isinstance(variations, list) and len(variations) > 0:
-            return variations[:MAX_VARIATIONS]
-        else:
-            return [variations] if isinstance(variations, str) else []
-            
-    except json.JSONDecodeError as e:
-        print(f"⚠️  JSON parse error for {name}: {e}")
-        # Try to extract variations from text
-        lines = [line.strip() for line in response_text.split('\n') if line.strip()]
-        return lines[:MAX_VARIATIONS]
+        return parse_variations_response(response_text, name)
     except Exception as e:
         print(f"❌ Error paraphrasing {name} with Claude: {e}")
         return []
@@ -237,25 +251,7 @@ def paraphrase_with_openai(client, model: str, name: str, meaning: str, cultural
         )
         
         response_text = response.choices[0].message.content.strip()
-        
-        # Try to parse JSON from response
-        if "```json" in response_text:
-            response_text = response_text.split("```json")[1].split("```")[0].strip()
-        elif "```" in response_text:
-            response_text = response_text.split("```")[1].split("```")[0].strip()
-        
-        variations = json.loads(response_text)
-        
-        if isinstance(variations, list) and len(variations) > 0:
-            return variations[:MAX_VARIATIONS]
-        else:
-            return [variations] if isinstance(variations, str) else []
-            
-    except json.JSONDecodeError as e:
-        print(f"⚠️  JSON parse error for {name}: {e}")
-        # Try to extract variations from text
-        lines = [line.strip() for line in response_text.split('\n') if line.strip()]
-        return lines[:MAX_VARIATIONS]
+        return parse_variations_response(response_text, name)
     except Exception as e:
         print(f"❌ Error paraphrasing {name} with OpenAI: {e}")
         return []

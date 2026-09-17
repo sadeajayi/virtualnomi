@@ -135,13 +135,19 @@ MANUAL_STRUCTURAL: List[Tuple[str, str]] = [
     ("Ibebuike", "There is strength in cordial relationship"),
 ]
 
-# Paper uses Ifeedi in structural list and Ifedi in semantic discussion
+# Paper uses Ifeedi in a structural list and Ifedi in semantic discussion.
+# Treat the list spelling as an extraction alias so we do not append both rows.
+CANONICAL_NAME_ALIASES: Dict[str, str] = {
+    "Ifeedi": "Ifedi",
+}
+
 SEMANTIC_ALIASES: List[Tuple[str, str]] = [
     ("Ifedi", "Something exists"),
 ]
 
 # Multi-line / split gloss fixes
 MEANING_OVERRIDES: Dict[str, str] = {
+    "Ifeedi": "Something exists",
     "Umekwulu": "Let untimely death cease",
     "Chekwube Chukwu": "Trust in God",
     "Chekwubechukwu": "Trust in God",
@@ -186,14 +192,15 @@ def _add_candidate(
     name = re.sub(r"\s+", " ", name.strip())
     if _should_skip_name(name):
         return
+    canonical_name = CANONICAL_NAME_ALIASES.get(name, name)
     meaning = clean_meaning(MEANING_OVERRIDES.get(name, meaning))
     if not meaning or len(meaning) < 3:
         return
-    key = ascii_name_strip(name)
+    key = ascii_name_strip(canonical_name)
     if not key:
         return
     if key not in store or len(meaning) > len(store[key][0]):
-        store[key] = (meaning, name, source)
+        store[key] = (meaning, canonical_name, source)
 
 
 def extract_candidates_from_pdf(pdf_path: Path) -> Dict[str, Tuple[str, str, str]]:
