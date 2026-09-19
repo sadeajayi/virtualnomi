@@ -314,9 +314,6 @@ class LanguageRAGService:
         keys = cls._name_match_keys(name)
         if not keys:
             return False
-        text_folded = cls._fold_for_match(text)
-        if any(key in text_folded for key in keys):
-            return True
         text_forms = cls._text_match_forms(text)
         if keys & text_forms:
             return True
