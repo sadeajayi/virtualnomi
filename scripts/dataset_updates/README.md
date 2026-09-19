@@ -21,4 +21,4 @@ Scripts that add or update columns/rows on **nomi-stories/nomi-names** (or relat
 | `normalize_pronunciation_by.py` | Normalize pronunciation_by field |
 | `backfill_pronunciation_by.py` | Backfill pronunciation_by |
 | `update_*.py` | Various column/row updates (Hausa, Igbo, Yoruba, etc.) |
-| `update_yoruba_attributions.py` | Set Yoruba `Attribution` to `YorubaNames.com` (Nomi exceptions for newer rows); `--from-cache` / `--push` |
+| `update_yoruba_attributions.py` | Set Yoruba `Attribution` to `YorubaNames.com` (Nomi exceptions for newer rows); review with `--from-cache`, push only from live HF |
