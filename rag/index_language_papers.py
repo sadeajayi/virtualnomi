@@ -15,6 +15,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -66,7 +67,9 @@ def extract_text_from_pdf(pdf_path: Path) -> str:
             with open(pdf_path, "rb") as file:
                 pdf_reader = PyPDF2.PdfReader(file)
                 for page in pdf_reader.pages:
-                    text += page.extract_text() + "\n"
+                    page_text = page.extract_text()
+                    if page_text:
+                        text += page_text + "\n"
             return text
         except Exception as exc:
             print(f"   ❌ PyPDF2 error: {exc}")
@@ -202,21 +205,37 @@ def index_language(rag_key: str) -> bool:
 
 def _write_index_streaming(index_file: Path, metadata: dict, jsonl_file: Path) -> None:
     """Write index JSON without loading all chunks into memory."""
-    with open(index_file, "w", encoding="utf-8") as out:
-        out.write('{"metadata":')
-        json.dump(metadata, out, ensure_ascii=False)
-        out.write(',"chunks":[')
-        first = True
-        with open(jsonl_file, encoding="utf-8") as src:
-            for line in src:
-                line = line.strip()
-                if not line:
-                    continue
-                if not first:
-                    out.write(",")
-                out.write(line)
-                first = False
-        out.write("]}")
+    temp_file = index_file.with_name(f".{index_file.name}.tmp")
+    try:
+        with open(temp_file, "w", encoding="utf-8") as out:
+            out.write('{"metadata":')
+            json.dump(metadata, out, ensure_ascii=False)
+            out.write(',"chunks":[')
+            first = True
+            with open(jsonl_file, encoding="utf-8") as src:
+                for line in src:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    if not first:
+                        out.write(",")
+                    out.write(line)
+                    first = False
+            out.write("]}")
+            out.flush()
+            os.fsync(out.fileno())
+        temp_file.replace(index_file)
+        try:
+            dir_fd = os.open(index_file.parent, os.O_RDONLY)
+        except OSError:
+            return
+        try:
+            os.fsync(dir_fd)
+        finally:
+            os.close(dir_fd)
+    except Exception:
+        temp_file.unlink(missing_ok=True)
+        raise
 
 
 def main() -> None:
