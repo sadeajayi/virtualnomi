@@ -21,7 +21,15 @@ from typing import Any, Callable
 import numpy as np
 import pandas as pd
 from datasets import Dataset
-from huggingface_hub import HfFolder, hf_hub_download
+from huggingface_hub import HfApi, hf_hub_download
+
+try:
+    from huggingface_hub import get_token
+except ImportError:  # pragma: no cover - compatibility with older hub versions.
+    from huggingface_hub import HfFolder
+
+    def get_token() -> str | None:
+        return HfFolder.get_token()
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 if str(SCRIPT_DIR) not in sys.path:
@@ -42,6 +50,48 @@ DEFAULT_MANIFEST = (
 DEFAULT_REPORT = (
     REPO_ROOT / "data" / "dataset_updates" / "discover_pronunciation_deploy_report.json"
 )
+
+
+def _public_recorder_for_item(manifest: dict, item: dict) -> str:
+    approved = bool(
+        item.get(
+            "public_attribution_approved",
+            manifest.get("public_attribution_approved", False),
+        )
+    )
+    if not approved:
+        return ""
+    return str(
+        item.get("public_pronunciation_by")
+        or manifest.get("public_pronunciation_by")
+        or manifest["internal_pronunciation_by"]
+    ).strip()
+
+
+def _source_revision(source: Path, is_local_source: bool) -> str:
+    if is_local_source:
+        return "local"
+    parts = source.parts
+    if "snapshots" in parts:
+        index = parts.index("snapshots")
+        if index + 1 < len(parts):
+            return parts[index + 1]
+    return "unknown"
+
+
+def _verify_push_source_is_current(source_revision: str, token: str | None) -> str:
+    if source_revision in {"local", "unknown"}:
+        raise SystemExit(
+            "--push requires a freshly downloaded Hugging Face snapshot so the "
+            "dataset revision can be verified"
+        )
+    current_revision = HfApi(token=token).dataset_info(repo_id=DATASET_REPO).sha
+    if current_revision != source_revision:
+        raise SystemExit(
+            "Refusing to push from stale dataset snapshot "
+            f"{source_revision}; current remote revision is {current_revision}"
+        )
+    return current_revision
 
 
 def validate_wav_audio(data: bytes) -> dict[str, Any]:
@@ -129,12 +179,13 @@ def apply_recordings(
 ) -> tuple[pd.DataFrame, list[dict]]:
     updated = frame.copy()
     reports = []
-    recorder = str(manifest["internal_pronunciation_by"]).strip()
+    internal_recorder = str(manifest["internal_pronunciation_by"]).strip()
 
     for item in manifest["recordings"]:
         name_strip = str(item["name_strip"]).strip()
         language = str(item["language"]).strip()
         phonetic = str(item["phonetic_spelling"]).strip()
+        public_recorder = _public_recorder_for_item(manifest, item)
         source = audio_dir / str(item["audio_filename"])
         if not source.is_file():
             raise FileNotFoundError(f"Audio file not found: {source}")
@@ -166,7 +217,7 @@ def apply_recordings(
 
         updated.at[index, "Phonetic spelling"] = phonetic
         updated.at[index, "Audio Pronunciation"] = {"bytes": wav_bytes}
-        updated.at[index, "pronunciation_by"] = recorder
+        updated.at[index, "pronunciation_by"] = public_recorder
 
         if updated.at[index, "Meaning"] != before_meaning:
             raise AssertionError("Meaning changed during pronunciation update")
@@ -186,8 +237,9 @@ def apply_recordings(
                 "audio": audio_audit,
                 "meaning_preserved": True,
                 "attribution_preserved": True,
-                "internal_pronunciation_by": recorder,
-                "public_attribution_approved": False,
+                "internal_pronunciation_by": internal_recorder,
+                "public_pronunciation_by": public_recorder or None,
+                "public_attribution_approved": bool(public_recorder),
                 "canonical_row_created": created,
             }
         )
@@ -207,7 +259,7 @@ def parse_args() -> argparse.Namespace:
 def main() -> None:
     args = parse_args()
     manifest = json.loads(args.manifest.read_text(encoding="utf-8"))
-    token = os.environ.get("HF_TOKEN") or HfFolder.get_token()
+    token = os.environ.get("HF_TOKEN") or get_token()
     source = args.source_parquet or Path(
         hf_hub_download(
             repo_id=DATASET_REPO,
@@ -216,6 +268,7 @@ def main() -> None:
             token=token,
         )
     )
+    source_revision = _source_revision(source, args.source_parquet is not None)
     frame = pd.read_parquet(source)
     with_recordings, recording_report = apply_recordings(
         frame, manifest, args.audio_dir.expanduser().resolve()
@@ -227,9 +280,7 @@ def main() -> None:
     report: dict[str, Any] = {
         "dataset_repo": DATASET_REPO,
         "dataset_file": DATASET_FILE,
-        "source_revision": source.parents[1].name
-        if not args.source_parquet
-        else "local",
+        "source_revision": source_revision,
         "uploaded": False,
         "recordings": recording_report,
         "phonetic_only": ibibio_report,
@@ -239,6 +290,9 @@ def main() -> None:
     if args.push:
         if not token:
             raise SystemExit("HF_TOKEN is required for --push")
+        report["verified_source_revision"] = _verify_push_source_is_current(
+            source_revision, token
+        )
         commit = Dataset.from_pandas(updated, preserve_index=False).push_to_hub(
             DATASET_REPO,
             token=token,
