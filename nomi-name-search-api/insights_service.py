@@ -129,6 +129,44 @@ def _clear_insight_cache() -> None:
     _insight_result_cache.clear()
 
 
+def _lookup_language(value: Any) -> str:
+    return str(value or "").strip()
+
+
+def _select_lookup_match(
+    name: str,
+    matches: List[Dict[str, Any]],
+    requested_language: str,
+) -> Optional[Dict[str, Any]]:
+    if not matches:
+        return None
+
+    normalized_requested = _lookup_language(requested_language).casefold()
+    if normalized_requested:
+        exact_matches = [
+            match
+            for match in matches
+            if _lookup_language(match.get("language")).casefold() == normalized_requested
+        ]
+        if exact_matches:
+            return exact_matches[0]
+
+    languages = sorted(
+        {
+            _lookup_language(match.get("language"))
+            for match in matches
+            if _lookup_language(match.get("language"))
+        },
+        key=str.casefold,
+    )
+    if len(languages) > 1:
+        raise ValueError(
+            f"Name '{name}' matches multiple languages ({', '.join(languages)}); "
+            "provide a specific language"
+        )
+    return matches[0]
+
+
 def _normalize_additional_meaning(value: Optional[str]) -> str:
     if not value:
         return ""
@@ -450,7 +488,7 @@ def generate_insight_paragraph(
             if not matches:
                 raise ValueError(f"Name '{name}' not found in dataset")
         if matches:
-            primary = matches[0]
+            primary = _select_lookup_match(name, matches, language)
             resolved_name = primary.get("name") or name
             if not resolved_meaning:
                 resolved_meaning = primary.get("meaning") or resolved_meaning
