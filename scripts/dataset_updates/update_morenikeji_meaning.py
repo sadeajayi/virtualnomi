@@ -2,12 +2,16 @@
 """Update Morenikeji meaning in the nomi-names Hugging Face dataset."""
 
 import os
-import pandas as pd
-from datasets import Dataset
-from huggingface_hub import hf_hub_download, HfFolder
+from huggingface_hub import HfFolder
+
+try:
+    from .hf_dataset_uploads import download_dataset_parquet, push_dataframe_to_hub
+except ImportError:
+    from hf_dataset_uploads import download_dataset_parquet, push_dataframe_to_hub
 
 HF_TOKEN = os.getenv("HF_TOKEN") or HfFolder.get_token()
 DATASET_REPO = "nomi-stories/nomi-names"
+PARQUET = "data/train-00000-of-00001.parquet"
 
 NAME_STRIP = "Morenikeji"
 LANGUAGE = "Yoruba"
@@ -19,13 +23,8 @@ if not HF_TOKEN:
 
 def main():
     print("Downloading current dataset...")
-    path = hf_hub_download(
-        repo_id=DATASET_REPO,
-        repo_type="dataset",
-        filename="data/train-00000-of-00001.parquet",
-        token=HF_TOKEN,
-    )
-    df = pd.read_parquet(path)
+    loaded = download_dataset_parquet(DATASET_REPO, PARQUET, token=HF_TOKEN)
+    df = loaded.frame
     df["NameStrip"] = df["NameStrip"].astype(str).str.strip()
     df["Language"] = df["Language"].astype(str).str.strip()
 
@@ -38,10 +37,13 @@ def main():
     print(f'✅ Updated {NAME_STRIP}: "{old}" → "{NEW_MEANING}"')
 
     print("Pushing to Hugging Face...")
-    Dataset.from_pandas(df).push_to_hub(
+    push_dataframe_to_hub(
+        df,
         DATASET_REPO,
+        PARQUET,
         token=HF_TOKEN,
         commit_message="Update Morenikeji meaning: I have found a companion.",
+        source_revision=loaded.revision,
     )
     print("✅ Done.")
 
