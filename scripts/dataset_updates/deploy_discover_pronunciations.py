@@ -82,6 +82,34 @@ def _exact_row_index(frame: pd.DataFrame, name_strip: str, language: str) -> Any
     return frame.index[mask][0]
 
 
+def _audio_has_bytes(value: Any) -> bool:
+    if not isinstance(value, dict):
+        return False
+    data = value.get("bytes")
+    return isinstance(data, (bytes, bytearray, memoryview)) and bool(data)
+
+
+def _resolve_audio_source(audio_dir: Path, audio_filename: Any) -> Path:
+    relative = Path(str(audio_filename))
+    if relative.is_absolute():
+        raise ValueError("Manifest audio_filename must stay within audio-dir")
+    root = audio_dir.resolve()
+    source = (root / relative).resolve()
+    if source != root and root not in source.parents:
+        raise ValueError("Manifest audio_filename must stay within audio-dir")
+    return source
+
+
+def _assert_pronunciation_slot_empty(row: pd.Series, name_strip: str, language: str) -> None:
+    has_audio = _audio_has_bytes(row.get("Audio Pronunciation"))
+    contributor = str(row.get("pronunciation_by") or "").strip()
+    if has_audio or contributor:
+        raise ValueError(
+            "Refusing to overwrite existing pronunciation for "
+            f"{name_strip} ({language})"
+        )
+
+
 def _append_canonical_row(
     frame: pd.DataFrame,
     *,
@@ -135,7 +163,7 @@ def apply_recordings(
         name_strip = str(item["name_strip"]).strip()
         language = str(item["language"]).strip()
         phonetic = str(item["phonetic_spelling"]).strip()
-        source = audio_dir / str(item["audio_filename"])
+        source = _resolve_audio_source(audio_dir, item["audio_filename"])
         if not source.is_file():
             raise FileNotFoundError(f"Audio file not found: {source}")
 
@@ -154,6 +182,9 @@ def apply_recordings(
             created = True
         else:
             index = _exact_row_index(updated, name_strip, language)
+            _assert_pronunciation_slot_empty(
+                updated.loc[index], name_strip, language
+            )
         before_meaning = updated.at[index, "Meaning"]
         before_attribution = updated.at[index, "Attribution"]
         before_validation = {
