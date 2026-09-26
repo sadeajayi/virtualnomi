@@ -2062,13 +2062,14 @@ async def get_syllable_guide(
     """
     Learner syllable guide (anchors + stress) for Discover rehearsal.
 
-    Returns published pipeline approvals when we have them. Otherwise expands the
-    published hyphenated phonetic into Folasade-style English sound maps.
+    Returns published pipeline approvals when we have them. Live expansion from
+    the published hyphenated phonetic is server-side opt-in.
     """
     try:
         from syllable_service import (
             SyllableGuideConfigError,
             SyllableGuideError,
+            live_generation_enabled,
             resolve_syllable_guide,
         )
     except ImportError as exc:
@@ -2088,7 +2089,7 @@ async def get_syllable_guide(
             name_strip=card.get("name_strip") or name,
             language=card.get("language") or language or "",
             phonetic=phonetic,
-            generate=True,
+            generate=live_generation_enabled(),
         )
     except SyllableGuideConfigError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
