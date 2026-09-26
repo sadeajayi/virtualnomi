@@ -134,6 +134,73 @@ def test_syllable_guide_endpoint_returns_published(monkeypatch):
     assert "cheering" in body["syllables"][2]["anchor"]
 
 
+def test_syllable_guide_endpoint_does_not_generate_by_default(monkeypatch):
+    from fastapi.testclient import TestClient
+
+    import app as api
+
+    monkeypatch.delenv("NOMI_SYLLABLE_GUIDE_GENERATION", raising=False)
+    monkeypatch.setattr(
+        api,
+        "_lookup_name_results",
+        lambda *_: [
+            {
+                "name": "Temitope",
+                "name_strip": "Temitope",
+                "language": "Yoruba",
+                "meaning": "Mine is thanks",
+                "phonetic_spelling": "tay-mi-taw-kpe",
+            }
+        ],
+    )
+    monkeypatch.setattr(
+        "syllable_service.generate_syllable_guide",
+        lambda **_: (_ for _ in ()).throw(AssertionError("should not generate")),
+    )
+
+    response = TestClient(api.app).get("/syllable-guide?name=Temitope&language=Yoruba")
+
+    assert response.status_code == 404
+    assert response.json()["detail"] == "No syllable guide is available for this name"
+
+
+def test_syllable_guide_endpoint_generates_when_enabled(monkeypatch):
+    from fastapi.testclient import TestClient
+
+    import app as api
+
+    monkeypatch.setenv("NOMI_SYLLABLE_GUIDE_GENERATION", "1")
+    monkeypatch.setattr(
+        api,
+        "_lookup_name_results",
+        lambda *_: [
+            {
+                "name": "Temitope",
+                "name_strip": "Temitope",
+                "language": "Yoruba",
+                "meaning": "Mine is thanks",
+                "phonetic_spelling": "tay-mi-taw-kpe",
+            }
+        ],
+    )
+    monkeypatch.setattr(
+        "syllable_service.generate_syllable_guide",
+        lambda **_: [
+            {"say": "tay", "anchor": 'the "tay" in stay, without the s', "stress": False},
+            {"say": "mi", "anchor": "the word me", "stress": False},
+            {"say": "taw", "anchor": 'the "taw" in talk, without the lk', "stress": True},
+            {"say": "kpe", "anchor": "kpe, one clipped beat", "stress": False},
+        ],
+    )
+
+    response = TestClient(api.app).get("/syllable-guide?name=Temitope&language=Yoruba")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["source"] == "generated"
+    assert [beat["say"] for beat in body["syllables"]] == ["tay", "mi", "taw", "kpe"]
+
+
 def test_name_lookup_includes_published_syllables(monkeypatch):
     from fastapi.testclient import TestClient
 

@@ -22,6 +22,7 @@ from syllable_store import (
 SYLLABLE_MODEL = os.environ.get("NOMI_PHONETIC_MODEL") or os.environ.get(
     "NOMI_INSIGHTS_MODEL", "claude-sonnet-5"
 )
+SYLLABLE_GENERATION_ENABLED = "NOMI_SYLLABLE_GUIDE_GENERATION"
 _PROMPT_PATH = Path(__file__).resolve().parent / "prompts" / "syllable_guide_system_prompt.md"
 _system_prompt_cache: Optional[str] = None
 TOOL_NAME = "submit_syllable_guide"
@@ -57,6 +58,17 @@ class SyllableGuideError(ValueError):
 
 class SyllableGuideConfigError(RuntimeError):
     """Missing API key or SDK."""
+
+
+def live_generation_enabled() -> bool:
+    """Server-side opt-in for paid, synchronous syllable-guide generation."""
+    return os.environ.get(SYLLABLE_GENERATION_ENABLED, "").strip().lower() in {
+        "1",
+        "true",
+        "yes",
+        "on",
+        "enabled",
+    }
 
 
 def load_system_prompt() -> str:
@@ -167,7 +179,7 @@ def resolve_syllable_guide(
     name_strip: str,
     language: str,
     phonetic: str,
-    generate: bool = True,
+    generate: bool = False,
 ) -> Optional[Dict[str, Any]]:
     published = get_published_syllables(name_strip, language)
     if published:
