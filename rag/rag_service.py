@@ -729,22 +729,21 @@ class LanguageRAGService:
         if morphemes:
             for item in excerpts:
                 text_lower = item["excerpt"].lower()
-                for morpheme in morphemes:
-                    if morpheme.lower() in text_lower:
-                        semantic_keywords = (
-                            "mean",
-                            "meaning",
-                            "signify",
-                            "denote",
-                            "semantic",
-                            "morpheme",
-                        )
-                        if any(kw in text_lower for kw in semantic_keywords):
-                            key = str(item.get("paper") or "") + item["excerpt"][:120]
-                            if key not in morpheme_keys:
-                                morpheme_excerpts.append(item)
-                                morpheme_keys.add(key)
-                            break
+                if not self._morphemes_in_text(name, item["excerpt"]):
+                    continue
+                semantic_keywords = (
+                    "mean",
+                    "meaning",
+                    "signify",
+                    "denote",
+                    "semantic",
+                    "morpheme",
+                )
+                if any(kw in text_lower for kw in semantic_keywords):
+                    key = str(item.get("paper") or "") + item["excerpt"][:120]
+                    if key not in morpheme_keys:
+                        morpheme_excerpts.append(item)
+                        morpheme_keys.add(key)
             if morpheme_excerpts:
                 context_parts.append("Morpheme Analysis:")
                 for item in morpheme_excerpts[:2]:
