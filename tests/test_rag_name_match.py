@@ -55,3 +55,26 @@ def test_definition_context_uses_folded_name() -> None:
     text = "(43) àdùnní meaning ‘sweet to have’ (44) àríkẹ́"
     svc = object.__new__(LanguageRAGService)
     assert LanguageRAGService._has_name_definition_context(svc, "Adunni", text)
+
+
+def test_cultural_context_morpheme_analysis_uses_boundaries() -> None:
+    svc = object.__new__(LanguageRAGService)
+    svc.morphemes = ["ade"]
+    svc.get_insights_excerpts = lambda _name, _meaning: [
+        {
+            "paper": "Trade_Patterns.pdf",
+            "excerpt": "International trade patterns have meaning in market naming.",
+            "relevance_score": 0.8,
+        },
+        {
+            "paper": "Yoruba_Crown_Names.pdf",
+            "excerpt": "In Yoruba names, ade means crown and marks royal honour.",
+            "relevance_score": 0.8,
+        },
+    ]
+
+    context = svc.get_cultural_context("Folasade", "crown me with honour")
+
+    assert "Morpheme Analysis:" in context
+    assert "Yoruba_Crown_Names.pdf" in context
+    assert "Trade_Patterns.pdf" not in context.split("General Cultural Context:")[0]
