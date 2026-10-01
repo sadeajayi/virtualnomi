@@ -485,7 +485,7 @@ def get_dataset_lookup():
     return lookup
 
 def _syllables_for_name(name_strip: str, language: str) -> Optional[List[Dict[str, Any]]]:
-    """Return published or previously generated syllable guides when we have them."""
+    """Return reviewed syllable guides for core name/search responses."""
     try:
         from syllable_store import get_published_syllables
     except ImportError:

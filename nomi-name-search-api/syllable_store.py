@@ -117,10 +117,12 @@ def published_lookup() -> Dict[str, List[Dict[str, Any]]]:
 
 def get_published_syllables(name_strip: str, language: str) -> Optional[List[Dict[str, Any]]]:
     key = practice_key(name_strip, language)
-    generated = _generated.get(key)
-    if generated:
-        return generated
     return published_lookup().get(key)
+
+
+def get_generated_syllables(name_strip: str, language: str) -> Optional[List[Dict[str, Any]]]:
+    key = practice_key(name_strip, language)
+    return _generated.get(key)
 
 
 def remember_generated(name_strip: str, language: str, syllables: List[Dict[str, Any]]) -> None:
