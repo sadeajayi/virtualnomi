@@ -12,6 +12,7 @@ except ImportError:
     anthropic = None  # type: ignore
 
 from syllable_store import (
+    get_generated_syllables,
     get_published_syllables,
     normalize_syllables,
     phonetic_parts,
@@ -172,6 +173,10 @@ def resolve_syllable_guide(
     published = get_published_syllables(name_strip, language)
     if published:
         return {"syllables": published, "source": "published", "phonetic": phonetic}
+
+    generated = get_generated_syllables(name_strip, language)
+    if generated:
+        return {"syllables": generated, "source": "generated", "phonetic": phonetic}
 
     if not generate:
         return None
