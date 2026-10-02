@@ -44,6 +44,78 @@ def test_published_lookup_returns_anchors_and_stress():
     assert "cheering" in syllables[2]["anchor"]
 
 
+def test_published_lookup_keeps_full_language_variants_separate(tmp_path, monkeypatch):
+    guides = tmp_path / "variant_syllable_guides.jsonl"
+    guides.write_text(
+        "\n".join(
+            [
+                json.dumps(
+                    {
+                        "name_strip": "Amina",
+                        "language": "Hausa",
+                        "syllables": [
+                            {
+                                "say": "ah",
+                                "anchor": 'the "ah" in father',
+                                "stress": False,
+                            },
+                            {
+                                "say": "mee",
+                                "anchor": 'the "me" in meet',
+                                "stress": True,
+                            },
+                            {
+                                "say": "nah",
+                                "anchor": 'the "na" in nada',
+                                "stress": False,
+                            },
+                        ],
+                    }
+                ),
+                json.dumps(
+                    {
+                        "name_strip": "Amina",
+                        "language": "Hausa (Localised Islamic/Arabic)",
+                        "syllables": [
+                            {
+                                "say": "ah",
+                                "anchor": 'the "ah" in apple',
+                                "stress": True,
+                            },
+                            {
+                                "say": "mi",
+                                "anchor": 'the "mi" in middle',
+                                "stress": False,
+                            },
+                            {
+                                "say": "nah",
+                                "anchor": 'the "na" in nada',
+                                "stress": False,
+                            },
+                        ],
+                    }
+                ),
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(store, "GUIDE_PATHS", (guides,))
+    store.reset_syllable_store()
+
+    standard = store.get_published_syllables("Amina", "Hausa")
+    localised = store.get_published_syllables(
+        "Amina", "Hausa (Localised Islamic/Arabic)"
+    )
+
+    assert standard is not None
+    assert localised is not None
+    assert standard[1]["say"] == "mee"
+    assert standard[1]["stress"] is True
+    assert localised[1]["say"] == "mi"
+    assert localised[0]["stress"] is True
+
+
 def test_generated_guides_are_remembered_for_later_lookup():
     generated = [
         {"say": "tay", "anchor": 'the "tay" in stay, without the s', "stress": False},
