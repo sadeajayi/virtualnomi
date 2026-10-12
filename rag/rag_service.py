@@ -410,10 +410,7 @@ class LanguageRAGService:
             return True
 
         if morph_hits:
-            if meaning_overlap or naming_context:
-                return True
-            text_folded = self._fold_for_match(excerpt)
-            if any(hint in text_folded for hint in _NAME_DEFINITION_HINTS):
+            if meaning_overlap:
                 return True
 
         if len(strong_overlap) >= 2:
