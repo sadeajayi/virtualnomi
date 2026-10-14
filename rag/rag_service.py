@@ -429,10 +429,6 @@ class LanguageRAGService:
                 return True
             return False
 
-        # Weak-only overlaps (mine, found, thanks) need morphology/pattern support.
-        if meaning_overlap and structural_cue:
-            return True
-
         if (
             score >= INSIGHTS_RELEVANCE_MIN_SCORE
             and strong_overlap

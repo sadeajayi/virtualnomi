@@ -131,6 +131,34 @@ def test_morenikeji_generic_excerpts_fail_relevance_gate_before_model(monkeypatc
     assert model_called is False
 
 
+def test_weak_meaning_overlap_with_generic_pattern_context_is_rejected(monkeypatch):
+    weak_generic = _FakeRag(
+        [{
+            "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+            "excerpt": (
+                "Researchers found that Yoruba personal names often use "
+                "morpheme construction and compound naming patterns."
+            ),
+            "relevance_score": 0.4,
+        }]
+    )
+    monkeypatch.setattr(
+        service,
+        "get_rag_service_for_dataset_language",
+        lambda *_args, **_kwargs: weak_generic,
+    )
+    assert service.gather_rag_context(
+        "Morẹ́nikéjì",
+        "I have found a companion.",
+        "Yoruba",
+    ) == (
+        "",
+        [],
+        False,
+        "yoruba",
+    )
+
+
 def test_empty_retrieval_rejects_meaning_only_path(monkeypatch):
     service._clear_insight_cache()
     empty = _FakeRag([])
