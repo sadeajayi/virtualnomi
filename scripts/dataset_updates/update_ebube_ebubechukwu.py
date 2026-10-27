@@ -21,7 +21,14 @@ from typing import Any, Dict, Optional
 
 import pandas as pd
 from datasets import Dataset
-from huggingface_hub import HfFolder, hf_hub_download
+from huggingface_hub import hf_hub_download
+
+try:
+    from huggingface_hub import get_token
+except ImportError:  # huggingface_hub<0.20 compatibility
+    from huggingface_hub import HfFolder
+
+    get_token = HfFolder.get_token
 
 DATASET_REPO = "nomi-stories/nomi-names"
 PARQUET = "data/train-00000-of-00001.parquet"
@@ -176,7 +183,7 @@ def apply_updates(df: pd.DataFrame) -> tuple[pd.DataFrame, dict]:
 
 
 def run(dry_run: bool) -> int:
-    token = os.getenv("HF_TOKEN") or HfFolder.get_token()
+    token = os.getenv("HF_TOKEN") or get_token()
     if not token and not dry_run:
         print("HF_TOKEN not set. Re-run with --dry-run to preview planned changes.")
         return 1

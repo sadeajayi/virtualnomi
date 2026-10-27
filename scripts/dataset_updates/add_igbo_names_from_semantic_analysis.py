@@ -20,7 +20,14 @@ from typing import Dict, List, Optional, Tuple
 
 import pandas as pd
 from datasets import Dataset
-from huggingface_hub import HfFolder, hf_hub_download
+from huggingface_hub import hf_hub_download
+
+try:
+    from huggingface_hub import get_token
+except ImportError:  # huggingface_hub<0.20 compatibility
+    from huggingface_hub import HfFolder
+
+    get_token = HfFolder.get_token
 from unidecode import unidecode
 
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
@@ -321,7 +328,7 @@ def append_new_rows(df: pd.DataFrame, to_add: pd.DataFrame) -> pd.DataFrame:
 
 
 def run(dry_run: bool) -> int:
-    token = __import__("os").getenv("HF_TOKEN") or HfFolder.get_token()
+    token = __import__("os").getenv("HF_TOKEN") or get_token()
     if not token:
         raise SystemExit("HF_TOKEN not set. Run: export HF_TOKEN=... or huggingface-cli login")
 
