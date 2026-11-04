@@ -1,6 +1,6 @@
 # Deploy from repo root (omit rootDir) so data/paraphrasing/yoruba_paraphrased_meanings.json
 # is available; build and run from the API subfolder.
-# 512MB Render: use requirements.txt and NOMI_SEMANTIC_SEARCH=0
+# 512MB: requirements.txt (HF Inference embeddings + Pinecone). NOMI_SEMANTIC_SEARCH=0 skips local torch.
 services:
   - type: web
     name: nomi-name-search-api

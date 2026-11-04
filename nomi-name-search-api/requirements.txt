@@ -1,5 +1,6 @@
-# Base API (exact name lookup, cards, insights with text-only RAG). Fits ~512 MB Render tier.
-# For semantic /search (meaning queries), also install requirements-semantic.txt and set NOMI_SEMANTIC_SEARCH=1.
+# Base API (exact name lookup, cards, insights, meaning search). Fits ~512 MB Render tier.
+# Query embeddings use Hugging Face Inference (no local torch). Pinecone stores the vectors.
+# Optional local SentenceTransformer: install requirements-semantic.txt on 1 GB+ RAM.
 setuptools>=65.0.0
 wheel
 fastapi==0.104.1
@@ -7,6 +8,7 @@ uvicorn[standard]==0.24.0
 pydantic==2.5.0
 huggingface-hub==0.19.4
 numpy==1.24.3
+pinecone-client==3.2.2
 openai==1.3.0
 anthropic>=0.39.0
 python-multipart==0.0.6

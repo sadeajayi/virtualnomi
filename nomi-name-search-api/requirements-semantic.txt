@@ -1,6 +1,6 @@
-# Full semantic search stack (PyTorch + embeddings). Requires ~1 GB RAM on Render.
+# Optional local embedding stack (PyTorch). Requires ~1 GB RAM on Render.
 # Install with: pip install -r requirements-semantic.txt
+# 512 MB deploys should use requirements.txt only (HF Inference embeddings + Pinecone).
 -r requirements.txt
 sentence-transformers==2.2.2
-pinecone-client==3.2.2
 torch==2.1.0

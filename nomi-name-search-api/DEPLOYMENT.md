@@ -93,12 +93,13 @@ railway variables set OPENAI_API_KEY=your-key
    - You'll get a URL like: `https://nomi-name-search-api.onrender.com`
 
 6. **Instance size (memory)**:
-   - Render's free/starter **512 MB** plan cannot run **PyTorch + sentence-transformers** (~400 MB+ RAM on first semantic `/search`). The default build uses **`requirements.txt` only** (no torch) so the service stays up for exact-name routes, cards, and insights.
-   - Set **`NOMI_SEMANTIC_SEARCH=0`** (recommended on 512 MB) to disable meaning-based search and return **503** with a clear message instead of OOM.
-   - **`GET /`** reports `"semantic_search": true|false`. When `false`, `/search?q=folasade` (exact name) still works; `/search?q=love` (meaning query) returns 503.
-   - For full semantic search: upgrade to **at least 1 GB RAM**, set build to `pip install -r requirements-semantic.txt`, set **`NOMI_SEMANTIC_SEARCH=1`**, and keep **`PINECONE_API_KEY`** set.
+   - Render's free/starter **512 MB** plan cannot run **PyTorch + sentence-transformers** (~400 MB+ RAM on first local embed). The default build uses **`requirements.txt` only** (no torch). Meaning `/search` still works: query embeddings come from **Hugging Face Inference** (`fajayi/nomi-name-encoder`), then Pinecone. If Pinecone is unset, `/search` falls back to lexical meaning scan of the parquet.
+   - Set **`NOMI_SEMANTIC_SEARCH=0`** on 512 MB to skip loading local torch. That flag no longer disables `/search`.
+   - **`GET /`** reports `"semantic_search": true` when **`PINECONE_API_KEY`** is set.
+   - Optional faster local embeddings: upgrade to **at least 1 GB RAM**, set build to `pip install -r requirements-semantic.txt`, and set **`NOMI_SEMANTIC_SEARCH=1`**.
+   - Keep **`HF_TOKEN`** and **`PINECONE_API_KEY`** set for vector search.
    - **`GET /insights`** uses text-only RAG (no torch) and needs **`ANTHROPIC_API_KEY`**; it fits 512 MB once indexes are deployed from repo root.
-   - If the instance shows **"Ran out of memory (used over 512MB)"**, check Logs for the first heavy request (usually semantic `/search` or an old deploy that still installed torch). Upgrade or disable semantic search as above.
+   - If the instance shows **"Ran out of memory (used over 512MB)"**, check Logs for an old deploy that still installed torch. Use `requirements.txt` only on 512 MB.
 
 ---
 

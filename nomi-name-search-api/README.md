@@ -11,6 +11,8 @@ FastAPI backend for Nomi semantic name search. Exposes search functionality as R
 pip install -r requirements.txt
 ```
 
+Meaning `/search` uses Hugging Face Inference plus Pinecone (no local torch). Optional local embeddings: `pip install -r requirements-semantic.txt` on a machine with ≥1 GB RAM.
+
 2. Set environment variables:
 ```bash
 export HF_TOKEN="your-huggingface-token"

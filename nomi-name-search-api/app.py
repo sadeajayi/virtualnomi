@@ -11,6 +11,7 @@ import sys
 import re as _re
 import html as html_mod
 import urllib.request as _urllib
+from urllib.error import HTTPError, URLError
 from urllib.parse import quote
 from pathlib import Path
 from typing import Optional, List, Dict, Any
@@ -39,6 +40,13 @@ except ImportError:
 HF_TOKEN = os.environ.get("HF_TOKEN")
 PINECONE_API_KEY = os.environ.get("PINECONE_API_KEY")
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
+EMBEDDING_MODEL_ID = "fajayi/nomi-name-encoder"
+EMBEDDING_DIM = 384
+_HF_FEATURE_EXTRACTION_URLS = (
+    f"https://router.huggingface.co/hf-inference/models/{EMBEDDING_MODEL_ID}/pipeline/feature-extraction",
+    f"https://api-inference.huggingface.co/pipeline/feature-extraction/{EMBEDDING_MODEL_ID}",
+    f"https://api-inference.huggingface.co/models/{EMBEDDING_MODEL_ID}",
+)
 NOMI_DATASET_REPO = "nomi-stories/nomi-names"
 NOMI_DATASET_PARQUET = "data/train-00000-of-00001.parquet"
 NOMI_STORIES_REPO = "nomi-stories/nomi-stories"
@@ -232,27 +240,35 @@ class SyllableGuideResponse(BaseModel):
     syllables: List[SyllableGuide]
 
 
-def semantic_search_enabled() -> bool:
+def _env_pinecone_key() -> str:
+    return (os.environ.get("PINECONE_API_KEY") or "").strip()
+
+
+def _env_hf_token() -> Optional[str]:
+    return os.environ.get("HF_TOKEN") or None
+
+
+def local_torch_embeddings_allowed() -> bool:
     """
-    Semantic /search (Pinecone + SentenceTransformer) needs ~1 GB RAM.
-    Set NOMI_SEMANTIC_SEARCH=0 on 512 MB Render; install requirements-semantic.txt and set =1 on 1 GB+.
+    Local SentenceTransformer + torch needs ~1 GB RAM.
+    NOMI_SEMANTIC_SEARCH=0 skips that load on 512 MB; query embeddings then use Hugging Face Inference.
     """
     flag = os.environ.get("NOMI_SEMANTIC_SEARCH", "auto").strip().lower()
     if flag in ("0", "false", "no", "off", "disabled"):
         return False
     if flag in ("1", "true", "yes", "on", "enabled"):
-        if not PINECONE_API_KEY:
-            return False
         return True
-    # auto: only when Pinecone is configured and the semantic stack is installed
-    if not PINECONE_API_KEY:
-        return False
     try:
         import importlib.util
 
         return importlib.util.find_spec("sentence_transformers") is not None
     except Exception:
         return False
+
+
+def semantic_search_enabled() -> bool:
+    """Vector /search is on when Pinecone is configured. Local torch is optional."""
+    return bool(_env_pinecone_key())
 
 
 def _names_parquet_path() -> str:
@@ -373,32 +389,93 @@ def ensure_dataset():
     load_dataset_fallback()
 
 
+def coerce_query_embedding(payload: Any) -> List[float]:
+    """Turn HF feature-extraction output into a single 384-d vector (mean-pool if needed)."""
+    arr = np.array(payload, dtype=np.float32)
+    if arr.size == 0:
+        raise SearchUnavailableError("Embedding API returned an empty vector")
+    while arr.ndim > 1:
+        arr = arr.mean(axis=0)
+    vec = arr.reshape(-1)
+    if vec.size != EMBEDDING_DIM:
+        raise SearchUnavailableError(
+            f"Embedding API returned {vec.size} dimensions; expected {EMBEDDING_DIM}"
+        )
+    return vec.astype(float).tolist()
+
+
+def embed_query_hf_inference(query: str) -> List[float]:
+    """Embed a query with fajayi/nomi-name-encoder via Hugging Face Inference (no local torch)."""
+    body = json.dumps(
+        {"inputs": query, "options": {"wait_for_model": True, "use_cache": True}}
+    ).encode("utf-8")
+    headers = {"Content-Type": "application/json", "Accept": "application/json"}
+    token = _env_hf_token()
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+    last_error: Optional[str] = None
+    for url in _HF_FEATURE_EXTRACTION_URLS:
+        req = _urllib.Request(url, data=body, headers=headers, method="POST")
+        try:
+            with _urllib.urlopen(req, timeout=45) as resp:
+                raw = resp.read().decode("utf-8")
+            payload = json.loads(raw)
+            if isinstance(payload, dict) and payload.get("error"):
+                last_error = str(payload.get("error"))
+                continue
+            return coerce_query_embedding(payload)
+        except HTTPError as exc:
+            last_error = f"{url} HTTP {exc.code}"
+            if exc.code in (401, 403, 404):
+                continue
+            if exc.code == 503:
+                continue
+        except (URLError, TimeoutError, json.JSONDecodeError, SearchUnavailableError) as exc:
+            last_error = str(exc)
+            continue
+    raise SearchUnavailableError(
+        f"Hugging Face Inference embedding failed: {last_error or 'no endpoint succeeded'}"
+    )
+
+
+class RemoteSentenceEncoder:
+    """SentenceTransformer-compatible encoder backed by Hugging Face Inference."""
+
+    def encode(self, sentences, **kwargs):
+        if isinstance(sentences, str):
+            sentences = [sentences]
+        return np.array([embed_query_hf_inference(text) for text in sentences], dtype=np.float32)
+
+
 def ensure_pinecone():
     """Connect to Pinecone index (required for semantic search)."""
     global pc, index
     if index is not None:
         return
-    if not PINECONE_API_KEY:
+    api_key = _env_pinecone_key()
+    if not api_key:
         raise SearchUnavailableError("PINECONE_API_KEY is not set")
     print("Connecting to Pinecone...")
     from pinecone import Pinecone
-    pc = Pinecone(api_key=PINECONE_API_KEY)
+    pc = Pinecone(api_key=api_key)
     index = pc.Index("nomi-name-encoder")
 
 
 def ensure_embedding_model():
-    """Load SentenceTransformer (~400MB+ with torch; semantic search only)."""
+    """Load local SentenceTransformer when RAM allows; otherwise Hugging Face Inference."""
     global model
     if model is not None:
         return
-    print("Loading embedding model...")
-    try:
-        from sentence_transformers import SentenceTransformer
-        model = SentenceTransformer("fajayi/nomi-name-encoder")
-    except Exception as exc:
-        raise SearchUnavailableError(
-            f"Embedding model failed to load: {exc}"
-        ) from exc
+    if local_torch_embeddings_allowed():
+        print("Loading embedding model...")
+        try:
+            from sentence_transformers import SentenceTransformer
+            model = SentenceTransformer(EMBEDDING_MODEL_ID)
+            return
+        except Exception as exc:
+            print(f"Local embedding model unavailable, using Hugging Face Inference: {exc}")
+    print("Using Hugging Face Inference for query embeddings (no local torch).")
+    model = RemoteSentenceEncoder()
 
 
 def ensure_openai_client():
@@ -414,9 +491,8 @@ def ensure_search_components(query: str):
     """Initialize only what semantic search needs for this query."""
     if not semantic_search_enabled():
         raise SearchUnavailableError(
-            "Semantic search is disabled on this deployment (512 MB tier). "
-            "Use exact name lookup (/name, /card) or upgrade to 1 GB+ RAM, "
-            "install requirements-semantic.txt, and set NOMI_SEMANTIC_SEARCH=1."
+            "Semantic search needs PINECONE_API_KEY. "
+            "Exact name lookup (/name, /card) still works; meaning queries use lexical fallback."
         )
     ensure_dataset()
     ensure_pinecone()
@@ -676,6 +752,56 @@ def build_result_dict(name_data: Dict, metadata: Dict, story: Dict, score: float
         "syllables": metadata.get("syllables") or _syllables_for_name(name_strip, lang),
     }
 
+def _lexical_row_blob(row: Dict[str, Any]) -> str:
+    themes = row.get("themes") or []
+    theme_text = " ".join(str(t) for t in themes) if isinstance(themes, list) else str(themes)
+    return " ".join(
+        [
+            str(row.get("Meaning") or ""),
+            str(row.get("Additional meaning") or ""),
+            str(row.get("cultural_context") or ""),
+            theme_text,
+        ]
+    ).lower()
+
+
+def query_with_lexical_meaning(query: str, lang_filter: str) -> List[Dict[str, Any]]:
+    """Scan dataset meanings when vector search is off or fails. No torch, no Pinecone."""
+    needle = query.strip().lower()
+    if not needle:
+        return []
+    hits: List[Dict[str, Any]] = []
+    for row in load_dataset_fallback():
+        lang = str(row.get("Language") or "").strip()
+        if not _language_matches(lang_filter, lang):
+            continue
+        meaning = str(row.get("Meaning") or "")
+        blob = _lexical_row_blob(row)
+        if needle not in blob:
+            continue
+        meaning_l = meaning.lower()
+        if needle == meaning_l:
+            score = 1.0
+        elif needle in meaning_l:
+            score = 0.8
+        else:
+            score = 0.4
+        name_strip = str(row.get("NameStrip") or "").strip()
+        metadata = get_name_metadata_from_dataset(name_strip, lang)
+        story = get_story_from_dataset(name_strip, lang)
+        name_data = {
+            "name": row.get("Name", name_strip),
+            "name_strip": name_strip,
+            "meaning": meaning,
+            "language": lang,
+            "cultural_context": row.get("cultural_context", ""),
+            "themes": row.get("themes", []),
+        }
+        hits.append(build_result_dict(name_data, metadata, story, score))
+    hits.sort(key=lambda item: item.get("score", 0), reverse=True)
+    return hits[:20]
+
+
 def query_name_db(query: str, lang_filter: str) -> List[Dict[str, Any]]:
     """Main query function - hybrid search (dataset-only exact match, then semantic)."""
     dataset = load_dataset_fallback()
@@ -709,11 +835,15 @@ def query_name_db(query: str, lang_filter: str) -> List[Dict[str, Any]]:
             return [build_result_dict(name_data, metadata, story, 1.0)]
     
     # 2) Semantic search — lazy-init Pinecone + embeddings only when needed
-    ensure_search_components(query)
-    use_openai = is_complex_query(query) and openai_client is not None
-    if use_openai:
-        return query_with_openai(query, lang_filter)
-    return query_with_sentence_transformer(query, lang_filter)
+    try:
+        ensure_search_components(query)
+        use_openai = is_complex_query(query) and openai_client is not None
+        hits = query_with_openai(query, lang_filter) if use_openai else query_with_sentence_transformer(query, lang_filter)
+        if hits:
+            return hits
+    except SearchUnavailableError as exc:
+        print(f"Semantic search unavailable, lexical fallback: {exc}")
+    return query_with_lexical_meaning(query, lang_filter)
 
 # API Endpoints
 @app.get("/")
