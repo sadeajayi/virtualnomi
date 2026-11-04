@@ -97,3 +97,23 @@ def test_query_name_db_falls_back_lexically_when_vectors_unavailable(monkeypatch
     monkeypatch.setattr("app.ensure_search_components", _unavailable)
     hits = query_name_db("love", "Yoruba")
     assert hits[0]["name_strip"] == "ife"
+
+
+def test_query_name_db_falls_back_on_unexpected_vector_error(monkeypatch):
+    rows = [
+        {
+            "Name": "Ifẹ́",
+            "NameStrip": "ife",
+            "Meaning": "love",
+            "Language": "Yoruba",
+            "Additional meaning": "",
+            "cultural_context": "",
+            "themes": [],
+        }
+    ]
+    monkeypatch.setattr("app.load_dataset_fallback", lambda: rows)
+    monkeypatch.setattr("app.get_name_metadata_from_dataset", lambda *a, **k: {})
+    monkeypatch.setattr("app.get_story_from_dataset", lambda *a, **k: {})
+    monkeypatch.setattr("app.ensure_search_components", lambda q: (_ for _ in ()).throw(RuntimeError("pinecone dim")))
+    hits = query_name_db("a child who brings joy to the household", "Yoruba")
+    assert hits == []

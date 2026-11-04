@@ -496,10 +496,8 @@ def ensure_search_components(query: str):
         )
     ensure_dataset()
     ensure_pinecone()
-    if is_complex_query(query) and OPENAI_API_KEY:
-        ensure_openai_client()
-        if openai_client is not None:
-            return
+    # Always embed with fajayi/nomi-name-encoder (384-d). OpenAI text-embedding-3-small
+    # is 1536-d and cannot query this Pinecone index.
     ensure_embedding_model()
 
 
@@ -837,11 +835,10 @@ def query_name_db(query: str, lang_filter: str) -> List[Dict[str, Any]]:
     # 2) Semantic search — lazy-init Pinecone + embeddings only when needed
     try:
         ensure_search_components(query)
-        use_openai = is_complex_query(query) and openai_client is not None
-        hits = query_with_openai(query, lang_filter) if use_openai else query_with_sentence_transformer(query, lang_filter)
+        hits = query_with_sentence_transformer(query, lang_filter)
         if hits:
             return hits
-    except SearchUnavailableError as exc:
+    except Exception as exc:
         print(f"Semantic search unavailable, lexical fallback: {exc}")
     return query_with_lexical_meaning(query, lang_filter)
 
