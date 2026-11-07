@@ -26,11 +26,9 @@ _generated: Dict[str, List[Dict[str, Any]]] = {}
 
 
 def practice_key(name_strip: str, language: str) -> str:
-    family = ""
-    stripped = (language or "").strip().lower()
-    if stripped:
-        family = stripped.split()[0].split("(")[0]
-    return f"{(name_strip or '').strip().lower()}|{family}"
+    normalized_language = " ".join((language or "").strip().casefold().split())
+    normalized_name = " ".join((name_strip or "").strip().casefold().split())
+    return f"{normalized_name}|{normalized_language}"
 
 
 def phonetic_parts(phonetic: str) -> List[str]:
