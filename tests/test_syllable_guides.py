@@ -52,7 +52,8 @@ def test_generated_guides_are_remembered_for_later_lookup():
         {"say": "kpe", "anchor": '"kpe" — one sound, like a popped p', "stress": False},
     ]
     store.remember_generated("Temitope", "Yoruba", generated)
-    assert store.get_published_syllables("Temitope", "Yoruba") == generated
+    assert store.get_published_syllables("Temitope", "Yoruba") is None
+    assert store.get_generated_syllables("Temitope", "Yoruba") == generated
 
 
 def test_apply_published_phonetic_keeps_beats_and_caps_stress():
@@ -105,7 +106,47 @@ def test_resolve_generates_when_unpublished(monkeypatch):
     )
     assert payload["source"] == "generated"
     assert [beat["say"] for beat in payload["syllables"]] == ["tay", "mi", "taw", "kpe"]
-    assert store.get_published_syllables("Temitope", "Yoruba") == beats
+    assert store.get_published_syllables("Temitope", "Yoruba") is None
+    assert store.get_generated_syllables("Temitope", "Yoruba") == beats
+
+
+def test_resolve_reuses_generated_cache_as_generated(monkeypatch):
+    beats = [
+        {"say": "tay", "anchor": 'the "tay" in stay, without the s', "stress": False},
+        {"say": "mi", "anchor": "the word me", "stress": False},
+        {"say": "taw", "anchor": 'the "taw" in talk, without the lk', "stress": True},
+        {"say": "kpe", "anchor": "kpe — one sound, like a popped p", "stress": False},
+    ]
+    store.remember_generated("Temitope", "Yoruba", beats)
+    monkeypatch.setattr(
+        "syllable_service.generate_syllable_guide",
+        lambda **_: (_ for _ in ()).throw(AssertionError("should use cache")),
+    )
+
+    payload = resolve_syllable_guide(
+        name="Temitope",
+        name_strip="Temitope",
+        language="Yoruba",
+        phonetic="tay-mi-taw-kpe",
+        generate=True,
+    )
+
+    assert payload["source"] == "generated"
+    assert payload["syllables"] == beats
+
+
+def test_name_lookup_helper_excludes_generated_guides():
+    import app as api
+
+    generated = [
+        {"say": "tay", "anchor": 'the "tay" in stay, without the s', "stress": False},
+        {"say": "mi", "anchor": "the word me", "stress": False},
+        {"say": "taw", "anchor": 'the "taw" in talk, without the lk', "stress": True},
+        {"say": "kpe", "anchor": "kpe — one sound, like a popped p", "stress": False},
+    ]
+    store.remember_generated("Temitope", "Yoruba", generated)
+
+    assert api._syllables_for_name("Temitope", "Yoruba") is None
 
 
 def test_syllable_guide_endpoint_returns_published(monkeypatch):
