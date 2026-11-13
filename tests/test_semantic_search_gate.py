@@ -117,3 +117,13 @@ def test_query_name_db_falls_back_on_unexpected_vector_error(monkeypatch):
     monkeypatch.setattr("app.ensure_search_components", lambda q: (_ for _ in ()).throw(RuntimeError("pinecone dim")))
     hits = query_name_db("a child who brings joy to the household", "Yoruba")
     assert hits == []
+
+
+def test_render_config_uses_remote_embedding_stack_on_512mb():
+    render_config = (
+        Path(__file__).resolve().parents[1] / "nomi-name-search-api" / "render.yaml"
+    ).read_text(encoding="utf-8")
+
+    assert "pip install -r requirements.txt" in render_config
+    assert "pip install -r requirements-semantic.txt" not in render_config
+    assert 'key: NOMI_SEMANTIC_SEARCH\n        value: "0"' in render_config
