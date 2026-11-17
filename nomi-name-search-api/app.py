@@ -871,12 +871,15 @@ async def paraphrase_status():
     }
 
 @app.get("/search", response_model=SearchResponse)
-async def search(
+def search(
     q: str = Query(..., description="Search query"),
     language: Optional[str] = Query("All", description="Language filter"),
     stories_only: bool = Query(False, description="Only return names with published stories")
 ):
-    """Search for names by meaning, theme, or exact name"""
+    """Search for names by meaning, theme, or exact name.
+
+    This stays sync so FastAPI moves slow remote embedding calls off the event loop.
+    """
     if stories_only:
         load_stories_data()
         dataset_lookup = get_dataset_lookup()

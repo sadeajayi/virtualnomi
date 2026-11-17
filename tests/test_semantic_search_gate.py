@@ -1,3 +1,4 @@
+import inspect
 import sys
 from pathlib import Path
 
@@ -11,6 +12,7 @@ from app import (  # noqa: E402
     local_torch_embeddings_allowed,
     query_name_db,
     query_with_lexical_meaning,
+    search,
     semantic_search_enabled,
 )
 
@@ -43,6 +45,10 @@ def test_semantic_search_off_without_pinecone(monkeypatch):
     monkeypatch.delenv("PINECONE_API_KEY", raising=False)
     monkeypatch.setenv("NOMI_SEMANTIC_SEARCH", "1")
     assert semantic_search_enabled() is False
+
+
+def test_search_route_runs_blocking_semantic_work_off_event_loop():
+    assert inspect.iscoroutinefunction(search) is False
 
 
 def test_lexical_meaning_search_finds_substring(monkeypatch):
