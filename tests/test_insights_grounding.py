@@ -91,6 +91,30 @@ def test_generic_boilerplate_without_meaning_tie_is_rejected(monkeypatch):
     )
 
 
+def test_morpheme_only_pattern_excerpt_without_meaning_tie_is_rejected(monkeypatch):
+    generic_morpheme = _FakeRag(
+        [{
+            "paper": "Construction_Morphology_in_Yoruba_names_Schemas_an.pdf",
+            "excerpt": (
+                "Yoruba personal names often use compound constructions, and "
+                "the ola morpheme appears in personal names."
+            ),
+            "relevance_score": 0.4,
+        }]
+    )
+    monkeypatch.setattr(
+        service,
+        "get_rag_service_for_dataset_language",
+        lambda *_args, **_kwargs: generic_morpheme,
+    )
+    assert service.gather_rag_context("Bolaji", "Wake with me", "Yoruba") == (
+        "",
+        [],
+        False,
+        "yoruba",
+    )
+
+
 def test_morenikeji_generic_excerpts_fail_relevance_gate_before_model(monkeypatch):
     service._clear_insight_cache()
     generic = _FakeRag(
